@@ -2,6 +2,7 @@ from Simulation import Simulation
 import LFPy
 import LFPy_util
 import numpy as np
+from scipy.stats.mstats import zscore
 
 class Intracellular(Simulation):
     """docstring for Grid"""
@@ -19,6 +20,7 @@ class Intracellular(Simulation):
 
         # Plot names.
         self.fname_intra_plot             = 'intra_soma_mem'
+        self.fname_intra_plot_zscore      = 'intra_soma_mem_zscore'
         self.fname_intra_plot_fourier     = 'intra_soma_mem_fourier'
         self.fname_intra_plot_i_mem_v_mem = 'intra_i_mem_v_mem'
 
@@ -35,6 +37,7 @@ class Intracellular(Simulation):
         self.cell.simulate(rec_vmem=True,rec_imem=True,rec_istim=True,rec_isyn=True)
 
         self.results['soma_v']    = self.cell.somav
+        self.results['soma_v_z']  = zscor(self.cell.somav)
         self.results['soma_t']    = self.cell.tvec
         self.results['dt']        = self.cell.timeres_NEURON
         self.results['v_vec_list']    = v_vec_list
@@ -65,6 +68,14 @@ class Intracellular(Simulation):
     def plot(self):
         results = self.results
         run_param = self.run_param
+
+        LFPy_util.plot.soma(
+            results['soma_t_z'],
+            results['soma_v'],
+            self.fname_intra_plot_zscore, 
+            plot_save_dir=self.dir_plot,
+            show=self.show
+        )
 
         LFPy_util.plot.soma(
             results['soma_t'],

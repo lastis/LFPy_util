@@ -22,6 +22,7 @@ def nrnivmodl(directory='.', suppress=False):
     os.chdir(tmp)
 
 def save_kwargs(path, **kwargs):
+    # Create the directory path if it doesn't exist yet.
     directory = os.path.dirname(path)
     if not os.path.exists(directory) and directory != '':
         os.makedirs(directory)
@@ -70,7 +71,10 @@ def load_kwargs_json(path):
     :returns: 
         :class:`dict` -- json file.
     """
-    f = open(path+'.js','r')
+    _, ext = os.path.splitext(path)
+    if ext == '':
+        path = path+'.js'
+    f = open(path,'r')
     param_dict = json.load(f)
     f.close()
     return param_dict

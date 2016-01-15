@@ -22,6 +22,7 @@ def find_spikes(v_vec, threshold=1):
 
 def extract_spikes(t_vec, v_vec, pre_dur=8.35, post_dur=8.35,threshold=3,
         amp_option='pos'):
+    threshold = np.fabs(threshold)
     dt = t_vec[1] - t_vec[0]
     pre_idx = int(pre_dur/float(dt));
     post_idx = int(post_dur/float(dt));
@@ -31,12 +32,12 @@ def extract_spikes(t_vec, v_vec, pre_dur=8.35, post_dur=8.35,threshold=3,
     if amp_option == 'neg':
         v_vec = -v_vec
 
-    # Find local maxima or minima.
+    # Find local maxima (or minima).
     max_idx = argrelextrema(v_vec,np.greater)[0]
-    threshold = np.fabs(threshold)
 
     # Return if no spikes were found.
     if len(max_idx) == 0:
+        print "Warning (extract_spikes): No local maxima found!"
         return [], [], []
 
     # Only count local maxima over threshold as spikes.

@@ -117,15 +117,16 @@ class DiscElectrodes(Simulation):
             )
             if len(spikes) == 0:
                 electrode_spikes.append([])
+                print "Warning (DiscElectrodes): no spikes found!"
                 continue
-            # Only use the first spike.
-            # Use the same time interval for all electrodes.
+            # Use the same time interval for all electrodes, taken from the 
+            # first spike.
             mat = mat[:,I[0,0]:I[0,1]]
 
             # Store the spike signals.
             electrode_spikes.append(mat)
         results['t_vec_spike'] = t_vec_spike
-        results['electrode_spikes'] = electrode_spikes
+        results['electrode_spikes'] = np.array(electrode_spikes)
         results['electrode_pos'] = electrode_pos
 
         # Spike widths.
@@ -155,6 +156,9 @@ class DiscElectrodes(Simulation):
                 # Create directory and filename. 
                 name =  ('n_theta_%03d' %(i))
                 directory = self.dir_plot+'/'+self.fname_disc_plot_elec_signal
+                if results['electrode_spikes'].size == 0:
+                    print "Warning (DiscElectrodes): no spikes found!"
+                    continue
                 LFPy_util.plot.electrodeSignals(
                         results['t_vec_spike'],
                         results['electrode_spikes'][i],
