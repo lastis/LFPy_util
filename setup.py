@@ -6,7 +6,12 @@ setup(
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
-    install_requires = ['NEURON >= 7.4','matplotlib >= 1.3.1',' LFPy >= 1.1.0'],
+    install_requires = [
+        'NEURON >= 7.4',
+        'matplotlib >= 1.3.1',
+        'LFPy >= 1.1.0',
+        'JSAnimation >= 0.1',
+    ],
 
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
