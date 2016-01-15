@@ -4,6 +4,8 @@ import subprocess
 import LFPy_util
 import pickle
 import json
+import numpy as np
+from neuron import hoc
 
 def nrnivmodl(directory='.', suppress=False):
     tmp = os.getcwd()
@@ -37,7 +39,6 @@ def load_kwargs(path):
         return pickle.load(f)
 
 def save_kwargs_json(path,**kwargs):
-    from neuron import hoc
     # Create the directory path if it doesn't exist yet.
     directory = os.path.dirname(path)
     if not os.path.exists(directory) and directory != '':

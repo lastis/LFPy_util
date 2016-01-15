@@ -25,4 +25,5 @@ setup(
     author_email = "neitakkikkebanan@gmail.com",
     description = "Extension package for LFPy and neuron.",
     license = "PSF",
+    zip_safe = False,
 )
