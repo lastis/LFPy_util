@@ -1,4 +1,5 @@
-
+*.swp
+*~
 # Python ignore
 led / optimized / DLL files
 __pycache__/
