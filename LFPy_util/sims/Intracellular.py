@@ -37,7 +37,7 @@ class Intracellular(Simulation):
         self.cell.simulate(rec_vmem=True,rec_imem=True,rec_istim=True,rec_isyn=True)
 
         self.results['soma_v']    = self.cell.somav
-        self.results['soma_v_z']  = zscor(self.cell.somav)
+        self.results['soma_v_z']  = zscore(self.cell.somav)
         self.results['soma_t']    = self.cell.tvec
         self.results['dt']        = self.cell.timeres_NEURON
         self.results['v_vec_list']    = v_vec_list
@@ -70,8 +70,8 @@ class Intracellular(Simulation):
         run_param = self.run_param
 
         LFPy_util.plot.soma(
-            results['soma_t_z'],
-            results['soma_v'],
+            results['soma_t'],
+            results['soma_v_z'],
             self.fname_intra_plot_zscore, 
             plot_save_dir=self.dir_plot,
             show=self.show

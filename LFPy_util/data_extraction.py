@@ -37,7 +37,7 @@ def extract_spikes(t_vec, v_vec, pre_dur=8.35, post_dur=8.35,threshold=3,
 
     # Return if no spikes were found.
     if len(max_idx) == 0:
-        print "Warning (extract_spikes): No local maxima found!"
+        # print "Warning (extract_spikes): No local maxima found!"
         return [], [], []
 
     # Only count local maxima over threshold as spikes.
@@ -51,6 +51,11 @@ def extract_spikes(t_vec, v_vec, pre_dur=8.35, post_dur=8.35,threshold=3,
                 max_idx[i] > len(t_vec) - post_idx):
             v_max = np.delete(v_max,i)
             max_idx = np.delete(max_idx,i)
+
+    # Return if no spikes were found.
+    if len(max_idx) == 0:
+        # print "Warning (extract_spikes): No maxima above threshold."
+        return [], [], []
 
     spike_cnt = len(max_idx)
     n = pre_idx + post_idx
