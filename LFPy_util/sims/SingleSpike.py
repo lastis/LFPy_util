@@ -44,7 +44,8 @@ class SingleSpike(Simulation):
         path = os.path.join(self.dir_data,self.fname_results) + "." \
                 + self.format_save_results
         if not os.path.isfile(path):
-            print "Could not load previous one spike amp."
+            if self.debug:
+                print "Could not load previous one spike amp."
             return self.run_param['init_amp']
         if self.format_save_results == 'pkl':
             results_tmp = LFPy_util.other.load_kwargs(path)

@@ -96,6 +96,7 @@ class DiscElectrodes(Simulation):
 
         electrode_spikes = []
         electrode_pos = []
+        electrode_t_vec = []
         # For each angle around the center point, there are multiple electrodes.
         for i in xrange(n_theta):
             # Create a vector of the radial positions of the electrodes.
@@ -116,20 +117,20 @@ class DiscElectrodes(Simulation):
                 amp_option=run_param['amp_option'],
             )
             if len(spikes) == 0:
-                electrode_spikes.append([])
                 if self.debug:
                     print "Warning (DiscElectrodes): no spikes found!"
                 # Store the signal anyway.
-                t_vec_spike = results['t_vec']
+                electrode_spikes.append(mat)
+                electrode_t_vec.append(results['t_vec'])
             else:
                 # Use the same time interval for all electrodes, taken from the 
                 # first spike.
                 mat = mat[:,I[0,0]:I[0,1]]
-            # Store the spike signals.
-            electrode_spikes.append(mat)
-        results['t_vec_spike'] = t_vec_spike
-        results['electrode_spikes'] = np.array(electrode_spikes)
-        print electrode_spikes
+                # Store the spike signals.
+                electrode_spikes.append(mat)
+                electrode_t_vec.append(t_vec_spike)
+        results['electrode_t_vec'] = electrode_t_vec
+        results['electrode_spikes'] = electrode_spikes
         results['electrode_pos'] = electrode_pos
 
         # Spike widths.
@@ -152,7 +153,6 @@ class DiscElectrodes(Simulation):
     def plot(self):
         results = self.results
         run_param = self.run_param
-        print results['electrode_spikes'].shape
 
         # Plot the signals from the electrodes in a discular shape.
         if self.plot_detailed:
@@ -160,12 +160,12 @@ class DiscElectrodes(Simulation):
                 # Create directory and filename. 
                 name =  ('n_theta_%03d' %(i))
                 directory = self.dir_plot+'/'+self.fname_disc_plot_elec_signal
-                if results['electrode_spikes'].size == 0:
+                if len(results['electrode_spikes'][0]) == 0:
                     if self.debug:
-                        print "Warning (DiscElectrodes): no spikes found!"
+                        print "Warning (DiscElectrodes): no spike data found!"
                     continue
                 LFPy_util.plot.electrodeSignals(
-                        results['t_vec_spike'],
+                        results['electrode_t_vec'][i],
                         results['electrode_spikes'][i],
                         elec_pos=results['electrode_pos'][i],
                         fname=name,
@@ -189,7 +189,7 @@ class DiscElectrodes(Simulation):
                     amp_option=run_param['amp_option']
                 )
                 LFPy_util.plot.signal_sub_plot_3(
-                    results['t_vec_spike'],
+                    results['electrode_t_vec'][i],
                     new_mat,
                     fname=new_name,
                     show=self.show,

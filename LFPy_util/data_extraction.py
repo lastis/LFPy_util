@@ -4,8 +4,6 @@ import scipy.fftpack as ff
 from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
-import pylab as plt
-import pdb
 
 def find_spikes(v_vec, threshold=1):
     v_vec = zscore(v_vec)
@@ -20,12 +18,20 @@ def find_spikes(v_vec, threshold=1):
             max_idx = np.delete(max_idx,i)
     return max_idx
 
-def extract_spikes(t_vec, v_vec, pre_dur=8.35, post_dur=8.35,threshold=3,
+def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
         amp_option='pos'):
+    t_vec = np.array(t_vec)
+    v_vec = np.array(v_vec)
+    if len(t_vec) != len(v_vec):
+        raise ValueError("t_vec and v_vec have unequal lengths.")
+
     threshold = np.fabs(threshold)
     dt = t_vec[1] - t_vec[0]
     pre_idx = int(pre_dur/float(dt));
     post_idx = int(post_dur/float(dt));
+    if pre_idx + post_idx > len(t_vec):
+        # The desired durations before and after spike are too long.
+        raise ValueError("pre_dur + post_dur are longer than the time vector.")
 
     v_vec_unmod = v_vec
     v_vec = zscore(v_vec)
@@ -46,26 +52,35 @@ def extract_spikes(t_vec, v_vec, pre_dur=8.35, post_dur=8.35,threshold=3,
     for i in xrange(length,-1,-1):
         # Remove local maxima that is not above threshold or if the spike
         # shape cannot fit inside pre_dur and post_dur
+        # print v_max[i] < threshold 
+        # print max_idx[i] < pre_idx 
+        # print max_idx[i] + post_idx > len(t_vec)
         if (v_max[i] < threshold or
                 max_idx[i] < pre_idx or
-                max_idx[i] > len(t_vec) - post_idx):
+                max_idx[i] + post_idx > len(t_vec)):
             v_max = np.delete(v_max,i)
             max_idx = np.delete(max_idx,i)
 
     # Return if no spikes were found.
     if len(max_idx) == 0:
-        # print "Warning (extract_spikes): No maxima above threshold."
+        print "Warning (extract_spikes): No maxima above threshold."
         return [], [], []
 
     spike_cnt = len(max_idx)
     n = pre_idx + post_idx
+    if n == 0:
+        n = len(t_vec)
 
     spikes = np.zeros([spike_cnt,n])
     I = np.zeros([spike_cnt,2],dtype=np.int)
 
     for i in xrange(spike_cnt):
-        start_idx = max_idx[i] - pre_idx
-        end_idx = max_idx[i] + post_idx
+        if n == len(t_vec):
+            start_idx = 0
+            end_idx = len(t_vec)
+        else:
+            start_idx = max_idx[i] - pre_idx
+            end_idx = max_idx[i] + post_idx
         I[i,0] = start_idx
         I[i,1] = end_idx
         spikes[i,:] = v_vec_unmod[start_idx:end_idx]

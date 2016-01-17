@@ -39,8 +39,8 @@ class SimulationHelper(object):
         # Update directories.
         self.set_dir_neurons(self._dir_neurons)
 
-    def set_dir_neurons(self, dir):
-        self._dir_neurons = dir
+    def set_dir_neurons(self, path):
+        self._dir_neurons = path
         # Child of _dir_neurons.
         self._dir_neuron = os.path.join(self._dir_neurons,self._neuron_name)
         # Child of _dir_neuron.

@@ -13,11 +13,11 @@ def nrnivmodl(directory='.', suppress=False):
     if suppress:
         with LFPy_util.suppress_stdout_stderr():
             devnull = open(os.devnull,'w')
-            subprocess.call(['nrnivmodl'],stdout=devnull)
+            subprocess.call(['nrnivmodl'],stdout=devnull,shell=True)
             neuron.load_mechanisms(directory)
     else:
             devnull = open(os.devnull,'w')
-            subprocess.call(['nrnivmodl'],stdout=devnull)
+            subprocess.call(['nrnivmodl'],stdout=devnull,shell=True)
             neuron.load_mechanisms(directory)
     os.chdir(tmp)
 
