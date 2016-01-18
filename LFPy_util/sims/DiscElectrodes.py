@@ -50,6 +50,10 @@ class DiscElectrodes(Simulation):
     def __str__(self):
         return "DiskElectrodes {} {}".format(*self.run_param['plane'])
 
+    def set_plane(self,plane):
+        self.run_param['plane'] = plane
+        self._update_names()
+
     def _update_names(self):
         self.fname_run_param \
                 = self.fname_run_param.format(*self.run_param['plane'])
