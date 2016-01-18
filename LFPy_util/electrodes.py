@@ -87,6 +87,60 @@ def circularElectrodesXZ(r, n, n_theta, r_0=0,x_0=[0,0,0]):
     }
     return electrode
 
+def circularElectrodesYZ(r, n, n_theta, r_0=0,x_0=[0,0,0]):
+    """
+    Creates a dictionary with positions placed circle in the XY plane.
+    Electrodes will be placed radially away from **x_0** but not closer than **r_0**.
+    Theta is varied from :math:`0` to :math:`2\pi` in **n_theta** increments. 
+
+    :param float r:
+        Distance to furthest electrode.
+    :param int n:
+        Number of electrodes between **r_0** and **r**.
+    :param int n_theta: 
+        Number of directions from :math:`0` to :math:`2\pi`.
+    :param float r_0:
+        Minimum distance to elctrode from **x_0**.
+    :param `~numpy.ndarray` x_0: 
+        Origin.
+    :returns: 
+        *  
+         :class:`dict` -- Dictionary with 'x', 'y', 'z' set. 
+
+    Example:
+        .. code-block:: python
+
+            # Create circular electrodes.
+            electrode_dict = LFPy_util.electrodes.circularElectrodesXZ(
+                    r = 200,
+                    n = 10,
+                    n_theta = 10,
+                    r_0 = 20
+            ) 
+            electrode_dict['sigma'] = 0.3
+            # Record the LFP of the electrodes. 
+            electrode = LFPy.RecExtElectrode(cell, **electrode_dict)
+            electrode.calc_lfp()
+    """
+    points = np.zeros([3,n_theta*n])
+    x_0 = np.array(x_0)
+    theta = np.linspace(0,2*np.pi,n_theta,endpoint=False)
+    radii = np.linspace(r_0,r,n)
+    # Create a disk of points in the xy plane.
+    cnt = 0
+    for b in theta:
+        for a in radii:
+            points[0,cnt] = x_0[0]
+            points[1,cnt] = a*np.cos(b) + x_0[1]
+            points[2,cnt] = a*np.sin(b) + x_0[2]
+            cnt += 1
+    electrode = {
+        'x' : points[0,:],  
+        'y' : points[1,:],  
+        'z' : points[2,:],  
+    }
+    return electrode
+
 def circularElectrodesXY(r, n, n_theta, r_0=0,x_0=[0,0,0]):
     """
     Creates a dictionary with positions placed circle in the XY plane.

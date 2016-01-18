@@ -1359,8 +1359,8 @@ def spikeAmplitudes(amps, dr=1, r_0=0, show=True, scale='linear',
     plt.close()
     print 'finished            :', fname
 
-def spike_widths_and_amp_grouped(grouped_widths_list,
-        grouped_amps_list, dr=1, r_0=0, threshold=None, 
+def spike_widths_and_amp_grouped(grouped_widths,
+        grouped_amps, grouped_elec_pos,
         group_labels=None, neuron_labels=None, micro_volt=True,
         show=True, fname=None, plot_save_dir=None):
     """
@@ -1386,15 +1386,22 @@ def spike_widths_and_amp_grouped(grouped_widths_list,
     ax.xaxis.set_ticks_position('bottom')
     ax.grid()
 
-    n_electrodes = grouped_widths_list[0][0].shape[1]
+    if len(grouped_amps) != len(grouped_elec_pos):
+        raise ValueError("grouped_amps and grouped_elec_pos are of unequal lengths.")
+    if len(grouped_widths) != len(grouped_elec_pos):
+        raise ValueError("grouped_widths and grouped_elec_pos are of unequal lengths.")
+
+    # All data must be of equal lengths. Get the length of data of
+    # the first neuron of the first group.
+    elec_pos = np.array(grouped_elec_pos[0][0])
 
     # Get an array of colors for each line that will be drawn. +1 because
     # the last color is very light and cannot be seen very well.
-    color_array = _getShortColorArray(len(grouped_widths_list)+1)
-    lines = []
+    color_array = _getShortColorArray(len(grouped_elec_pos)+1)
     # For each group of neurons.
-    for i, (widths_list,amps_list) \
-            in enumerate(zip(grouped_widths_list,grouped_amps_list)) :
+    for i in xrange(len(grouped_elec_pos)):
+        widths_list = grouped_widths[i]
+        amps_list = grouped_amps[i]
         label = None
         if group_labels is not None:
             label = group_labels[i]
@@ -1406,13 +1413,15 @@ def spike_widths_and_amp_grouped(grouped_widths_list,
         # in this case.
         rows = 0
         for widths in widths_list:
+            widths = np.array(widths)
             rows += widths.shape[0]
-            if widths.shape[1] != n_electrodes:
+            if widths.shape[1] != len(elec_pos):
                 raise ValueError('Data has unequal lengths.')
-        widths_all = np.empty([rows,n_electrodes])
+        widths_all = np.empty([rows,len(elec_pos)])
         # For each neuron there is multiple width measurements.  
         row = 0
-        for j, widths in enumerate(widths_list):
+        for widths in widths_list:
+            widths = np.array(widths)
             # These are widths from one neuron.
             widths_all[row:row+widths.shape[0]] = widths
             row += widths.shape[0]
@@ -1424,13 +1433,15 @@ def spike_widths_and_amp_grouped(grouped_widths_list,
         # Same as above, but with different data.
         rows = 0
         for amps in amps_list:
+            amps = np.array(amps)
             rows += amps.shape[0]
-            if amps.shape[1] != n_electrodes:
+            if amps.shape[1] != len(elec_pos):
                 raise ValueError('Data has unequal lengths.')
-        amps_all = np.empty([rows,n_electrodes])
-        # For each neuron there is multiple width measurements.  
+        amps_all = np.empty([rows,len(elec_pos)])
+        # For each neuron there is multiple amp measurements.  
         row = 0
-        for j, amps in enumerate(amps_list):
+        for amps in amps_list:
+            amps = np.array(amps)
             amps_all[row:row+amps.shape[0]] = amps
             row += amps.shape[0]
         if micro_volt:
@@ -1440,14 +1451,13 @@ def spike_widths_and_amp_grouped(grouped_widths_list,
         amps_std = np.sqrt(np.var(amps_all,axis=0))
 
         # Plot.
-        line = ax.plot(widths_mean,
+        ax.plot(widths_mean,
                 amps_mean,
                 color=color_array[i],
                 label=label,
                 marker='o',
                 markersize=5,
         )
-        lines.append(line)
         upper_y = amps_mean + amps_std
         upper_x = widths_mean + widths_std
         lower_y = amps_mean - amps_std
@@ -1456,7 +1466,7 @@ def spike_widths_and_amp_grouped(grouped_widths_list,
         # Using a polygon instead. [::-1] reverses the array.
         y = np.hstack((upper_y,lower_y[::-1]))
         x = np.hstack((upper_x,lower_x[::-1]))
-        points = np.zeros([n_electrodes*2,2])
+        points = np.zeros([len(elec_pos)*2,2])
         points[:,0] = x
         points[:,1] = y
         points = points.tolist()
@@ -1505,22 +1515,11 @@ def spike_widths_and_amp_grouped(grouped_widths_list,
     plt.close()
     print 'finished            :', fname
 
-def spike_amps_grouped(grouped_amps_list, dr=1, r_0=0, threshold=None, 
-        group_labels=None, neuron_labels=None,
-        scale='linear', mode='all', micro_volt=True,
+def spike_amps_grouped(grouped_amps, grouped_elec_pos,
+        group_labels=None, neuron_labels=None, micro_volt=True,
+        scale='linear', mode='all',
         show=True, fname=None, plot_save_dir=None):
     """
-    Plot the mean spike width radially away from a point r_0 and 
-    also show the variance. 
-
-    See :meth:`~LFPy_util.electrodes.circularElectrodes`
-
-    :param LFP: Matrix of electrode signals at each row.
-    :type LFP: :class:`~numpy.ndarray` shape = (nElectrodes,frames)
-    :param int n: Number of electrodes between **r_0** and **r**.
-    :param int nTheta: Number of directions from :math:`0` to :math:`2\pi`.
-    :param float dr: Distance between two electrodes.
-    :param int r_min: Distance to first placed electrode.
     """
 
     print "plotting            :", fname
@@ -1535,65 +1534,32 @@ def spike_amps_grouped(grouped_amps_list, dr=1, r_0=0, threshold=None,
     ax.xaxis.set_ticks_position('bottom')
     ax.grid()
 
+    if len(grouped_amps) != len(grouped_elec_pos):
+        raise ValueError("grouped_amps and grouped_elec_pos are of unequal lengths.")
 
-    # x is the vector of electrodes
-    x = np.arange(grouped_amps_list[0][0].shape[1])
-    x = x*dr
-    x = x + r_0
-    ax.set_xlim([x.min(),x.max()])
+    # All data must be of equal lengths. Get the length of data of
+    # the first neuron of the first group.
+    elec_pos = np.array(grouped_elec_pos[0][0])
 
     # Plot data.
-    if mode == 'all' :
-        cnt = 0
-        for amps_list in grouped_amps_list:
-            for amps in amps_list:
-                cnt += 1
-        color_array = _getShortColorArray(cnt)
-
-        cnt = 0
+    if mode == 'std' :
         # For each group of neurons.
-        for i, amps_list in enumerate(grouped_amps_list) :
-            # For each neuron there is multipel width measurements.  
-            for j, amps in enumerate(amps_list):
-                # These are amps from one neuron.
-                amps = np.asarray(amps)
-                amps_mean = np.mean(amps,axis=0)
-                if micro_volt:
-                    amps_mean *= 1000;
-
-                label = None
-                if neuron_labels is not None:
-                    label = 'test:'# + neuron_labels[i][j]
-                ax.plot(x,amps_mean,color=color_array[cnt],label=label)
-                cnt += 1
-        ax.set_ylim([y_min,y_max])
-        if neuron_labels is not None:
-            handles,labels = ax.get_legend_handles_labels()
-            lgd = ax.legend(
-                    handles,
-                    labels,
-                    loc='center left',
-                    bbox_to_anchor=(1,0.5),
-                    ncol=amps.shape[1]/17 + 1
-            )
-    elif mode == 'std' :
+        color_array = _getShortColorArray(len(grouped_elec_pos)+1)
         # For each group of neurons.
-        color_array = _getShortColorArray(len(grouped_amps_list)+1)
-        lines = []
-        # For each group of neurons.
-        for i, amps_list in enumerate(grouped_amps_list) :
+        for i in xrange(len(grouped_elec_pos)):
+            amps_list = grouped_amps[i]
+            elec_pos_list = grouped_elec_pos[i]
             label = None
             if group_labels is not None:
                 label = group_labels[i]
 
             rows = 0
             for amps in amps_list:
+                amps = np.array(amps)
                 rows += amps.shape[0]
-                if amps.shape[1] != len(x):
+                if amps.shape[1] != len(elec_pos):
                     raise ValueError('Data has unequal lengths.')
-
-            # amps_grouped = np.empty([len(amps_list),len(x)])
-            amps_all = np.empty([rows,len(x)])
+            amps_all = np.empty([rows,len(elec_pos)])
             # For each neuron there is multiple width measurements.  
             row = 0
             for j, amps in enumerate(amps_list):
@@ -1601,23 +1567,22 @@ def spike_amps_grouped(grouped_amps_list, dr=1, r_0=0, threshold=None,
                 amps = np.asarray(amps)
                 amps_all[row:row+amps.shape[0]] = amps
                 row += amps.shape[0]
-            if micro_volt:
-                amps_all *= 1000;
 
             # Calculate the mean and std for a group of neurons.
+            if micro_volt:
+                amps_all *= 1000
             amps_mean = np.mean(amps_all,axis=0)
             amps_std = np.sqrt(np.var(amps_all,axis=0))
 
             line = ax.plot(
-                    x,
+                    elec_pos,
                     amps_mean,
                     color=color_array[i],
                     label=label,
                     marker='o',
                     markersize=5,)
-            lines.append(line)
             ax.fill_between(
-                    x,
+                    elec_pos,
                     amps_mean-amps_std,
                     amps_mean+amps_std,
                     color=color_array[i],
@@ -1634,43 +1599,15 @@ def spike_amps_grouped(grouped_amps_list, dr=1, r_0=0, threshold=None,
             )
 
     # Change the axis titles and the scale if log plot is selected.
-    if micro_volt:
-        ax.set_ylabel(r'Amplitude \textbf[$\mathbf{\bm\upmu V}$\textbf]')
-    else:
-        ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
-    ax.set_xlabel(r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
-
     if scale == 'linear':
-        pass
-    elif scale == 'log' : 
-
-        # Set the scale for log plot.
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-
-        ax.set_xlim([x.min(),x.max()])
-        if mode == 'std':
-            w_min = amps_mean.min()-amps_std.max()
-            w_max = amps_mean.max()+amps_std.max()
-            ax.set_ylim([w_min,w_max])
-        elif mode == 'all':
-            ax.set_ylim([amps.min(),amps.max()])
-
-        # ticker = mpl.ticker.MaxNLocator(nbins=7)
-        ticker = mpl.ticker.AutoLocator()
-        ax.xaxis.set_major_locator(ticker)
-        ax.xaxis.get_major_formatter().labelOnlyBase = False
-
-        # ticker = mpl.ticker.MaxNLocator(nbins=7)
-        ticker = mpl.ticker.AutoLocator()
-        ax.yaxis.set_major_locator(ticker)
-        ax.yaxis.get_major_formatter().labelOnlyBase = False
-
-        # Set a label formatter to use normal numbers.
-        ax.xaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-        ax.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-    else:
-        print("Warning: Invalid scale selected.")
+        # Use microvolt if not milivolt
+        if micro_volt:
+            ylabel = r'\textbf[$\mathbf{\bm\upmu V}$\textbf]'
+        else:
+            ylabel = r'\textbf[$\mathbf{mV}$\textbf]'
+        ax.set_ylabel(ylabel)
+        ax.set_xlabel(
+                r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
 
     plt.tight_layout()
     if (fname is not None):
@@ -1693,22 +1630,11 @@ def spike_amps_grouped(grouped_amps_list, dr=1, r_0=0, threshold=None,
     plt.close()
     print 'finished            :', fname
 
-def spike_widths_grouped(grouped_widths_list, dr=1, r_0=0, threshold=None, 
+def spike_widths_grouped(grouped_widths, grouped_elec_pos,
         group_labels=None, neuron_labels=None,
         scale='linear', mode='all',
         show=True, fname=None, plot_save_dir=None):
     """
-    Plot the mean spike width radially away from a point r_0 and 
-    also show the variance. 
-
-    See :meth:`~LFPy_util.electrodes.circularElectrodes`
-
-    :param LFP: Matrix of electrode signals at each row.
-    :type LFP: :class:`~numpy.ndarray` shape = (nElectrodes,frames)
-    :param int n: Number of electrodes between **r_0** and **r**.
-    :param int nTheta: Number of directions from :math:`0` to :math:`2\pi`.
-    :param float dr: Distance between two electrodes.
-    :param int r_min: Distance to first placed electrode.
     """
 
     print "plotting            :", fname
@@ -1723,72 +1649,32 @@ def spike_widths_grouped(grouped_widths_list, dr=1, r_0=0, threshold=None,
     ax.xaxis.set_ticks_position('bottom')
     ax.grid()
 
+    if len(grouped_widths) != len(grouped_elec_pos):
+        raise ValueError("grouped_widths and grouped_elec_pos are of unequal lengths.")
 
-    # x is the vector of electrodes
-    x = np.arange(grouped_widths_list[0][0].shape[1])
-    x = x*dr
-    x = x + r_0
-    ax.set_xlim([x.min(),x.max()])
+    # All data must be of equal lengths. Get the length of data of
+    # the first neuron of the first group.
+    elec_pos = np.array(grouped_elec_pos[0][0])
 
     # Plot data.
-    if mode == 'all' :
-        cnt = 0
-        for widths_list in grouped_widths_list:
-            for widths in widths_list:
-                cnt += 1
-        color_array = _getShortColorArray(cnt)
-
-        cnt = 0
+    if mode == 'std' :
         # For each group of neurons.
-        for i, widths_list in enumerate(grouped_widths_list) :
-            # For each neuron there is multipel width measurements.  
-            for j, widths in enumerate(widths_list):
-                # These are widths from one neuron.
-                widths = np.asarray(widths)
-                widths_mean = np.mean(widths,axis=0)
-
-                label = None
-                if neuron_labels is not None:
-                    label = 'test:'# + neuron_labels[i][j]
-
-                # Scatter plot has a tendency to extend the limits.
-                # Set the limits to follow the plotting  function.
-                if i == 0 and j == 0:
-                    y_min = widths_mean.min()
-                    y_max = widths_mean.max()
-                else:
-                    y_min = min(y_min,widths_mean.min())
-                    y_max = max(y_max,widths_mean.max())
-                ax.plot(x,widths_mean,color=color_array[cnt],label=label)
-                cnt += 1
-        ax.set_ylim([y_min,y_max])
-        if neuron_labels is not None:
-            handles,labels = ax.get_legend_handles_labels()
-            lgd = ax.legend(
-                    handles,
-                    labels,
-                    loc='center left',
-                    bbox_to_anchor=(1,0.5),
-                    ncol=widths.shape[1]/17 + 1
-            )
-    elif mode == 'std' :
+        color_array = _getShortColorArray(len(grouped_elec_pos)+1)
         # For each group of neurons.
-        color_array = _getShortColorArray(len(grouped_widths_list)+1)
-        lines = []
-        # For each group of neurons.
-        for i, widths_list in enumerate(grouped_widths_list) :
+        for i in xrange(len(grouped_elec_pos)):
+            widths_list = grouped_widths[i]
+            elec_pos_list = grouped_elec_pos[i]
             label = None
             if group_labels is not None:
                 label = group_labels[i]
 
             rows = 0
             for widths in widths_list:
+                widths = np.array(widths)
                 rows += widths.shape[0]
-                if widths.shape[1] != len(x):
+                if widths.shape[1] != len(elec_pos):
                     raise ValueError('Data has unequal lengths.')
-
-            # widths_grouped = np.empty([len(widths_list),len(x)])
-            widths_all = np.empty([rows,len(x)])
+            widths_all = np.empty([rows,len(elec_pos)])
             # For each neuron there is multiple width measurements.  
             row = 0
             for j, widths in enumerate(widths_list):
@@ -1796,24 +1682,20 @@ def spike_widths_grouped(grouped_widths_list, dr=1, r_0=0, threshold=None,
                 widths = np.asarray(widths)
                 widths_all[row:row+widths.shape[0]] = widths
                 row += widths.shape[0]
-                # widths = np.asarray(widths)
-                # mean = np.mean(widths,axis=0)
-                # widths_grouped[j,:] = mean
 
             # Calculate the mean and std for a group of neurons.
             widths_mean = np.mean(widths_all,axis=0)
             widths_std = np.sqrt(np.var(widths_all,axis=0))
 
             line = ax.plot(
-                    x,
+                    elec_pos,
                     widths_mean,
                     color=color_array[i],
                     label=label,
                     marker='o',
                     markersize=5,)
-            lines.append(line)
             ax.fill_between(
-                    x,
+                    elec_pos,
                     widths_mean-widths_std,
                     widths_mean+widths_std,
                     color=color_array[i],
@@ -1831,49 +1713,9 @@ def spike_widths_grouped(grouped_widths_list, dr=1, r_0=0, threshold=None,
 
     # Change the axis titles and the scale if log plot is selected.
     if scale == 'linear':
-        if threshold != None : 
-            thresh_str = str(int(threshold*100)) + ' \% '
-            ax.set_ylabel(thresh_str
-                    + r'Signal Width \textbf[$\mathbf{ms}$\textbf]')
-        else :
-            ax.set_ylabel(r'Signal Width \textbf[$\mathbf{ms}$\textbf]')
+        ax.set_ylabel(r'Signal Width \textbf[$\mathbf{ms}$\textbf]')
         ax.set_xlabel(
                 r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
-    elif scale == 'log' : 
-        if threshold != None : 
-            thresh_str = str(int(threshold*100)) + ' \% '
-            ax.set_ylabel(thresh_str
-                    + r'Signal Width \textbf[$\mathbf{ms}$\textbf]')
-        else :
-            ax.set_ylabel(r'Signal Width \textbf[$\mathbf{ms}$\textbf]')
-        ax.set_xlabel(
-                r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
-
-        # Set the scale for log plot.
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-
-        ax.set_xlim([x.min(),x.max()])
-        if mode == 'std':
-            w_min = widths_mean.min()-widths_std.max()
-            w_max = widths_mean.max()+widths_std.max()
-            ax.set_ylim([w_min,w_max])
-        elif mode == 'all':
-            ax.set_ylim([widths.min(),widths.max()])
-
-        # ticker = mpl.ticker.MaxNLocator(nbins=7)
-        ticker = mpl.ticker.AutoLocator()
-        ax.xaxis.set_major_locator(ticker)
-        ax.xaxis.get_major_formatter().labelOnlyBase = False
-
-        # ticker = mpl.ticker.MaxNLocator(nbins=7)
-        ticker = mpl.ticker.AutoLocator()
-        ax.yaxis.set_major_locator(ticker)
-        ax.yaxis.get_major_formatter().labelOnlyBase = False
-
-        # Set a label formatter to use normal numbers.
-        ax.xaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-        ax.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 
     plt.tight_layout()
     if (fname is not None):

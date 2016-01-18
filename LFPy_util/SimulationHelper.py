@@ -80,7 +80,8 @@ class SimulationHelper(object):
                 # Start in new process.
                 if flag:
                     if self.verbatim:
-                        print "new process         : " + simulation.__str__()
+                        print "new process         : " \
+                                + self._neuron_name + " " + simulation.__str__()
                     simulation.start()
                     # If running in parallel, start all processes before
                     # joining them.
@@ -90,7 +91,8 @@ class SimulationHelper(object):
                         simulation.join()
                 else:
                     if self.verbatim:
-                        print "current process     : " + simulation.__str__()
+                        print "current process     : " \
+                                + self._neuron_name + " " + simulation.__str__()
                     simulation.run()
             # If not a Simulation object assume it is a function.
             else:

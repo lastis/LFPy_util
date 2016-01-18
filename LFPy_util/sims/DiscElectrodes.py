@@ -13,18 +13,19 @@ class DiscElectrodes(Simulation):
     def __init__(self):
         super(DiscElectrodes,self).__init__()
         # Used by the super save and load function.
-        self.fname_run_param = 'disc_run_param'
-        self.fname_results = 'disc_results'
+        self.fname_run_param = 'disc_{}_{}_run_param'
+        self.fname_results = 'disc_{}_{}_results'
 
         # Used by the custom simulate and plot function.
         self.run_param['r'] = 100
-        self.run_param['n'] = 11
+        self.run_param['n'] = 9
         self.run_param['n_theta'] = 8
         self.run_param['r_0'] = 20
         self.run_param['threshold'] = 3
         self.run_param['pre_dur'] = 16.7*0.5
         self.run_param['post_dur'] = 16.7*0.5
         self.run_param['amp_option'] = 'neg'
+        self.run_param['plane'] = ['x','z']
         self.debug = False
         self.plot_detailed = False
 
@@ -32,31 +33,88 @@ class DiscElectrodes(Simulation):
         self.show = False
 
         # Plot names.
-        self.fname_disc_plot                     = 'disc_gradient'
-        self.fname_disc_plot_spike_amp_all       = 'disc_spike_amp_all'
-        self.fname_disc_plot_spike_amp_all_log   = 'disc_spike_amp_all_log'
-        self.fname_disc_plot_spike_amp_std       = 'disc_spike_amp_std'
-        self.fname_disc_plot_spike_amp_std_log   = 'disc_spike_amp_std_log'
-        self.fname_disc_plot_spike_width_all     = 'disc_spike_width_all'
-        self.fname_disc_plot_spike_width_all_log = 'disc_spike_width_all_log'
-        self.fname_disc_plot_spike_width_std     = 'disc_spike_width_std'
-        self.fname_disc_plot_spike_width_std_log = 'disc_spike_width_std_log'
-        self.fname_disc_plot_elec_signal         = 'disc_elec_signal'
-        self.fname_disc_plot_elec_signal_3       = 'disc_elec_signal_3'
-        self.fname_disc_plot_elec_morph          = 'disc_elec_morph'
+        self.fname_disc_plot                     = 'disc_{}_{}_gradient'
+        self.fname_disc_plot_spike_amp_all       = 'disc_{}_{}_spike_amp_all'
+        self.fname_disc_plot_spike_amp_all_log   = 'disc_{}_{}_spike_amp_all_log'
+        self.fname_disc_plot_spike_amp_std       = 'disc_{}_{}_spike_amp_std'
+        self.fname_disc_plot_spike_amp_std_log   = 'disc_{}_{}_spike_amp_std_log'
+        self.fname_disc_plot_spike_width_all     = 'disc_{}_{}_spike_width_all'
+        self.fname_disc_plot_spike_width_all_log = 'disc_{}_{}_spike_width_all_log'
+        self.fname_disc_plot_spike_width_std     = 'disc_{}_{}_spike_width_std'
+        self.fname_disc_plot_spike_width_std_log = 'disc_{}_{}_spike_width_std_log'
+        self.fname_disc_plot_elec_signal         = 'disc_{}_{}_elec_signal'
+        self.fname_disc_plot_elec_signal_3       = 'disc_{}_{}_elec_signal_3'
+        self.fname_disc_plot_elec_morph          = 'disc_{}_{}_elec_morph'
+        self._update_names()
 
     def __str__(self):
-        return "DiskElectrodes"
+        return "DiskElectrodes {} {}".format(*self.run_param['plane'])
+
+    def _update_names(self):
+        self.fname_run_param \
+                = self.fname_run_param.format(*self.run_param['plane'])
+        self.fname_results \
+                = self.fname_results.format(*self.run_param['plane'])
+        self.fname_disc_plot \
+                = self.fname_disc_plot.format(*self.run_param['plane'])
+        self.fname_disc_plot_spike_amp_all \
+                = self.fname_disc_plot_spike_amp_all.format(*self.run_param['plane'])
+        self.fname_disc_plot_spike_amp_all_log \
+                = self.fname_disc_plot_spike_amp_all_log.format(*self.run_param['plane'])
+        self.fname_disc_plot_spike_amp_std \
+                = self.fname_disc_plot_spike_amp_std.format(*self.run_param['plane'])
+        self.fname_disc_plot_spike_amp_std_log \
+                = self.fname_disc_plot_spike_amp_std_log.format(*self.run_param['plane'])
+        self.fname_disc_plot_spike_width_all \
+                = self.fname_disc_plot_spike_width_all.format(*self.run_param['plane'])
+        self.fname_disc_plot_spike_width_all_log \
+                = self.fname_disc_plot_spike_width_all_log.format(*self.run_param['plane'])
+        self.fname_disc_plot_spike_width_std \
+                = self.fname_disc_plot_spike_width_std.format(*self.run_param['plane']) 
+        self.fname_disc_plot_spike_width_std_log \
+                = self.fname_disc_plot_spike_width_std_log.format(*self.run_param['plane'])
+        self.fname_disc_plot_elec_signal \
+                = self.fname_disc_plot_elec_signal.format(*self.run_param['plane'])
+        self.fname_disc_plot_elec_signal_3 \
+                = self.fname_disc_plot_elec_signal_3.format(*self.run_param['plane'])
+        self.fname_disc_plot_elec_morph \
+                = self.fname_disc_plot_elec_morph.format(*self.run_param['plane'])
 
     def simulate(self):
+        self._update_names()
+
         run_param = self.run_param
         results = self.results
         cell = self.cell
 
         cell.simulate(rec_vmem=True,rec_imem=True,rec_istim=True,rec_isyn=True)
 
-        # Create discular electrodes.
-        electrode_dict = LFPy_util.electrodes.circularElectrodesXZ(
+        # Create electrodes.
+        electrode_func = None
+        x = False
+        y = False
+        z = False
+        plane = run_param['plane']
+        cnt = 0
+        if plane[0] == 'x' or plane[1] == 'x':
+            x = True
+            cnt += 1
+        if plane[0] == 'y' or plane[1] == 'y':
+            y = True
+            cnt += 1
+        if plane[0] == 'z' or plane[1] == 'z':
+            z = True
+            cnt += 1
+        if cnt != 2: 
+            raise ValueError('Plane description not accepted.')
+        if x and z:
+            electrode_func = LFPy_util.electrodes.circularElectrodesXZ
+        elif x and y:
+            electrode_func = LFPy_util.electrodes.circularElectrodesXY
+        elif y and z:
+            electrode_func = LFPy_util.electrodes.circularElectrodesYZ
+
+        electrode_dict = electrode_func(
                 r = run_param['r'],
                 n = run_param['n'],
                 n_theta = run_param['n_theta'],
@@ -95,13 +153,9 @@ class DiscElectrodes(Simulation):
         t_vec = results['t_vec']
 
         electrode_spikes = []
-        electrode_pos = []
         electrode_t_vec = []
         # For each angle around the center point, there are multiple electrodes.
         for i in xrange(n_theta):
-            # Create a vector of the radial positions of the electrodes.
-            elec_pos = np.linspace(r_0,r,n)
-            electrode_pos.append(elec_pos)
             # Get the signals from the electrodes.
             row_start = i*n
             row_end = row_start + n
@@ -131,7 +185,8 @@ class DiscElectrodes(Simulation):
                 electrode_t_vec.append(t_vec_spike)
         results['electrode_t_vec'] = electrode_t_vec
         results['electrode_spikes'] = electrode_spikes
-        results['electrode_pos'] = electrode_pos
+        # Create a vector of the radial positions of the electrodes.
+        results['electrode_pos_r'] = np.linspace(r_0,r,n)
 
         # Spike widths.
         widths, trace = LFPy_util.data_extraction.findWaveWidthsSimple(
@@ -154,6 +209,8 @@ class DiscElectrodes(Simulation):
         results = self.results
         run_param = self.run_param
 
+        self._update_names()
+
         # Plot the signals from the electrodes in a discular shape.
         if self.plot_detailed:
             for i in xrange(run_param['n_theta']):
@@ -167,7 +224,7 @@ class DiscElectrodes(Simulation):
                 LFPy_util.plot.electrodeSignals(
                         results['electrode_t_vec'][i],
                         results['electrode_spikes'][i],
-                        elec_pos=results['electrode_pos'][i],
+                        elec_pos=results['electrode_pos_r'],
                         fname=name,
                         show=self.show,
                         plot_save_dir=directory,
