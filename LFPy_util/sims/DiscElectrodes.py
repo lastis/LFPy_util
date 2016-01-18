@@ -111,10 +111,13 @@ class DiscElectrodes(Simulation):
         if cnt != 2: 
             raise ValueError('Plane description not accepted.')
         if x and z:
+            # print "xz"
             electrode_func = LFPy_util.electrodes.circularElectrodesXZ
         elif x and y:
+            # print "xy"
             electrode_func = LFPy_util.electrodes.circularElectrodesXY
         elif y and z:
+            # print "yz"
             electrode_func = LFPy_util.electrodes.circularElectrodesYZ
 
         electrode_dict = electrode_func(
@@ -131,10 +134,8 @@ class DiscElectrodes(Simulation):
 
         results['electrode_dict'] = electrode_dict
         results['LFP']     = electrode.LFP
-        results['neuron_z']     = cell.z3d
-        results['neuron_x']     = cell.x3d
         results['dt']           = cell.timeres_NEURON
-        results['poly_morph']   = cell.get_idx_polygons(('x','z'))
+        results['poly_morph']   = cell.get_idx_polygons(self.run_param['plane'])
         results['t_vec']        = cell.tvec
 
         self.process_results()
@@ -259,8 +260,8 @@ class DiscElectrodes(Simulation):
 
         LFPy_util.plot.morphology(
             results['poly_morph'],
-            elec_x = results['electrode_dict']['x'],
-            elec_y = results['electrode_dict']['z'],
+            elec_x = results['electrode_dict'][run_param['plane'][0]],
+            elec_y = results['electrode_dict'][run_param['plane'][1]],
             fig_size='square',
             fname=self.fname_disc_plot_elec_morph,
             plot_save_dir=self.dir_plot,
