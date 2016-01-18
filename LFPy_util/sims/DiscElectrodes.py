@@ -45,7 +45,6 @@ class DiscElectrodes(Simulation):
         self.fname_disc_plot_elec_signal         = 'disc_{}_{}_elec_signal'
         self.fname_disc_plot_elec_signal_3       = 'disc_{}_{}_elec_signal_3'
         self.fname_disc_plot_elec_morph          = 'disc_{}_{}_elec_morph'
-        self._update_names()
 
     def __str__(self):
         return "DiskElectrodes {} {}".format(*self.run_param['plane'])
