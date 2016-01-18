@@ -1,6 +1,7 @@
 from Simulation import Simulation
 import LFPy
 import LFPy_util
+import LFPy_util.data_extraction as de
 import numpy as np
 
 
@@ -99,8 +100,12 @@ class Grid(Simulation):
         self.results['lin_y']     = y
         self.results['lin_z']     = z
         self.results['dt']           = cell.timeres_NEURON
-        self.results['poly_morph']   = cell.get_idx_polygons(plane)
         self.results['t_vec']         = cell.tvec
+
+        self.results['poly_morph'] \
+                = de.get_polygons_no_axon(self.cell,self.run_param['plane'])
+        self.results['poly_morph_axon'] \
+                = de.get_polygons_axon(self.cell,self.run_param['plane'])
 
     def plot(self):
         results = self.results
@@ -108,6 +113,7 @@ class Grid(Simulation):
 
         LFPy_util.plot.morphology(
             results['poly_morph'],
+            results['poly_morph_axon'],
             elec_x = results['electrode_dict']['x'],
             elec_y = results['electrode_dict']['y'],
             fig_size='square',

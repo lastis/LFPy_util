@@ -1,6 +1,7 @@
 from Simulation import Simulation
 import LFPy
 import LFPy_util
+import LFPy_util.data_extraction as de
 import numpy as np
 import os
 from multiprocessing import Process, Manager
@@ -135,8 +136,11 @@ class DiscElectrodes(Simulation):
         results['electrode_dict'] = electrode_dict
         results['LFP']     = electrode.LFP
         results['dt']           = cell.timeres_NEURON
-        results['poly_morph']   = cell.get_idx_polygons(self.run_param['plane'])
         results['t_vec']        = cell.tvec
+        results['poly_morph'] \
+                = de.get_polygons_no_axon(self.cell,self.run_param['plane'])
+        results['poly_morph_axon'] \
+                = de.get_polygons_axon(self.cell,self.run_param['plane'])
 
         self.process_results()
 
@@ -260,6 +264,7 @@ class DiscElectrodes(Simulation):
 
         LFPy_util.plot.morphology(
             results['poly_morph'],
+            results['poly_morph_axon'],
             elec_x = results['electrode_dict'][run_param['plane'][0]],
             elec_y = results['electrode_dict'][run_param['plane'][1]],
             fig_size='square',

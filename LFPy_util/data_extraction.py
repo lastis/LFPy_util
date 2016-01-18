@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.decomposition import PCA
 import scipy.fftpack as ff
+import neuron
 from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
@@ -17,6 +18,28 @@ def find_spikes(v_vec, threshold=1):
             # v_max = np.delete(v_max,i)
             max_idx = np.delete(max_idx,i)
     return max_idx
+
+def get_polygons_axon(cell, projection=('x','y')):
+    axon_exclude = lambda s: True if 'axon' in s else False
+    return get_polygons(cell,projection,axon_exclude)
+
+def get_polygons_no_axon(cell, projection=('x','y')):
+    axon = lambda s: False if 'axon' in s else True
+    return get_polygons(cell,projection,axon)
+
+def get_polygons(cell, projection=('x','y'), comp_func=None):
+    """
+    If comp_func(str) is False, the section will be skipped.
+    """
+    polygons = []
+    cnt = -1
+    for sec in cell.allseclist:
+        for i in xrange(sec.nseg):
+            cnt += 1
+            if comp_func is not None and not comp_func(sec.name()):
+                continue
+            polygons.append(cell._create_segment_polygon(cnt,projection))
+    return polygons
 
 def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
         amp_option='pos'):

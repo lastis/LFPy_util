@@ -236,7 +236,7 @@ def i_mem_v_mem(v_vec, i_vec, t_vec,
     plt.close()
     print 'finished            :', fname
 
-def morphology(poly_morph, elec_x=None, elec_y=None, mirror=False, 
+def morphology(poly_morph, poly_morph_axon=None, elec_x=None, elec_y=None, mirror=False, 
         fig_size='common',x_label='x', y_label='y',
         fname=None, show=True, plot_save_dir=None):
     """
@@ -255,12 +255,13 @@ def morphology(poly_morph, elec_x=None, elec_y=None, mirror=False,
     else:
         figsize = size_common
     fig = plt.figure(figsize=figsize)
-    # ax = plt.subplot(2,1,1)
     ax = plt.gca()
     xmin = 0
     xmax = 0
     ymin = 0
     ymax = 0
+
+    colors = _getShortColorArray(3)
     # Plot morphology.
     zips = []
     for a,b in poly_morph:
@@ -276,9 +277,26 @@ def morphology(poly_morph, elec_x=None, elec_y=None, mirror=False,
     polycol = mpl.collections.PolyCollection(
             zips,
             edgecolors='none',
-            facecolors=color_array_long[0]
+            facecolors=colors[0]
     )
     ax.add_collection(polycol,)
+    
+    # Plot second morpholgy in different color.
+    if poly_morph_axon is not None:
+        zips = []
+        for a,b in poly_morph_axon:
+            if mirror:
+                tmp = b
+                b = a
+                a = tmp
+            zips.append(zip(a,b))
+        polycol_a = mpl.collections.PolyCollection(
+                zips,
+                edgecolors='none',
+                facecolors=colors[1]
+        )
+        ax.add_collection(polycol_a,)
+
     plt.axis('equal')
     ax.grid()
 

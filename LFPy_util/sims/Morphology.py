@@ -1,6 +1,7 @@
 from Simulation import Simulation
 import LFPy
 import LFPy_util
+import LFPy_util.data_extraction as de
 import numpy as np
 import os
 from multiprocessing import Process, Manager
@@ -30,9 +31,18 @@ class Morphology(Simulation):
         return "Morphology"
 
     def simulate(self):
-        self.results['poly_morph_x_y'] = self.cell.get_idx_polygons(('x','y'))
-        self.results['poly_morph_x_z'] = self.cell.get_idx_polygons(('x','z'))
-        self.results['poly_morph_y_z'] = self.cell.get_idx_polygons(('z','y'))
+        self.results['poly_morph_x_y'] \
+                = de.get_polygons_no_axon(self.cell,('x','y'))
+        self.results['poly_morph_x_y_axon'] \
+                = de.get_polygons_axon(self.cell,('x','y'))
+        self.results['poly_morph_x_z'] \
+                = de.get_polygons_no_axon(self.cell,('x','z'))
+        self.results['poly_morph_x_z_axon'] \
+                = de.get_polygons_axon(self.cell,('x','z'))
+        self.results['poly_morph_y_z'] \
+                = de.get_polygons_no_axon(self.cell,('y','z'))
+        self.results['poly_morph_y_z_axon'] \
+                = de.get_polygons_axon(self.cell,('y','z'))
 
     def plot(self):
         results = self.results
@@ -41,6 +51,7 @@ class Morphology(Simulation):
         # Plot.
         LFPy_util.plot.morphology(
             results['poly_morph_x_y'],
+            results['poly_morph_x_y_axon'],
             fname=self.fname_morph_plot_xy,
             plot_save_dir=self.dir_plot,
             show=self.show,
@@ -50,6 +61,7 @@ class Morphology(Simulation):
         )
         LFPy_util.plot.morphology(
             results['poly_morph_x_z'],
+            results['poly_morph_x_z_axon'],
             fname=self.fname_morph_plot_xz,
             plot_save_dir=self.dir_plot,
             show=self.show,
@@ -58,9 +70,9 @@ class Morphology(Simulation):
         )
         LFPy_util.plot.morphology(
             results['poly_morph_y_z'],
+            results['poly_morph_y_z_axon'],
             fname=self.fname_morph_plot_yz, 
             plot_save_dir=self.dir_plot,
-            mirror=True,
             x_label='y',
             y_label='z',
             show=self.show,
