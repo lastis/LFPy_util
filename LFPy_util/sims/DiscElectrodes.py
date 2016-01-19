@@ -27,6 +27,7 @@ class DiscElectrodes(Simulation):
         self.run_param['post_dur'] = 16.7*0.5
         self.run_param['amp_option'] = 'neg'
         self.run_param['plane'] = ['x','z']
+        self.run_param['wave_def'] = 'half_amp'
         self.debug = False
         self.plot_detailed = False
 
@@ -141,8 +142,7 @@ class DiscElectrodes(Simulation):
                 = de.get_polygons_no_axon(self.cell,self.run_param['plane'])
         results['poly_morph_axon'] \
                 = de.get_polygons_axon(self.cell,self.run_param['plane'])
-
-        self.process_results()
+        # self.process_results()
 
     def process_results(self):
         results = self.results
@@ -197,11 +197,18 @@ class DiscElectrodes(Simulation):
         results['electrode_pos_r'] = np.linspace(r_0,r,n)
 
         # Spike widths.
-        widths, trace = LFPy_util.data_extraction.findWaveWidthsSimple(
-                LFP,
-                dt=dt,
-                amp_option=run_param['amp_option']
-        )
+        if run_param['wave_def'] == 'top_bottom':
+            widths, trace = de.find_wave_width_type_1(
+                    LFP,
+                    dt=dt,
+            )
+        else:
+            widths, trace = de.findWaveWidthsSimple(
+                    LFP,
+                    dt=dt,
+                    amp_option=run_param['amp_option']
+            )
+
         widths = np.reshape(widths,[n_theta,n])
         results['widths'] = widths
 
@@ -219,7 +226,9 @@ class DiscElectrodes(Simulation):
 
         self._update_names()
 
-        # Plot the signals from the electrodes in a discular shape.
+        self.process_results()
+
+        # Plot the signals from the electrodes in a circular shape.
         if self.plot_detailed:
             for i in xrange(run_param['n_theta']):
                 # Create directory and filename. 
@@ -248,18 +257,24 @@ class DiscElectrodes(Simulation):
                 new_directory = self.dir_plot+'/'+self.fname_disc_plot_elec_signal_3
 
                 # Show the width calculation also.
-                widths, width_trace = LFPy_util.data_extraction.findWaveWidthsSimple(
-                    new_mat,
-                    dt=results['dt'],
-                    amp_option=run_param['amp_option']
-                )
+                if run_param['wave_def'] == 'top_bottom':
+                    widths, trace = de.find_wave_width_type_1(
+                            new_mat,
+                            dt=results['dt'],
+                    )
+                else:
+                    widths, trace = de.findWaveWidthsSimple(
+                            new_mat,
+                            dt=results['dt'],
+                            amp_option=run_param['amp_option']
+                    )
                 LFPy_util.plot.signal_sub_plot_3(
                     results['electrode_t_vec'][i],
                     new_mat,
                     fname=new_name,
                     show=self.show,
                     plot_save_dir=new_directory,
-                    width_trace=width_trace
+                    width_trace=trace
                 )
 
         LFPy_util.plot.morphology(

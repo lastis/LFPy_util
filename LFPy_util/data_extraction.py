@@ -314,6 +314,30 @@ def findMajorAxes():
     pca.fit(points)
     return pca.components_
 
+def find_wave_width_type_1(matrix, dt=1):
+    """
+    Wave width defined as time from minimum to maximum.
+    """
+    matrix = np.array(matrix)
+    if len(matrix.shape) == 1:
+        matrix = np.reshape(matrix, (1,-1))
+    widths = np.zeros(matrix.shape[0])
+    trace = np.empty(matrix.shape)
+    trace[:] = np.NAN
+    for row in xrange(matrix.shape[0]):
+        signal = matrix[row]
+        idx_1 = np.argmax(signal)
+        idx_2 = np.argmin(signal)
+        v_max = signal[idx_1]
+        if idx_1 > idx_2:
+            tmp = idx_1
+            idx_1 = idx_2
+            idx_2 = tmp
+        widths[row] = idx_2 - idx_1
+        trace[row,idx_1:idx_2] = v_max*(1.05)
+    return widths*dt, trace
+        
+
 def findWaveWidthsSimple(matrix, threshold=0.5, dt=1,amp_option='both'):
     """
     Compute wave width at some fraction of max amplitude. Counts the number

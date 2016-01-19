@@ -6,8 +6,6 @@ import numpy as np
 import os
 from multiprocessing import Process, Manager
 
-
-
 class Morphology(Simulation):
     """docstring for Grid"""
 
