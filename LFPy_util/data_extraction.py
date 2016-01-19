@@ -337,7 +337,7 @@ def findWaveWidthsSimple(matrix, threshold=0.5, dt=1,amp_option='both'):
     Example:
         .. code-block:: python
 
-            widths = LFPy_util.data_extraction.findWaveWidthsSimple(LFP)
+            widths, trace = LFPy_util.data_extraction.findWaveWidthsSimple(LFP)
     """
     matrix = np.array(matrix)
     if len(matrix.shape) == 1:
@@ -371,53 +371,6 @@ def findWaveWidthsSimple(matrix, threshold=0.5, dt=1,amp_option='both'):
     if matrix.shape[0] == 1:
         trace = trace.flatten()
     return widths*dt, trace
-
-def findWaveWidths(matrix, threshold=0.5, dt=1):
-    """
-    Compute wave width at some fraction of max amplitude. Counts the number
-    of indices above threshold and multiplies by **dt**. Begins counting indices
-    from the first value above threshold and ends at the first value below.
-
-    :param `~numpy.ndarray` matrix: 
-        Matrix (nSignals x frames) of 1D signals at each row. . 
-        What happens now. Is this to long and will go over two lines
-        or does it linebreak.
-    :param float threshold: 
-        Between 0 and 1.
-    :param float dt: 
-        Time per frame.
-    :returns: 
-        Array (nSignals) with widths.
-    """
-    # Widths at negative side.
-    widths_pos = np.zeros(matrix.shape[0])
-    for row in xrange(matrix.shape[0]):
-        amp_min = np.min(matrix[row,:])
-        thresh_abs = amp_min*threshold
-        in_spike = False
-        for i in xrange(matrix.shape[1]) :
-            if matrix[row,i] <= thresh_abs :
-                widths_pos[row] += 1
-                in_spike = True
-            else :
-                if (in_spike == True) :
-                    break
-    # Widths at positive side.
-    widths_neg = np.zeros(matrix.shape[0])
-    for row in xrange(matrix.shape[0]):
-        amp_max = np.max(matrix[row,:])
-        thresh_abs = amp_max*threshold
-        in_spike = False
-        for i in xrange(matrix.shape[1]) :
-            if matrix[row,i] <= thresh_abs :
-                widths_neg[row] += 1
-                in_spike = True
-            else :
-                if (in_spike == True) :
-                    break
-    widths = np.maximum(widths_neg,widths_pos)
-    return widths*dt
-
 
 def findAmplitudeSimple(matrix,amp_option='both'):
     """
