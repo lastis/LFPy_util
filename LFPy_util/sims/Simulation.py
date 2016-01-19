@@ -14,6 +14,8 @@ class Simulation(Process):
 
         self.format_save_results = 'pkl'
         self.format_save_run_param = 'js'
+        # Can be set to false to avoid overriding run_param on load.
+        self.load_run_param = True
 
         # These values are normally set by SimulationHelper.
         self.cell = None
@@ -73,15 +75,16 @@ class Simulation(Process):
         # Change the type of dict.
         self.results = manager.dict(self.results)
 
-        # Load the run parameters.
-        path = os.path.join(self.dir_data,self.fname_run_param)
-        if self.format_save_run_param == 'pkl':
-            self.run_param = LFPy_util.other.load_kwargs(path)
-        elif self.format_save_run_param == 'js':
-            self.run_param = LFPy_util.other.load_kwargs_json(path)
-        else:
-            raise ValueError("Unsupported format")
-        # Change the type of dict.
-        self.run_param = manager.dict(self.run_param)
+        if self.load_run_param:
+            # Load the run parameters.
+            path = os.path.join(self.dir_data,self.fname_run_param)
+            if self.format_save_run_param == 'pkl':
+                self.run_param = LFPy_util.other.load_kwargs(path)
+            elif self.format_save_run_param == 'js':
+                self.run_param = LFPy_util.other.load_kwargs_json(path)
+            else:
+                raise ValueError("Unsupported format")
+            # Change the type of dict.
+            self.run_param = manager.dict(self.run_param)
 
-        
+            
