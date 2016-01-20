@@ -8,10 +8,8 @@ class Intracellular(Simulation):
     """docstring for Grid"""
 
     def __init__(self):
-        super(Intracellular,self).__init__()
-        # Used by the super save and load function.
-        self.fname_run_param = 'soma_run_param'
-        self.fname_results = 'soma_results'
+        Simulation.__init__(self)
+        self.ID = 'soma'
 
         self.debug = False
 
@@ -27,82 +25,85 @@ class Intracellular(Simulation):
     def __str__(self):
         return "Intracellular"
 
-    def simulate(self):
-        results = self.results
+    def simulate(self,cell):
+        data = self.data
         run_param = self.run_param
 
         v_vec_list, i_vec_list, t_vec, rec_pos = \
                 LFPy_util.data_extraction.rec_along_longest_branch()
 
-        self.cell.simulate(rec_vmem=True,rec_imem=True,rec_istim=True,rec_isyn=True)
+        cell.simulate(rec_vmem=True,rec_imem=True,rec_istim=True,rec_isyn=True)
 
-        self.results['soma_v']    = self.cell.somav
-        self.results['soma_v_z']  = zscore(self.cell.somav)
-        self.results['soma_t']    = self.cell.tvec
-        self.results['dt']        = self.cell.timeres_NEURON
-        self.results['v_vec_list']    = v_vec_list
-        self.results['i_vec_list']    = i_vec_list
-        self.results['t_vec']         = t_vec.as_numpy()
-        self.results['rec_pos']       = rec_pos
-        self.results['poly_morph']    = self.cell.get_idx_polygons(('x','y'))
+        self.data['soma_v']    = cell.somav
+        self.data['soma_v_z']  = zscore(cell.somav)
+        self.data['soma_t']    = cell.tvec
+        self.data['dt']        = cell.timeres_NEURON
+        self.data['v_vec_list']    = v_vec_list
+        self.data['i_vec_list']    = i_vec_list
+        self.data['t_vec']         = t_vec.as_numpy()
+        self.data['rec_pos']       = rec_pos
+        self.data['poly_morph']    = cell.get_idx_polygons(('x','y'))
 
         # The first value of t_vec is 0 even though it should not be. 
-        self.results['t_vec'] = np.delete(self.results['t_vec'],0)
-        self.results['v_vec_list'] = np.delete(self.results['v_vec_list'],0,1)
-        self.results['i_vec_list'] = np.delete(self.results['i_vec_list'],0,1)
-        self.results['rec_x'] = self.results['rec_pos'][:,0]
-        self.results['rec_y'] = self.results['rec_pos'][:,1]
+        self.data['t_vec'] = np.delete(self.data['t_vec'],0)
+        self.data['v_vec_list'] = np.delete(self.data['v_vec_list'],0,1)
+        self.data['i_vec_list'] = np.delete(self.data['i_vec_list'],0,1)
+        self.data['rec_x'] = self.data['rec_pos'][:,0]
+        self.data['rec_y'] = self.data['rec_pos'][:,1]
 
         # Gather data for the fourier specter.
-        soma_t = self.results['soma_t']
-        soma_v = self.results['soma_v']
+        soma_t = self.data['soma_t']
+        soma_v = self.data['soma_v']
         freqs, amps, phase = \
             LFPy_util.data_extraction.findFreqAndFft(soma_t,soma_v)
         # Remove the first coefficient as we don't care about the baseline.
         freqs = np.delete(freqs,0)
         amps = np.delete(amps,0)
-        self.results['freqs']    = freqs
-        self.results['amps']     = amps
-        self.results['phase']    = phase
+        self.data['freqs']    = freqs
+        self.data['amps']     = amps
+        self.data['phase']    = phase
 
-    def plot(self):
-        results = self.results
+    def process_data(self):
+        pass
+
+    def plot(self,dir_plot):
+        data = self.data
         run_param = self.run_param
 
         LFPy_util.plot.soma(
-            results['soma_t'],
-            results['soma_v_z'],
+            data['soma_t'],
+            data['soma_v_z'],
             self.fname_intra_plot_zscore, 
-            plot_save_dir=self.dir_plot,
+            plot_save_dir=dir_plot,
             show=self.show
         )
 
         LFPy_util.plot.soma(
-            results['soma_t'],
-            results['soma_v'],
+            data['soma_t'],
+            data['soma_v'],
             self.fname_intra_plot, 
-            plot_save_dir=self.dir_plot,
+            plot_save_dir=dir_plot,
             show=self.show
         )
 
         # Plot along the longest branch.
         LFPy_util.plot.scattered_i_mem_v_mem(
-            results['v_vec_list'], 
-            results['i_vec_list'],
-            results['t_vec'],
-            results['rec_x'], 
-            results['rec_y'],
-            results['poly_morph'],
+            data['v_vec_list'], 
+            data['i_vec_list'],
+            data['t_vec'],
+            data['rec_x'], 
+            data['rec_y'],
+            data['poly_morph'],
             self.fname_intra_plot_i_mem_v_mem, 
-            plot_save_dir=self.dir_plot,
+            plot_save_dir=dir_plot,
             show=self.show,
         )
 
         LFPy_util.plot.fourierSpecter(
-                results['freqs'], 
-                results['amps'],
+                data['freqs'], 
+                data['amps'],
                 fname=self.fname_intra_plot_fourier,
-                plot_save_dir=self.dir_plot,
+                plot_save_dir=dir_plot,
                 f_end=3,
                 show=self.show
         )

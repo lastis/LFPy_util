@@ -5,7 +5,6 @@ import numpy as np
 import os
 from multiprocessing import Process, Manager
 
-
 fname_current_plot_soma_spike       = 'current_soma_spike'
 fname_current_plot_soma_mem         = 'current_soma_mem'
 fname_current_plot_soma_i_mem_v_mem = 'current_soma_i_mem_v_mem'
@@ -15,10 +14,9 @@ class SingleSpike(Simulation):
     """docstring for Grid"""
 
     def __init__(self):
-        super(SingleSpike,self).__init__()
+        Simulation.__init__(self)
         # Used by the super save and load function.
-        self.fname_run_param = 'current_run_param'
-        self.fname_results = 'current_results'
+        self.ID = 'current'
         
         # Used by the custom simulate and plot function.
         self.run_param['threshold'] = 3
@@ -30,7 +28,7 @@ class SingleSpike(Simulation):
         self.run_param['post_dur'] = 16.7*0.5
         self.apply_electrode_at_finish = True
         self.debug = False
-        self.use_previous_init = True
+        self.prev_data = None
 
         # Used by the custom plot function.
         self.show = False
@@ -41,27 +39,24 @@ class SingleSpike(Simulation):
     def get_previous_amp(self):
         # If this simulation has been ran before, try setting init_amp
         # to the amp of that file to avoid doing uneccessary simulations.
-        path = os.path.join(self.dir_data,self.fname_results) + "." \
-                + self.format_save_results
-        if not os.path.isfile(path):
+        path = self.prev_data
+        if path is None or not os.path.isfile(path):
             if self.debug:
                 print "Could not load previous one spike amp."
             return self.run_param['init_amp']
-        if self.format_save_results == 'pkl':
-            results_tmp = LFPy_util.other.load_kwargs(path)
-        elif self.format_save_results == 'js':
-            results_tmp = LFPy_util.other.load_kwargs_json(path)
+        if self.format_save_data == 'pkl':
+            data_tmp = LFPy_util.other.load_kwargs(path)
+        elif self.format_save_data == 'js':
+            data_tmp = LFPy_util.other.load_kwargs_json(path)
         else:
             raise ValueError("Unsupported format")
         if self.debug:
-            print "Previous one spike amp: " + str(results_tmp['amp'])
-        return results_tmp['amp']
+            print "Previous one spike amp: " + str(data_tmp['amp'])
+        return data_tmp['amp']
 
-    def simulate(self):
+    def simulate(self,cell):
         run_param = self.run_param
-        cell = self.cell
-        if self.use_previous_init:
-            run_param['init_amp'] = self.get_previous_amp();
+        run_param['init_amp'] = self.get_previous_amp();
         # Find a current that generates one spike.
         amp = run_param['init_amp']
         spike_cnt_low  = 0
@@ -70,20 +65,20 @@ class SingleSpike(Simulation):
         # Copy the run param so they can be given to the "sub" simulation.
         sub_run_param = run_param.copy()
         while True:
-            # Gather results from the sub process in a dictionary.
+            # Gather data from the sub process in a dictionary.
             # manager = Manager()
-            sub_results = Manager().dict()
+            sub_data = Manager().dict()
             # Set the new amp.
             sub_run_param['amp'] = amp
             # Run the "sub" simulation.
             target = self.simulate_sub
-            args = (cell,sub_results,sub_run_param)
+            args = (cell,sub_data,sub_run_param)
             process = Process(target=target,args=args)
             process.start()
             process.join()
 
             # Change the amplitude according to the spike cnt. 
-            spike_cnt = sub_results['spike_cnt']
+            spike_cnt = sub_data['spike_cnt']
             if self.debug:
                 print 'Found {} spikes at current {} nA.'.format(spike_cnt,amp)
             if spike_cnt == 1:
@@ -103,23 +98,23 @@ class SingleSpike(Simulation):
                 print 'Curent amplitude is above or under threshold, finishing.'
                 return
 
-        # Give the results back.
-        self.results['amp']          = amp
-        self.results['spike_cnt']    = spike_cnt
-        self.results['dt']           = cell.timeres_NEURON
-        self.results['poly_morph']   = cell.get_idx_polygons(('x','y'))
-        self.results['stimulus_i']   = sub_results['stimulus_i']
-        self.results['spike_cnt']    = sub_results['spike_cnt']
-        self.results['soma_v']       = sub_results['soma_v']
-        self.results['soma_t']       = sub_results['soma_t']
+        # Give the data back.
+        self.data['amp']          = amp
+        self.data['spike_cnt']    = spike_cnt
+        self.data['dt']           = cell.timeres_NEURON
+        self.data['poly_morph']   = cell.get_idx_polygons(('x','y'))
+        self.data['stimulus_i']   = sub_data['stimulus_i']
+        self.data['spike_cnt']    = sub_data['spike_cnt']
+        self.data['soma_v']       = sub_data['soma_v']
+        self.data['soma_t']       = sub_data['soma_t']
 
-        self.process_results()
+        self.process_data()
 
         if self.apply_electrode_at_finish:
             soma_clamp_params = {
                 'idx': cell.somaidx,
                 'record_current': True,
-                'amp': self.results['amp'], #  [nA]
+                'amp': self.data['amp'], #  [nA]
                 'dur': self.run_param['duration'],  # [ms]
                 'delay': self.run_param['delay'],  # [ms]
                 'pptype': self.run_param['pptype'],
@@ -127,7 +122,7 @@ class SingleSpike(Simulation):
             stim = LFPy.StimIntElectrode(cell, **soma_clamp_params)
 
 
-    def simulate_sub(self, cell, results, run_param):
+    def simulate_sub(self, cell, data, run_param):
         amp         = run_param.get('amp')
         duration    = run_param.get('duration')
         delay       = run_param.get('delay',5)
@@ -150,24 +145,24 @@ class SingleSpike(Simulation):
                 cell.somav, threshold=threshold)
         # Count local maxima over threshold as spikes.
         spike_cnt = len(max_idx)
-        results['stimulus_i']   = stim.i
-        results['spike_cnt']    = spike_cnt
-        results['soma_v']       = cell.somav
-        results['soma_t']       = cell.tvec
+        data['stimulus_i']   = stim.i
+        data['spike_cnt']    = spike_cnt
+        data['soma_v']       = cell.somav
+        data['soma_t']       = cell.tvec
 
 
-    def process_results(self):
-        results = self.results
+    def process_data(self):
+        data = self.data
         run_param = self.run_param
 
-        results['soma_v'] = np.array(results['soma_v'])
-        results['soma_t'] = np.array(results['soma_t'])
-        results['stimulus_i'] = np.array(results['stimulus_i'])
+        data['soma_v'] = np.array(data['soma_v'])
+        data['soma_t'] = np.array(data['soma_t'])
+        data['stimulus_i'] = np.array(data['stimulus_i'])
 
         # Extract the shape around the first spike.
         spikes, t_vec_spike, _ = LFPy_util.data_extraction.extract_spikes(
-                results['soma_t'],
-                results['soma_v'],
+                data['soma_t'],
+                data['soma_v'],
                 pre_dur=run_param['pre_dur'],
                 post_dur=run_param['post_dur'],
                 threshold=run_param['threshold']
@@ -175,43 +170,43 @@ class SingleSpike(Simulation):
         if len(spikes) == 0:
             print "Could not find any spikes at threshold = {}.".format(threshold)
             spikes, t_vec_spike, _ = LFPy_util.data_extraction.extract_spikes(
-                    results['soma_t'],
-                    results['soma_v'],
+                    data['soma_t'],
+                    data['soma_v'],
                     pre_dur=run_param['pre_dur'],
                     post_dur=run_param['post_dur'],
                     threshold=run_param['threshold']
             )
         # Hope everything is correct and use the first (and only) spike.
         v_vec_spike = spikes[0]
-        results['spikes'] = spikes
-        results['v_vec_spike'] = v_vec_spike
-        results['t_vec_spike'] = t_vec_spike
+        data['spikes'] = spikes
+        data['v_vec_spike'] = v_vec_spike
+        data['t_vec_spike'] = t_vec_spike
 
-    def plot(self):
-        results = self.results
+    def plot(self,dir_plot):
+        data = self.data
         run_param = self.run_param
 
         # Plot data.
         LFPy_util.plot.soma(
-                results['t_vec_spike'],
-                results['v_vec_spike'],
+                data['t_vec_spike'],
+                data['v_vec_spike'],
                 fname_current_plot_soma_spike, 
-                plot_save_dir=self.dir_plot,
+                plot_save_dir=dir_plot,
                 show = self.show,
         )
         LFPy_util.plot.soma(
-                results['soma_t'],
-                results['soma_v'],
+                data['soma_t'],
+                data['soma_v'],
                 fname_current_plot_soma_mem, 
-                plot_save_dir=self.dir_plot,
+                plot_save_dir=dir_plot,
                 show = self.show,
         )
 
         LFPy_util.plot.i_mem_v_mem(
-                results['soma_v'],
-                results['stimulus_i'],
-                results['soma_t'],
+                data['soma_v'],
+                data['stimulus_i'],
+                data['soma_t'],
                 fname_current_plot_soma_i_mem_v_mem,
-                plot_save_dir=self.dir_plot,
+                plot_save_dir=dir_plot,
                 show = self.show,
         )

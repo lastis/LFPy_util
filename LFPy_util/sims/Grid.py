@@ -9,10 +9,9 @@ class Grid(Simulation):
     """docstring for Grid"""
 
     def __init__(self):
-        super(Grid,self).__init__()
+        Simulation.__init__(self)
         # Used by the super save and load function.
-        self.fname_run_param = 'grid_{}_{}_run_param'.format('x','y')
-        self.fname_results = 'grid_{}_{}_results'.format('x','y')
+        self.ID = 'grid_{}_{}'.format('x','y')
         
         # Used by the custom simulate and plot function.
         self.run_param['plane'] = ['x','y']
@@ -38,10 +37,9 @@ class Grid(Simulation):
     def __str__(self):
         return "Grid {} {}".format(*self.run_param['plane'])
 
-    def _set_plane(self,axis1,axis2):
+    def set_plane(self,axis1,axis2):
         self.run_param['plane'] = [axis1,axis2]
-        self.fname_run_param = 'grid_{}_{}_run_param'.format(axis1,axis2)
-        self.fname_results = 'grid_{}_{}_results'.format(axis1,axis2)
+        self.ID = 'grid_{}_{}'.format(axis1,axis2)
         self.fname_grid_plot_elec_morph          \
                 = 'grid_{}_{}_elec_morph'.format(axis1,axis2)
         self.fname_grid_plot_signals_2d          \
@@ -53,9 +51,9 @@ class Grid(Simulation):
         self.fname_grid_plot_gradient_2d_anim    \
                 = 'grid_{}_{}_gradient_2d_anim'.format(axis1,axis2)
 
-    def simulate(self):
+    def simulate(self,cell):
         run_param = self.run_param
-        cell = self.cell
+        cell = cell
         # Calculate the electrode linspaces for the two planes.
         cnt = 0
         n_elec = run_param['n_elec_x']
@@ -94,54 +92,57 @@ class Grid(Simulation):
         electrode = LFPy.RecExtElectrode(cell, **electrode_dict)
         electrode.calc_lfp()
 
-        self.results['electrode_dict'] = electrode_dict
-        self.results['LFP']    = electrode.LFP
-        self.results['lin_x']     = x
-        self.results['lin_y']     = y
-        self.results['lin_z']     = z
-        self.results['dt']           = cell.timeres_NEURON
-        self.results['t_vec']         = cell.tvec
+        self.data['electrode_dict'] = electrode_dict
+        self.data['LFP']    = electrode.LFP
+        self.data['lin_x']     = x
+        self.data['lin_y']     = y
+        self.data['lin_z']     = z
+        self.data['dt']           = cell.timeres_NEURON
+        self.data['t_vec']         = cell.tvec
 
-        self.results['poly_morph'] \
-                = de.get_polygons_no_axon(self.cell,self.run_param['plane'])
-        self.results['poly_morph_axon'] \
-                = de.get_polygons_axon(self.cell,self.run_param['plane'])
+        self.data['poly_morph'] \
+                = de.get_polygons_no_axon(cell,self.run_param['plane'])
+        self.data['poly_morph_axon'] \
+                = de.get_polygons_axon(cell,self.run_param['plane'])
 
-    def plot(self):
-        results = self.results
+    def process_data(self):
+        pass
+
+    def plot(self,dir_plot):
+        data = self.data
         run_param = self.run_param
 
         LFPy_util.plot.morphology(
-            results['poly_morph'],
-            results['poly_morph_axon'],
-            elec_x = results['electrode_dict']['x'],
-            elec_y = results['electrode_dict']['y'],
+            data['poly_morph'],
+            data['poly_morph_axon'],
+            elec_x = data['electrode_dict']['x'],
+            elec_y = data['electrode_dict']['y'],
             fig_size='square',
             fname=self.fname_grid_plot_elec_morph,
-            plot_save_dir=self.dir_plot,
+            plot_save_dir=dir_plot,
             show=self.show,
         )
 
         LFPy_util.plot.signals2D(
-                results['LFP'], 
-                results['lin_x'], 
-                results['lin_y'], 
-                poly_morph = results['poly_morph'],
+                data['LFP'], 
+                data['lin_x'], 
+                data['lin_y'], 
+                poly_morph = data['poly_morph'],
                 normalization=False, 
                 amp_option=run_param['amp_option'],
                 fname=self.fname_grid_plot_signals_2d,
                 show=self.show, 
-                plot_save_dir=self.dir_plot
+                plot_save_dir=dir_plot
         )
         LFPy_util.plot.signals2D(
-                results['LFP'], 
-                results['lin_x'], 
-                results['lin_y'], 
-                poly_morph = results['poly_morph'],
+                data['LFP'], 
+                data['lin_x'], 
+                data['lin_y'], 
+                poly_morph = data['poly_morph'],
                 normalization=True, 
                 amp_option=run_param['amp_option'],
                 fname=self.fname_grid_plot_signals_2d_norm,
                 show=self.show, 
-                plot_save_dir=self.dir_plot
+                plot_save_dir=dir_plot
         )
 

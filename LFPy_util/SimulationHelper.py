@@ -10,12 +10,12 @@ class SimulationHelper(object):
         self._dir_neuron = None
         self._dir_plot = None
         self._dir_data = None
-        self._simulation_stack = []
-        self._simulation_stack_flag = []
+        self._sim_stack = []
+        self._sim_stack_flag = []
 
         self.cell = None
         self.save = True
-        self.plot_at_runtime = False
+        # self.plot_at_runtime = False
         self.verbatim = True
         self.parallel = True
         self.parallel_plot = True
@@ -30,7 +30,6 @@ class SimulationHelper(object):
         text += "dir_neuron          : " + self._dir_neuron + "\n" 
         text += "verbatim            : " + str(self.verbatim)+ "\n"
         text += "run in parallel     : " + str(self.parallel)+ "\n"
-        text += "plot at runtime     : " + str(self.plot_at_runtime)+ "\n"
         text += "plot in parallel    : " + str(self.parallel_plot)
         return text
 
@@ -51,104 +50,108 @@ class SimulationHelper(object):
         self.cell = cell
 
     def push(self, sim_or_func, own_process):
-        self._simulation_stack.append(sim_or_func)
-        self._simulation_stack_flag.append(own_process)
+        self._sim_stack.append(sim_or_func)
+        self._sim_stack_flag.append(own_process)
+
+    @staticmethod
+    def _simulate(sim,cell,dir_data):
+        sim.simulate(cell)
+        if dir_data is not None:
+            sim.save(dir_data)
+
+    @staticmethod
+    def _plot(sim,dir_plot):
+        sim.process_data()
+        sim.plot(dir_plot)
+
+    def get_path_data(self,sim):
+        fname = sim.ID+"_data"
+        path = os.path.join(self._dir_data,fname)
+        return path
+
+    def get_path_run_param(self,sim):
+        fname = sim.ID+"_run_param"
+        path = os.path.join(self._dir_data,fname)
+        return path
 
     def simulate(self):
+        manager = Manager()
         if self.verbatim:
-            print "starting simulation : " 
-        # Store variables so they can be reset later.
-        for i, sim_or_func in enumerate(self._simulation_stack):
-            if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                simulation = sim_or_func
-                a = simulation.plot_at_runtime
-                b = simulation.dir_data
-                c = simulation.dir_plot
-                d = simulation.save
-
+            print "starting simulation : " + self._neuron_name
         # Run the simulations.
-        simulation_list = []
-        for i, sim_or_func in enumerate(self._simulation_stack):
-            flag = self._simulation_stack_flag[i]
+        process_list = []
+        for i, sim_or_func in enumerate(self._sim_stack):
+            flag = self._sim_stack_flag[i]
             if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                simulation = sim_or_func
-                simulation.plot_at_runtime = self.plot_at_runtime
-                simulation.dir_data = self._dir_data
-                simulation.dir_plot = self._dir_plot
-                simulation.save_data = self.save
-                simulation.cell = self.cell
-                # Start in new process.
+                sim = sim_or_func
                 if flag:
+                    # Start in new process.
                     if self.verbatim:
                         print "new process         : " \
-                                + self._neuron_name + " " + simulation.__str__()
-                    simulation.start()
+                                + self._neuron_name + " " + sim.__str__()
+                    # Replace sim.data and sim.run_param with shared memory
+                    # versions so data can be retrived from subprocesses.
+                    sim.data = manager.dict(sim.data)
+                    sim.run_param = manager.dict(sim.run_param)
+                    if self.save:
+                        process = Process(
+                                target=self._simulate,
+                                args=(sim,self.cell,self._dir_data),
+                                )
+                    else:
+                        process = Process(
+                                target=self._simulate,
+                                args=(sim,self.cellNone),
+                                )
+                    process.start()
                     # If running in parallel, start all processes before
                     # joining them.
                     if self.parallel:
-                        simulation_list.append(simulation)
+                        process_list.append(process)
                     else:
-                        simulation.join()
+                        process.join()
                 else:
+                    # Start in current process.
                     if self.verbatim:
                         print "current process     : " \
-                                + self._neuron_name + " " + simulation.__str__()
-                    simulation.run()
+                                + self._neuron_name + " " + sim.__str__()
+                    if self.save:
+                        self._simulate(sim,self.cell,self._dir_data)
+                    else:
+                        self._simulate(sim,self.cell,None)
             # If not a Simulation object assume it is a function.
             else:
                 func = sim_or_func
                 func(cell)
         # If running in parallel, join all the processes here instead.
         if self.parallel:
-            for simulation in simulation_list:
-                simulation.join()
+            for process in process_list:
+                process.join()
 
-        # Reset some variables.
-        for i, sim_or_func in enumerate(self._simulation_stack):
-            if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                simulation.plot_at_runtime = a
-                simulation.dir_data = b
-                simulation.dir_plot = c
-                simulation.save = d
 
     def plot(self):
         if self.verbatim:
             print "starting plotting   : " 
-        # Store variables so they can be reset later.
-        for i, sim_or_func in enumerate(self._simulation_stack):
-            if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                simulation = sim_or_func
-                a = simulation.dir_data
-                b = simulation.dir_plot
 
         process_list = []
-        for i, sim_or_func in enumerate(self._simulation_stack):
+        for i, sim_or_func in enumerate(self._sim_stack):
             if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                simulation = sim_or_func
-                simulation.dir_data = self._dir_data
-                simulation.dir_plot = self._dir_plot
-
-                if not simulation.results:
-                    print "loading data        : " \
-                            + self._dir_data + "/" + simulation.fname_results \
-                            + "." + simulation.format_save_results
-                    simulation.load()
-                    if not simulation.results:
-                        raise ValueError("No results to plot.")
+                sim = sim_or_func
+                if not sim.data:
+                    print "loading data from : " \
+                            + self._dir_data + "/" + sim.ID + "_data."\
+                            + sim.format_save_data
+                    sim.load(self._dir_data)
+                    if not sim.data:
+                        raise ValueError("No data to plot.")
                 if self.parallel_plot:
-                    process = Process(target=simulation.plot)
+                    process = Process(target=self._plot,args=(sim,self._dir_plot))
                     process.start()
                     process_list.append(process)
                 else:
-                    simulation.plot()
+                    self._plot(sim,self._dir_plot)
         for process in process_list:
             process.join()
-        # Reset some variables.
-        for i, sim_or_func in enumerate(self._simulation_stack):
-            if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                simulation.dir_data = a
-                simulation.dir_plot = b
-
 
 
 

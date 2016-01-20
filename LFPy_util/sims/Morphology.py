@@ -4,16 +4,14 @@ import LFPy_util
 import LFPy_util.data_extraction as de
 import numpy as np
 import os
-from multiprocessing import Process, Manager
 
 class Morphology(Simulation):
     """docstring for Grid"""
 
     def __init__(self):
-        super(Morphology,self).__init__()
+        Simulation.__init__(self)
         # Used by the super save and load function.
-        self.fname_run_param = 'morph_run_param'
-        self.fname_results = 'morph_results'
+        self.ID = "morph"
 
         self.debug = False
 
@@ -28,49 +26,52 @@ class Morphology(Simulation):
     def __str__(self):
         return "Morphology"
 
-    def simulate(self):
-        self.results['poly_morph_x_y'] \
-                = de.get_polygons_no_axon(self.cell,('x','y'))
-        self.results['poly_morph_x_y_axon'] \
-                = de.get_polygons_axon(self.cell,('x','y'))
-        self.results['poly_morph_x_z'] \
-                = de.get_polygons_no_axon(self.cell,('x','z'))
-        self.results['poly_morph_x_z_axon'] \
-                = de.get_polygons_axon(self.cell,('x','z'))
-        self.results['poly_morph_y_z'] \
-                = de.get_polygons_no_axon(self.cell,('y','z'))
-        self.results['poly_morph_y_z_axon'] \
-                = de.get_polygons_axon(self.cell,('y','z'))
+    def simulate(self,cell):
+        self.data['poly_morph_x_y'] \
+                = de.get_polygons_no_axon(cell,('x','y'))
+        self.data['poly_morph_x_y_axon'] \
+                = de.get_polygons_axon(cell,('x','y'))
+        self.data['poly_morph_x_z'] \
+                = de.get_polygons_no_axon(cell,('x','z'))
+        self.data['poly_morph_x_z_axon'] \
+                = de.get_polygons_axon(cell,('x','z'))
+        self.data['poly_morph_y_z'] \
+                = de.get_polygons_no_axon(cell,('y','z'))
+        self.data['poly_morph_y_z_axon'] \
+                = de.get_polygons_axon(cell,('y','z'))
 
-    def plot(self):
-        results = self.results
+    def process_data(self):
+        pass
+
+    def plot(self,dir_plot):
+        data = self.data
         run_param = self.run_param
 
         # Plot.
         LFPy_util.plot.morphology(
-            results['poly_morph_x_y'],
-            results['poly_morph_x_y_axon'],
+            data['poly_morph_x_y'],
+            data['poly_morph_x_y_axon'],
             fname=self.fname_morph_plot_xy,
-            plot_save_dir=self.dir_plot,
+            plot_save_dir=dir_plot,
             show=self.show,
             mirror=True,
             x_label='y',
             y_label='x',
         )
         LFPy_util.plot.morphology(
-            results['poly_morph_x_z'],
-            results['poly_morph_x_z_axon'],
+            data['poly_morph_x_z'],
+            data['poly_morph_x_z_axon'],
             fname=self.fname_morph_plot_xz,
-            plot_save_dir=self.dir_plot,
+            plot_save_dir=dir_plot,
             show=self.show,
             x_label='x',
             y_label='z',
         )
         LFPy_util.plot.morphology(
-            results['poly_morph_y_z'],
-            results['poly_morph_y_z_axon'],
+            data['poly_morph_y_z'],
+            data['poly_morph_y_z_axon'],
             fname=self.fname_morph_plot_yz, 
-            plot_save_dir=self.dir_plot,
+            plot_save_dir=dir_plot,
             x_label='y',
             y_label='z',
             show=self.show,
