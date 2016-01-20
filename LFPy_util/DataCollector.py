@@ -16,7 +16,7 @@ class DataCollector(object):
         self._dir_neurons = path
 
     def set_collection_func(self, func):
-        if len(inspect.getargspec(func)[0]) != 3:
+        if len(inspect.getargspec(func)[0]) != 4:
             raise ValueError("DataCollection function must have 3 arguments.")
         self._data_func = func
 
@@ -29,19 +29,22 @@ class DataCollector(object):
             if not os.path.isdir(path):
                 continue
             dir_data = os.path.join(path,"data")
-            expr_pkl = os.path.join(dir_data,"*.pkl")
-            expr_js = os.path.join(dir_data,"*.js")
+            # TODO: Fix this!
+            expr_data_pkl = os.path.join(dir_data,"*results*.pkl")
+            expr_run_param_js = os.path.join(dir_data,"*run_param*.js")
 
-            files_pkl = glob(expr_pkl)
-            files_js = glob(expr_js)
+            files_data_pkl = glob(expr_data_pkl)
+            files_run_param_js = glob(expr_run_param_js)
 
-            for file in files_pkl:
-                path = os.path.join(path,file)
-                data = LFPy_util.other.load_kwargs(path)
+            for file_run_param, file_data in zip(files_run_param_js,files_data_pkl):
+                path_data = os.path.join(path,file_data)
+                data = LFPy_util.other.load_kwargs(path_data)
+                path_run_param = os.path.join(path,file_run_param)
+                run_param = LFPy_util.other.load_kwargs_json(path_run_param)
                 # Remove extention and parent dirs.
                 file = os.path.splitext(path)[0]
                 file = os.path.basename(file)
-                self._data_func(neuron,file,data)
+                self._data_func(neuron,file_data,run_param,data)
 
 
 

@@ -142,12 +142,9 @@ class DiscElectrodes(Simulation):
                 = de.get_polygons_no_axon(self.cell,self.run_param['plane'])
         results['poly_morph_axon'] \
                 = de.get_polygons_axon(self.cell,self.run_param['plane'])
-        self.process_results()
 
-    def process_results(self):
-        results = self.results
-        run_param = self.run_param
-
+    @staticmethod
+    def process_results(results, run_param):
         results['LFP']  = np.array(results['LFP'])
         r       = run_param['r']
         n       = run_param['n']
@@ -221,10 +218,11 @@ class DiscElectrodes(Simulation):
         results['amps'] = amps
 
     def plot(self):
+        self._update_names()
         results = self.results
         run_param = self.run_param
 
-        self._update_names()
+        self.process_results(results,run_param)
 
         # Plot the signals from the electrodes in a circular shape.
         if self.plot_detailed:
