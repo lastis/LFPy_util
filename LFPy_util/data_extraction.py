@@ -318,6 +318,7 @@ def find_wave_width_type_1(matrix, dt=1):
     """
     Wave width defined as time from minimum to maximum.
     """
+
     matrix = np.array(matrix)
     if len(matrix.shape) == 1:
         matrix = np.reshape(matrix, (1,-1))
@@ -326,15 +327,16 @@ def find_wave_width_type_1(matrix, dt=1):
     trace[:] = np.NAN
     for row in xrange(matrix.shape[0]):
         signal = matrix[row]
+        offset = signal[0]
+        signal -= offset
+        # Assume that maximum abs. value is the "spiking" direction.
+        if signal.max() < -signal.min():
+            signal = -signal
         idx_1 = np.argmax(signal)
-        idx_2 = np.argmin(signal)
         v_max = signal[idx_1]
-        if idx_1 > idx_2:
-            tmp = idx_1
-            idx_1 = idx_2
-            idx_2 = tmp
+        idx_2 = idx_1 + np.argmin(signal[idx_1:])
         widths[row] = idx_2 - idx_1
-        trace[row,idx_1:idx_2] = v_max*(1.05)
+        trace[row,idx_1:idx_2] = matrix[row,idx_1:].max()*(1.05)
     return widths*dt, trace
         
 
