@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.decomposition import PCA
 import scipy.fftpack as ff
-import neuron
 from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
@@ -333,7 +332,6 @@ def find_wave_width_type_1(matrix, dt=1):
         if signal.max() < -signal.min():
             signal = -signal
         idx_1 = np.argmax(signal)
-        v_max = signal[idx_1]
         idx_2 = idx_1 + np.argmin(signal[idx_1:])
         widths[row] = idx_2 - idx_1
         trace[row,idx_1:idx_2] = matrix[row,idx_1:].max()*(1.05)

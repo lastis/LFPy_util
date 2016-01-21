@@ -1,5 +1,4 @@
 import numpy as np
-import LFPy
 
 def alignCellToAxes(cell, y_axis, x_axis=None) :
     """

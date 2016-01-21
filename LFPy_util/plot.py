@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 import matplotlib.animation as animation
-import LFPy_util.data_extraction
 import LFPy_util.colormaps as cmaps
 import os
 import time
@@ -449,7 +448,7 @@ def hide_spines():
     figures and their respective axes."""
 
     # Retrieve a list of all current figures.
-    figures = [x for x in matplotlib._pylab_helpers.Gcf.get_all_fig_managers()]
+    figures = [x for x in mpl._pylab_helpers.Gcf.get_all_fig_managers()]
     for figure in figures:
         # Get all Axis instances related to the figure.
         for ax in figure.canvas.figure.get_axes():
@@ -983,7 +982,6 @@ def gradient2D(LFP, x, y, neuron_x = [], neuron_y = [], soma_diam=0,
         print LFP_max
 
         XY = np.column_stack((X,Y))
-        start = time.time()
         for i in xrange(LFP.shape[1]) :
             Z = LFP[:,i]
 
@@ -998,7 +996,6 @@ def gradient2D(LFP, x, y, neuron_x = [], neuron_y = [], soma_diam=0,
                     extent=[x_min, x_max, y_min, y_max],
                     cmap=cmaps.viridis,zorder=-1)
             ims.append([im])
-        end = time.time()
 
         # Add colorbar.
         cb = plt.colorbar()
@@ -1016,7 +1013,6 @@ def gradient2D(LFP, x, y, neuron_x = [], neuron_y = [], soma_diam=0,
 
         plt.tight_layout()
         if (fname is not None):
-            start = time.time()
             # Create the directory if it does not exist.
             if not os.path.exists(plot_save_dir):
                 os.makedirs(plot_save_dir)
@@ -1031,7 +1027,6 @@ def gradient2D(LFP, x, y, neuron_x = [], neuron_y = [], soma_diam=0,
             ani.save(name,
                     writer='mencoder',
             )
-            end = time.time()
     else :
         Z = np.amax(np.absolute(LFP),axis=1)
         Z = np.ma.log10(Z)

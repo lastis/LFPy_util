@@ -1,13 +1,15 @@
-import LFPy_util
 import os
+import LFPy_util
+
 class Simulation():
     """
     Some guidelines:
     * run_param should not contain values that are used to process_data.
     Parameters that effect the proccesing of the data should be saved as
-    class variables. 
-        If this is done it is possible to process data in different ways
-    using the saved data from one simulation. The opposite is true for the 
+    class variables.
+
+    If this is done it is possible to process data in different ways
+    using the saved data from one simulation. The opposite is true for the
     simulate function, see below.
     * The run_param should uniquely define the data in the simulate function.
     If class variables are used to create the data in the simulate function it
@@ -76,4 +78,4 @@ class Simulation():
         else:
             raise ValueError("Unsupported format")
 
-            
+
