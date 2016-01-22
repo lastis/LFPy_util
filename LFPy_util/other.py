@@ -12,12 +12,12 @@ def collect_data(dir_neurons,sim,func):
     if len(inspect.getargspec(func)[0]) != 4:
         raise ValueError("DataCollection function must have 3 arguments.")
     neurons = os.listdir(dir_neurons)
-    sh = LFPy_util.SimulationHelper()
-    sh.set_dir_neurons(dir_neurons)
+    s = LFPy_util.Simulator()
+    s.set_dir_neurons(dir_neurons)
     for neuron in neurons:
-        sh.set_neuron_name(neuron)
-        path_data = sh.get_path_data(sim)
-        path_run_param = sh.get_path_run_param(sim)
+        s.set_neuron_name(neuron)
+        path_data = s.get_path_sim_data(sim)
+        path_run_param = s.get_path_sim_run_param(sim)
         sim.data = LFPy_util.other.load_kwargs(path_data)
         sim.run_param = LFPy_util.other.load_kwargs_json(path_run_param)
         sim.process_data()
