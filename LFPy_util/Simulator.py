@@ -3,7 +3,7 @@ import inspect
 from multiprocessing import Process, Manager
 import LFPy_util
 
-class SimulationHelper(object):
+class Simulator(object):
     """docstring for SimulationHandler"""
     def __init__(self, cell=None):
         self._neuron_list = None
@@ -27,7 +27,7 @@ class SimulationHelper(object):
 
     def __str__(self):
         text = ""
-        text += "## SimulationHelper ##" + "\n"
+        text += "## Simulator ##" + "\n"
         text += "neurons             : " + self._neuron_list[0] + "\n"
         for neuron in self._neuron_list[1:]:
             text += "                    : " + neuron + "\n"
@@ -131,7 +131,7 @@ class SimulationHelper(object):
                         sim.run_param = manager.dict(sim.run_param)
 
                         process = Process(
-                                target=SimulationHelper._simulate,
+                                target=Simulator._simulate,
                                 args=(sim,cell,dir_data),
                                 )
                         process.start()
@@ -181,7 +181,7 @@ class SimulationHelper(object):
             if self.parallel and len(self._neuron_list) != 1:
                 # For each neuron start a new process.
                 process = Process(
-                        target=SimulationHelper._run_neuron,
+                        target=Simulator._run_neuron,
                         args=(self, i),
                         )
                 process.start()
