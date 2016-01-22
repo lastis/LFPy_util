@@ -31,10 +31,10 @@ class SphereElectrodes(Simulation):
         y = run_param['R']*np.power(l,1/3.0)*np.sqrt(1-u*u)*np.sin(phi),
         z = run_param['R']*np.power(l,1/3.0)*u
 
-        self.cell.simulate(rec_imem=True)
+        cell.simulate(rec_imem=True)
 
         # Record the LFP of the electrodes. 
-        electrode = LFPy.RecExtElectrode(self.cell,x,y,z,sigma=run_param['sigma'])
+        electrode = LFPy.RecExtElectrode(cell,x=x,y=y,z=z,sigma=run_param['sigma'])
         electrode.calc_lfp()
         data['LFP'] = electrode.LFP
         data['elec_x'] = x
@@ -47,5 +47,5 @@ class SphereElectrodes(Simulation):
     def plot(self,dir_plot):
         data = self.data
         import matplotlib.pyplot as plt
-        plt.plot(data['elec_x'],data['elec_y'])
+        plt.scatter(data['elec_x'],data['elec_y'])
         plt.show()
