@@ -41,7 +41,6 @@ class Simulator(object):
         if not isinstance(name,list):
             name = [name]
         self._neuron_list = name
-        print self._neuron_list
 
     def set_dir_neurons(self, path):
         self._dir_neurons = path
@@ -149,6 +148,7 @@ class Simulator(object):
             # Join all processes.
             for process in process_list:
                 process.join()
+
         if self.plot:
             if self.verbatim:
                 print "starting plotting   : " 

@@ -74,9 +74,6 @@ def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
     for i in xrange(length,-1,-1):
         # Remove local maxima that is not above threshold or if the spike
         # shape cannot fit inside pre_dur and post_dur
-        # print v_max[i] < threshold 
-        # print max_idx[i] < pre_idx 
-        # print max_idx[i] + post_idx > len(t_vec)
         if (v_max[i] < threshold or
                 max_idx[i] < pre_idx or
                 max_idx[i] + post_idx > len(t_vec)):
@@ -313,7 +310,7 @@ def findMajorAxes():
     pca.fit(points)
     return pca.components_
 
-def find_wave_width_type_1(matrix, dt=1):
+def find_wave_width_type_I(matrix, dt=1):
     """
     Wave width defined as time from minimum to maximum.
     """

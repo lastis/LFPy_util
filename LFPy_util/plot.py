@@ -19,7 +19,7 @@ size_common = [8,4]
 size_large = [8,8]
 size_thin = [8,2]
 
-def _set_rc_params():
+def set_rc_param():
     mpl.rcParams['font.family'] = 'serif'
     mpl.rcParams['font.style'] = 'normal'
     mpl.rcParams['text.usetex'] = True
@@ -28,7 +28,7 @@ def _set_rc_params():
     mpl.rcParams['font.serif'] = ['Times']
     # mpl.rcParams['text.latex.unicode']=False
 
-def _getShortColorArray(n) :
+def get_short_color_array(n) :
     """
     Create a linspace of the colors in the default collor array. Currently
     viridis.
@@ -101,7 +101,7 @@ def soma(t_vec, signal,fname=None, plot_save_dir='.', show=True,
     signal = np.array(signal)
     t_vec = np.array(t_vec)
 
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -164,7 +164,7 @@ def frequency_amp(firing_rate, amp, relative=False,
     """
     print "plotting            :", fname
 
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
 
     if relative:
@@ -205,7 +205,7 @@ def i_mem_v_mem(v_vec, i_vec, t_vec,
     """
     print "plotting            :", fname
 
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.subplot(2,1,1)
     ax.grid()
@@ -246,7 +246,7 @@ def morphology(poly_morph, poly_morph_axon=None, elec_x=None, elec_y=None, mirro
     if elec_y is not None:
         elec_y = np.array(elec_y)
 
-    _set_rc_params()
+    set_rc_param()
     if fig_size == 'square_small':
         figsize = size_square_small
     elif fig_size == 'square':
@@ -260,7 +260,7 @@ def morphology(poly_morph, poly_morph_axon=None, elec_x=None, elec_y=None, mirro
     ymin = 0
     ymax = 0
 
-    colors = _getShortColorArray(3)
+    colors = get_short_color_array(3)
     # Plot morphology.
     zips = []
     for a,b in poly_morph:
@@ -385,7 +385,7 @@ def scattered_i_mem_v_mem(v_vec_list, i_vec_list, t_vec, rec_x, rec_y,
     v_vec_list = np.delete(v_vec_list, range(idx), 1)
     i_vec_list = np.delete(i_vec_list, range(idx), 1)
 
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.subplot(2,1,1)
     xmin = 0
@@ -406,7 +406,7 @@ def scattered_i_mem_v_mem(v_vec_list, i_vec_list, t_vec, rec_x, rec_y,
         zips.append(zip(a,b))
     polycol = mpl.collections.PolyCollection(zips,edgecolors='none',facecolors='black')
     ax.add_collection(polycol,)
-    colors = _getShortColorArray(len(rec_x))
+    colors = get_short_color_array(len(rec_x))
     if mirror:
         tmp = rec_y
         rec_y = rec_x
@@ -482,7 +482,7 @@ def fourierSpecter(freqs, amps, f_end=None,
 
     freqs = np.asarray(freqs)
 
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.grid()
@@ -538,7 +538,7 @@ def signal_sub_plot_3(t_vec, v_mat, width_trace=None,
         ylabel += r'\textbf[$\mathbf{\bm\upmu V}$\textbf]'
     
     # Add packages for latex commands.
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_thin)
 
     # Get the viridis color.
@@ -664,7 +664,7 @@ def electrodeSignals(t_vec, LFP, mode='all', elec_pos=[],
         LFP *= 1000
     
     # Add packages for latex commands.
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -685,7 +685,7 @@ def electrodeSignals(t_vec, LFP, mode='all', elec_pos=[],
     # Plot all rows in the same plot.
     if mode == 'all':
         # Get the viridis color map.
-        color_array = _getShortColorArray(LFP.shape[0])
+        color_array = get_short_color_array(LFP.shape[0])
         for i in xrange(LFP.shape[0]):
             signal = LFP[i,:]
             # Add info about the position about the electrodes
@@ -827,7 +827,7 @@ def circularLfp(LFP, x, y, neuron_x=[], neuron_y=[], poly_morph=[], res_x=100, r
     fig = plt.figure()
     ax = plt.gca()
     # Add packages for latex commands.
-    _set_rc_params()
+    set_rc_param()
 
     # Plot the neuron morphology. Can either supply lines or the polygon.
     for i in xrange(len(neuron_x)):
@@ -945,7 +945,7 @@ def gradient2D(LFP, x, y, neuron_x = [], neuron_y = [], soma_diam=0,
     fig = plt.figure()
     ax = plt.gca()
     # Add packages for latex commands.
-    _set_rc_params()
+    set_rc_param()
 
     # Make data points to calculate the interpolation on. 
     a = np.linspace(x.min(),x.max(),res_x)
@@ -1125,7 +1125,7 @@ def signals2D(LFP, x, y, neuron_x = [], neuron_y = [], soma_diam=0,
     plt.clf()
 
     # Add packages for latex commands.
-    _set_rc_params()
+    set_rc_param()
 
     # Create colorbar from the scatterplot that was removed.
     cb = plt.colorbar(sc)
@@ -1236,7 +1236,7 @@ def spikeAmplitudes(amps, dr=1, r_0=0, show=True, scale='linear',
     x = x + r_0
 
     # Initial plot parameters.
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1254,7 +1254,7 @@ def spikeAmplitudes(amps, dr=1, r_0=0, show=True, scale='linear',
         y_max = amps.max()
         ax.set_ylim([y_min,y_max])
         # Get the colors of the viridis color map.
-        color_array = _getShortColorArray(amps.shape[0])
+        color_array = get_short_color_array(amps.shape[0])
         lines = []
         for idx in range(amps.shape[0]):
             y = amps[idx,:]
@@ -1390,7 +1390,7 @@ def spike_widths_and_amp_grouped(grouped_widths,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1410,7 +1410,7 @@ def spike_widths_and_amp_grouped(grouped_widths,
 
     # Get an array of colors for each line that will be drawn. +1 because
     # the last color is very light and cannot be seen very well.
-    color_array = _getShortColorArray(len(grouped_elec_pos)+1)
+    color_array = get_short_color_array(len(grouped_elec_pos)+1)
     # For each group of neurons.
     for i in xrange(len(grouped_elec_pos)):
         widths_list = grouped_widths[i]
@@ -1538,7 +1538,7 @@ def spike_amps_grouped(grouped_amps, grouped_elec_pos,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1557,7 +1557,7 @@ def spike_amps_grouped(grouped_amps, grouped_elec_pos,
     # Plot data.
     if mode == 'std' :
         # For each group of neurons.
-        color_array = _getShortColorArray(len(grouped_elec_pos)+1)
+        color_array = get_short_color_array(len(grouped_elec_pos)+1)
         # For each group of neurons.
         for i in xrange(len(grouped_elec_pos)):
             amps_list = grouped_amps[i]
@@ -1653,7 +1653,7 @@ def spike_widths_grouped(grouped_widths, grouped_elec_pos,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1672,7 +1672,7 @@ def spike_widths_grouped(grouped_widths, grouped_elec_pos,
     # Plot data.
     if mode == 'std' :
         # For each group of neurons.
-        color_array = _getShortColorArray(len(grouped_elec_pos)+1)
+        color_array = get_short_color_array(len(grouped_elec_pos)+1)
         # For each group of neurons.
         for i in xrange(len(grouped_elec_pos)):
             widths_list = grouped_widths[i]
@@ -1782,7 +1782,7 @@ def spikeWidths(widths, dr=1, r_0=0, threshold=None,
 
 
     # Inital plot paramters.
-    _set_rc_params()
+    set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1799,7 +1799,7 @@ def spikeWidths(widths, dr=1, r_0=0, threshold=None,
         y_min = widths.min()
         y_max = widths.max()
         ax.set_ylim([y_min,y_max])
-        color_array = _getShortColorArray(widths.shape[0])
+        color_array = get_short_color_array(widths.shape[0])
         lines = []
         for idx in range(widths.shape[0]):
             y = widths[idx,:]
