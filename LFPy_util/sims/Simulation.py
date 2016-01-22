@@ -24,6 +24,8 @@ class Simulation():
         self.format_save_run_param = 'js'
         self.data = {}
         self.run_param = {}
+        self._str_data = "_data"
+        self._str_run_param = "_run_param"
 
     def __str__(self):
         return self.ID
@@ -37,9 +39,15 @@ class Simulation():
     def plot(self,dir_plot):
         raise NotImplementedError("Function must be overrided.")
 
+    def get_fname_data(self):
+        return self.ID + self._str_data + "." + self.format_save_data
+
+    def get_fname_run_param(self):
+        return self.ID + self._str_run_param + "." + self.format_save_run_param
+
     def save(self,dir_data):
         # Save data.
-        fname = self.ID+"_data"
+        fname = self.get_fname_data()
         path = os.path.join(dir_data,fname)
         if self.format_save_data == 'pkl':
             LFPy_util.other.save_kwargs(path,**self.data)
@@ -48,7 +56,7 @@ class Simulation():
         else:
             raise ValueError("Unsupported format")
         # Save run param.
-        fname = self.ID+"_run_param"
+        fname = self.get_fname_run_param()
         path = os.path.join(dir_data,fname)
         if self.format_save_run_param == 'pkl':
             LFPy_util.other.save_kwargs(path,**self.run_param)
@@ -59,7 +67,7 @@ class Simulation():
 
     def load(self,dir_data):
         # Load data.
-        fname = self.ID+"_data"
+        fname = self.get_fname_data()
         path = os.path.join(dir_data,fname)
         if self.format_save_data == 'pkl':
             self.data = LFPy_util.other.load_kwargs(path)
@@ -69,7 +77,7 @@ class Simulation():
             raise ValueError("Unsupported format")
 
         # Load the run parameters.
-        fname = self.ID+"_run_param"
+        fname = self.get_fname_run_param()
         path = os.path.join(dir_data,fname)
         if self.format_save_run_param == 'pkl':
             self.run_param = LFPy_util.other.load_kwargs(path)
