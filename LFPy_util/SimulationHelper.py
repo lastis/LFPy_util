@@ -21,7 +21,7 @@ class SimulationHelper(object):
         self.parallel_plot = True
 
         self.set_cell(cell)
-        self.set_dir_neurons(".")
+        self.set_dir_neurons("neuron")
 
     def __str__(self):
         text = ""
@@ -122,7 +122,7 @@ class SimulationHelper(object):
             # If not a Simulation object assume it is a function.
             else:
                 func = sim_or_func
-                func(cell)
+                func(self.cell)
         # If running in parallel, join all the processes here instead.
         if self.parallel:
             for process in process_list:
