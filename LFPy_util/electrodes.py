@@ -1,6 +1,5 @@
 import LFPy_util
 import numpy as np
-import scipy.ndimage.interpolation as interpolation
 
 def _planeElectrodes(norm, x, y):
     norm = np.asarray(norm)

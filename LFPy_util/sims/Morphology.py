@@ -1,9 +1,6 @@
 from Simulation import Simulation
-import LFPy
 import LFPy_util
 import LFPy_util.data_extraction as de
-import numpy as np
-import os
 
 class Morphology(Simulation):
     """docstring for Grid"""
@@ -45,7 +42,6 @@ class Morphology(Simulation):
 
     def plot(self,dir_plot):
         data = self.data
-        run_param = self.run_param
 
         # Plot.
         LFPy_util.plot.morphology(

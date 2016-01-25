@@ -6,9 +6,9 @@ import LFPy_util.data_extraction as de
 import LFPy_util.plot as lplot
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class SphereElectrodes(Simulation):
-    """docstring for Grid"""
 
     def __init__(self):
         Simulation.__init__(self)
@@ -37,7 +37,7 @@ class SphereElectrodes(Simulation):
         # Calculate random numbers in a sphere.
         l = np.random.uniform(0,1,run_param['N'])
         u = np.random.uniform(-1,1,run_param['N'])
-        phi = np.random.uniform(-1,1,run_param['N'])
+        phi = np.random.uniform(0,2*np.pi,run_param['N'])
         x = run_param['R']*np.power(l,1/3.0)*np.sqrt(1-u*u)*np.cos(phi),
         y = run_param['R']*np.power(l,1/3.0)*np.sqrt(1-u*u)*np.sin(phi),
         z = run_param['R']*np.power(l,1/3.0)*u
@@ -158,6 +158,18 @@ class SphereElectrodes(Simulation):
         # Create the directory if it does not exist.
         if not os.path.exists(dir_plot):
             os.makedirs(dir_plot)
+
+        # 3D plot.
+        fname = "sphere_elec_pos"
+        c = lplot.get_short_color_array(5)[2]
+        fig = plt.figure(figsize=lplot.size_common)
+        ax = fig.add_subplot(111,projection='3d')
+        ax.scatter(data['elec_x'],data['elec_y'],data['elec_z'],c=c)
+        ax.set_aspect('equal')
+        # Save plt.
+        path = os.path.join(dir_plot,fname+"."+format)
+        plt.savefig(path,format=format,bbox_inches='tight')
+        plt.close()
 
         # New plot.
         fname = 'sphere_spike_amps'

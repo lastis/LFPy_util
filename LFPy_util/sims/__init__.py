@@ -5,3 +5,4 @@ from DiscElectrodes import DiscElectrodes
 from Morphology import Morphology
 from Intracellular import Intracellular
 from SphereElectrodes import SphereElectrodes
+from Symmetry import Symmetry

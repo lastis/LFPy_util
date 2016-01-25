@@ -271,26 +271,27 @@ def getPositionDataShort():
     Section position information is not available.
 
     :returns: 
-        Matrix (nSegments x 3) With x,y,z positions. 
+        Matrix (3 x nSegments) With x,y,z positions. 
     :rtype: :class:`~numpy.ndarray`
 
     Example:
         .. code-block:: python
 
-            points = getPositionDataShort()
+            data = getPositionDataShort()
     """
     n = 0
     for sec in h.allsec():
         n += int(h.n3d())
-    points = np.zeros([n,3])
+    data = np.zeros([4,n])
     cnt = 0
     for sec in h.allsec():
         for i in xrange(int(h.n3d())):
-            points[cnt,0] = h.x3d(i)
-            points[cnt,1] = h.y3d(i)
-            points[cnt,2] = h.z3d(i)
+            data[0,cnt] = h.x3d(i)
+            data[1,cnt] = h.y3d(i)
+            data[2,cnt] = h.z3d(i)
+            data[3,cnt] = h.diam3d(i)
             cnt += 1
-    return points
+    return data
 
 def findMajorAxes():
     """
