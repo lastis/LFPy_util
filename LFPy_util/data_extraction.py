@@ -57,6 +57,11 @@ def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
 
     v_vec_unmod = v_vec
     v_vec = zscore(v_vec)
+    if amp_option == 'both':
+        if v_vec.max() < -v_vec.min():
+            amp_option = 'neg'
+        else:
+            amp_option = 'pos'
     if amp_option == 'neg':
         v_vec = -v_vec
 
@@ -309,6 +314,64 @@ def findMajorAxes():
     pca = PCA(n_components=3)
     pca.fit(points)
     return pca.components_
+
+def find_wave_width_type_II(matrix, threshold=0.5, dt=1,amp_option='both'):
+    """
+    Compute wave width at some fraction of max amplitude. Counts the number
+    of indices above threshold and multiplies by **dt**. 
+
+    :param `~numpy.ndarray` matrix: 
+        Matrix (nSignals x frames) of 1D signals at each row. . 
+        What happens now. Is this to long and will go over two lines
+        or does it linebreak.
+    :param float threshold: 
+        Between 0 and 1.
+    :param float dt: 
+        Time per frame.
+    :param string amp_option: 
+        Calculate width from the negative side or the positive side.
+        Can either 'both', 'neg' or 'pos'.
+    :returns: 
+        Array (nSignals) with widths.
+    :rtype: :class:`~numpy.ndarray`
+
+    Example:
+        .. code-block:: python
+
+            widths, trace = LFPy_util.data_extraction.findWaveWidthsSimple(LFP)
+    """
+    matrix = np.array(matrix)
+    if len(matrix.shape) == 1:
+        matrix = np.reshape(matrix, (1,-1))
+    widths = np.zeros(matrix.shape[0])
+    trace = np.empty(matrix.shape)
+    trace[:] = np.NAN
+    for row in xrange(matrix.shape[0]):
+        signal = matrix[row,:]
+        
+        # Flip the signal if the negative side should be used. 
+        if amp_option == 'neg':
+            signal = -signal
+        elif amp_option == 'both' and signal.max() < -signal.min():
+            signal = -signal
+        offset = signal[0]
+        signal -= offset
+
+        amp_max = np.max(signal)
+        thresh_abs = amp_max*np.fabs(threshold)
+        for i in xrange(matrix.shape[1]) :
+            if signal[i] >= thresh_abs :
+                widths[row] += 1
+                trace[row,i] = thresh_abs + offset
+        if amp_option == 'neg':
+            trace[row] = -trace[row]
+        elif amp_option == 'both' and signal.max() > -signal.min():
+            trace[row] = -trace[row]
+    # If the input matrix is a single signal, return the trace 
+    # as a vector and not a matrix. 
+    if matrix.shape[0] == 1:
+        trace = trace.flatten()
+    return widths*dt, trace
 
 def find_wave_width_type_I(matrix, dt=1):
     """

@@ -7,7 +7,6 @@ import matplotlib.cm as cmx
 import matplotlib.animation as animation
 import LFPy_util.colormaps as cmaps
 import os
-import time
 
 plot_format = ['pdf']
 color_array_long = cmaps._viridis_data
@@ -47,6 +46,12 @@ def get_short_color_array(n) :
         color_arr.append(colorVal)
     return color_arr
 
+def nice_axes(ax):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.grid()
 
 def _get_line_segments(t_vec,width_trace_1d):
     # Get linesegments from the trace.
