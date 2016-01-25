@@ -272,7 +272,9 @@ class SphereElectrodes(Simulation):
         ax = plt.gca()
         lplot.nice_axes(ax)
         # Plot
-        plt.hist(data['elec_r_all'],self.bins-1,range=(0,data['elec_r_all'].max()))
+        plt.hist(data['elec_r_all'],self.bins-1,
+                range=(0,data['elec_r_all'].max()),
+                color=lplot.color_array_long[0])
         # Save plt.
         path = os.path.join(dir_plot,fname+"."+format)
         plt.savefig(path,format=format,bbox_inches='tight')
