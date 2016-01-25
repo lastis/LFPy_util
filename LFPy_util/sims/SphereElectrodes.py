@@ -274,7 +274,7 @@ class SphereElectrodes(Simulation):
         # Plot
         plt.hist(data['elec_r_all'],self.bins-1,
                 range=(0,data['elec_r_all'].max()),
-                color=lplot.color_array_long[0])
+                facecolor=lplot.color_array_long[0],alpha=0.5)
         # Save plt.
         path = os.path.join(dir_plot,fname+"."+format)
         plt.savefig(path,format=format,bbox_inches='tight')
