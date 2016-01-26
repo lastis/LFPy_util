@@ -16,7 +16,7 @@ class SphereElectrodes(Simulation):
         self.ID = "sphere"
 
         self.debug = False
-        self.run_param['N'] = 1000
+        self.run_param['N'] = 500
         self.run_param['R'] = 50
         self.run_param['sigma'] = 0.3
 
