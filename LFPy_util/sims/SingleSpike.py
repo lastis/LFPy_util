@@ -125,8 +125,8 @@ class SingleSpike(Simulation):
     def simulate_sub(self, cell, data, run_param):
         amp         = run_param.get('amp')
         duration    = run_param.get('duration')
-        delay       = run_param.get('delay',5)
-        threshold   = run_param.get('threshold',3)
+        delay       = run_param.get('delay')
+        threshold   = run_param.get('threshold')
         pptype      = run_param.get('pptype','IClamp')
         
         soma_clamp_params = {
@@ -168,7 +168,7 @@ class SingleSpike(Simulation):
                 threshold=run_param['threshold']
         )
         if len(spikes) == 0:
-            print "Could not find any spikes at threshold = {}.".format(threshold)
+            print "Could not find any spikes at threshold = {}.".format(run_param['threshold'])
             spikes, t_vec_spike, _ = LFPy_util.data_extraction.extract_spikes(
                     data['soma_t'],
                     data['soma_v'],

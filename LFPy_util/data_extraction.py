@@ -457,7 +457,7 @@ def findWaveWidthsSimple(matrix, threshold=0.5, dt=1,amp_option='both'):
         trace = trace.flatten()
     return widths*dt, trace
 
-def findAmplitudeSimple(matrix,amp_option='both'):
+def find_amplitude(matrix,amp_option='both'):
     """
     Finds the amplitude of signals. Simply takes the maximum absolute value. 
 

@@ -134,8 +134,6 @@ class DiscElectrodes(Simulation):
 
         data['dr'] = (r-r_0)/(n-1)
 
-        t_vec = data['t_vec']
-
         electrode_spikes = []
         electrode_t_vec = []
         # For each angle around the center point, there are multiple electrodes.
@@ -189,7 +187,7 @@ class DiscElectrodes(Simulation):
         data['widths'] = widths
 
         # Spike amplitudes.
-        amps = LFPy_util.data_extraction.findAmplitudeSimple(
+        amps = LFPy_util.data_extraction.find_amplitude(
                 LFP,
                 run_param['amp_option']
         )

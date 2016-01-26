@@ -92,7 +92,7 @@ class SphereElectrodes(Simulation):
         widths_I, widths_I_trace = de.find_wave_width_type_I(spikes, dt=data['dt'])
         widths_II, widths_II_trace = de.find_wave_width_type_II(spikes, dt=data['dt'],
                 amp_option=self.amp_option)
-        amps = de.findAmplitudeSimple(spikes,amp_option=self.amp_option)
+        amps = de.find_amplitude(spikes,amp_option=self.amp_option)
         # Put widths_I in bins decided by the radial distance. 
         # Then calculate std and mean.
         bins = np.linspace(0,run_param['R'],self.bins,endpoint=True)

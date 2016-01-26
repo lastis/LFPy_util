@@ -22,7 +22,7 @@ def set_rc_param():
     mpl.rcParams['font.family'] = 'serif'
     mpl.rcParams['font.style'] = 'normal'
     mpl.rcParams['text.usetex'] = True
-    mpl.rcParams['text.latex.preamble'] = [r'\usepackage{bm,upgreek,textcomp}']
+    mpl.rcParams['text.latex.preamble'] = [r'\usepackage{bm,upgreek,textcomp,gensymb}']
     mpl.rcParams['font.size'] = 12
     mpl.rcParams['font.serif'] = ['Times']
     # mpl.rcParams['text.latex.unicode']=False
