@@ -18,8 +18,7 @@ class Symmetry(Simulation):
         self.debug = False
         self.run_param['n'] = 11
         self.run_param['n_phi'] = 8
-        # self.run_param['theta'] = [22.5,45,67.5,90]
-        self.run_param['theta'] = [22.5]
+        self.run_param['theta'] = [22.5,45,67.5,90]
         self.run_param['R'] = 50
         self.run_param['sigma'] = 0.3
 
@@ -41,11 +40,12 @@ class Symmetry(Simulation):
         elec_y = np.empty(elec_x.shape)
         elec_z = np.empty(elec_x.shape)
         for i,theta in enumerate(run_param['theta']):
+            theta = theta*np.pi/180
             for j in xrange(run_param['n_phi']):
                 phi = float(j)/run_param['n_phi']*np.pi*2
-                x = run_param['R']*np.cos(theta)
-                y = run_param['R']*np.sin(theta)*np.cos(phi)
-                z = run_param['R']*np.sin(theta)*np.sin(phi)
+                y = run_param['R']*np.cos(theta)
+                x = run_param['R']*np.sin(theta)*np.sin(phi)
+                z = run_param['R']*np.sin(theta)*np.cos(phi)
                 elec_x[i,j] = np.linspace(0,x,run_param['n'])
                 elec_y[i,j] = np.linspace(0,y,run_param['n'])
                 elec_z[i,j] = np.linspace(0,z,run_param['n'])
@@ -76,7 +76,9 @@ class Symmetry(Simulation):
         for i,theta in enumerate(run_param['theta']):
             for j in xrange(run_param['n_phi']):
                 ax.scatter(data['elec_x'][i,j],data['elec_y'][i,j],data['elec_z'][i,j],c=c)
-        ax.set_aspect('equal')
+        ax.set_xlim(-run_param['R'],run_param['R'])
+        ax.set_ylim(-run_param['R'],run_param['R'])
+        ax.set_zlim(-run_param['R'],run_param['R'])
         # Save plt.
         path = os.path.join(dir_plot,fname+"."+format)
         plt.savefig(path,format=format,bbox_inches='tight')

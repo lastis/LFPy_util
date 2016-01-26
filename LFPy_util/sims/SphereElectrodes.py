@@ -152,6 +152,7 @@ class SphereElectrodes(Simulation):
 
     def plot(self,dir_plot):
         data = self.data
+        run_param = self.run_param
         format = 'pdf'
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
@@ -165,7 +166,9 @@ class SphereElectrodes(Simulation):
         fig = plt.figure(figsize=lplot.size_common)
         ax = fig.add_subplot(111,projection='3d')
         ax.scatter(data['elec_x'],data['elec_y'],data['elec_z'],c=c)
-        ax.set_aspect('equal')
+        ax.set_xlim(-run_param['R'],run_param['R'])
+        ax.set_ylim(-run_param['R'],run_param['R'])
+        ax.set_zlim(-run_param['R'],run_param['R'])
         # Save plt.
         path = os.path.join(dir_plot,fname+"."+format)
         plt.savefig(path,format=format,bbox_inches='tight')
