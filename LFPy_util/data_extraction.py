@@ -1,32 +1,36 @@
 import numpy as np
-from sklearn.decomposition import PCA
 import scipy.fftpack as ff
+from sklearn.decomposition import PCA
 from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
 
+
 def find_spikes(v_vec, threshold=1):
     v_vec = zscore(v_vec)
-    max_idx = argrelextrema(v_vec,np.greater)[0]
+    max_idx = argrelextrema(v_vec, np.greater)[0]
     v_max = v_vec[max_idx]
     length = len(v_max)-1
-    for i in xrange(length,-1,-1):
+    for i in xrange(length, -1, -1):
         # Remove local maxima that is not above threshold or if the spike
         # shape cannot fit inside pre_dur and post_dur
         if (v_max[i] < threshold):
             # v_max = np.delete(v_max,i)
-            max_idx = np.delete(max_idx,i)
+            max_idx = np.delete(max_idx, i)
     return max_idx
 
-def get_polygons_axon(cell, projection=('x','y')):
+
+def get_polygons_axon(cell, projection=('x', 'y')):
     axon_exclude = lambda s: True if 'axon' in s else False
-    return get_polygons(cell,projection,axon_exclude)
+    return get_polygons(cell, projection, axon_exclude)
 
-def get_polygons_no_axon(cell, projection=('x','y')):
+
+def get_polygons_no_axon(cell, projection=('x', 'y')):
     axon = lambda s: False if 'axon' in s else True
-    return get_polygons(cell,projection,axon)
+    return get_polygons(cell, projection, axon)
 
-def get_polygons(cell, projection=('x','y'), comp_func=None):
+
+def get_polygons(cell, projection=('x', 'y'), comp_func=None):
     """
     If comp_func(str) is False, the section will be skipped.
     """
@@ -37,8 +41,9 @@ def get_polygons(cell, projection=('x','y'), comp_func=None):
             cnt += 1
             if comp_func is not None and not comp_func(sec.name()):
                 continue
-            polygons.append(cell._create_segment_polygon(cnt,projection))
+            polygons.append(cell._create_segment_polygon(cnt, projection))
     return polygons
+
 
 def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
         amp_option='pos'):

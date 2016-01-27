@@ -32,7 +32,7 @@ def get_short_color_array(n) :
     Create a linspace of the colors in the default collor array. Currently
     viridis.
 
-    :param int n: 
+    :param int n:
         Returned array length.
     :returns: 
         :class:`list` -- (n x 3) color array.

@@ -1,10 +1,15 @@
-import os 
+"""
+Simulator class
+"""
+import os
 import inspect
 from multiprocessing import Process, Manager
 import LFPy_util
 
+
 class Simulator(object):
     """docstring for SimulationHandler"""
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, cell=None):
         self._neuron_list = None
         self._dir_neurons = None
@@ -14,6 +19,7 @@ class Simulator(object):
         self._str_plot_dir = "plot"
         self._get_cell = None
         self._cell = None
+        self._on_load = None
 
         self.save = True
         self.plot = True
@@ -33,84 +39,132 @@ class Simulator(object):
         text += "neurons             : " + self._neuron_list[0] + "\n"
         for neuron in self._neuron_list[1:]:
             text += "                    : " + neuron + "\n"
-        text += "concurrent neurons  : " + str(self.processes)+ "\n"
-        text += "parallel            : " + str(self.parallel)+ "\n"
-        text += "parallel plot       : " + str(self.parallel_plot)+ "\n"
-        text += "simulate            : " + str(self.simulate)+ "\n"
+        text += "concurrent neurons  : " + str(self.processes) + "\n"
+        text += "parallel            : " + str(self.parallel) + "\n"
+        text += "parallel plot       : " + str(self.parallel_plot) + "\n"
+        text += "simulate            : " + str(self.simulate) + "\n"
         text += "plot                : " + str(self.plot)
         return text
 
+    def set_on_load_func(self, on_load):
+        """
+        Set function that will be called at the start of every
+        neuron simulation.
+        """
+        if len(inspect.getargspec(on_load)[0]) != 2:
+            raise ValueError("The on_load function must have two arguments. "
+                             "A list of Simulation objects and neuron index.")
+        self._on_load = on_load
+
     def set_neuron_name(self, name):
+        """
+        Set the name(s) of neuron(s) that will be simulated.
+        The list will be sent to the cell load function if used.
+        """
         # If input is a stiring, make it a list of strings.
-        if not isinstance(name,list):
+        if not isinstance(name, list):
             name = [name]
         self._neuron_list = name
 
     def set_dir_neurons(self, path):
+        """
+        Set directory where simulation data and plots will be stored.
+        """
         self._dir_neurons = path
 
     def set_cell(self, cell):
+        """
+        Set the cell model. Only used if just one neuron is simulated.
+        """
         self._cell = cell
 
     def set_cell_load_func(self, func):
+        """
+        Set function to load a cell model. Must return a cell object
+        and take a string as argument.
+        """
         if len(inspect.getargspec(func)[0]) != 1:
-            raise ValueError("The load cell function must have one argument and return a Cell object.")
+            raise ValueError("The load cell function must have one argument"
+                             + " and return a Cell object.")
         self._get_cell = func
 
     def _is_ready(self):
         if self._get_cell is None and len(self._neuron_list) != 1:
-            raise ValueError("List of neurons is used but load cell function is not set.")
+            raise ValueError("List of neurons is used but load cell "
+                             "functionis not set.")
         if self._cell is None and self._get_cell is None:
-            raise ValueError("Load cell function and cell object missing. One must be supplied.")
+            raise ValueError("Load cell function and cell object missing."
+                             "One must be supplied.")
 
     def push(self, sim_or_func, own_process):
+        """
+        Push simulation of function to the simulator.
+        """
         self._sim_stack.append(sim_or_func)
         self._sim_stack_flag.append(own_process)
 
-
     def get_path_neuron(self, index=0):
-        return os.path.join(self._dir_neurons,self._neuron_list[index])
+        """
+        Get directory path to neuron by index.
+        """
+        return os.path.join(self._dir_neurons, self._neuron_list[index])
 
-    def get_dir_neuron_data(self,index=0):
+    def get_dir_neuron_data(self, index=0):
+        """
+        Get the directory where the data of the simulation is stored.
+        Index corresponds to list index in the names of the neurons.
+        """
         dir_neuron = self.get_path_neuron(index)
-        return os.path.join(dir_neuron,self._str_data_dir)
+        return os.path.join(dir_neuron, self._str_data_dir)
 
-    def get_dir_neuron_plot(self,index=0):
+    def get_dir_neuron_plot(self, index=0):
+        """
+        Get the directory where the plots of the simulation is stored.
+        Index corresponds to list index in the names of the neurons.
+        """
         dir_neuron = self.get_path_neuron(index)
-        return os.path.join(dir_neuron,self._str_plot_dir)
+        return os.path.join(dir_neuron, self._str_plot_dir)
 
     def get_path_sim_data(self, sim, index=0):
+        """
+        Get the path to the data file from a spesific simulation and neuron.
+        """
         dir_data = self.get_dir_neuron_data(index)
         fname = sim.get_fname_data()
-        path = os.path.join(dir_data,fname)
+        path = os.path.join(dir_data, fname)
         return path
 
-    def get_path_sim_run_param(self,sim, index=0):
+    def get_path_sim_run_param(self, sim, index=0):
+        """
+        Get the path to the run_param file from a spesific
+        simulation and neuron.
+        """
         dir_data = self.get_dir_neuron_data(index)
         fname = sim.get_fname_run_param()
-        path = os.path.join(dir_data,fname)
+        path = os.path.join(dir_data, fname)
         return path
 
     @staticmethod
-    def _simulate(sim,cell,dir_data):
+    def _simulate(sim, cell, dir_data):
         sim.simulate(cell)
         if dir_data is not None:
             sim.save(dir_data)
 
     @staticmethod
-    def _plot(sim,dir_plot):
+    def _plot(sim, dir_plot):
         sim.process_data()
         sim.plot(dir_plot)
 
-    def _run_neuron(self,index=0):
-        # If everything works as intended, this function (can be) is run in 
+    def _run_neuron(self, index=0):
+        # pylint: disable=too-many-branches
+        # If everything works as intended, this function (can be) is run in
         # parallel. Which means there are multiple instances of self and
         # hopefully all of its parameters have been deep copied.
         if self.simulate:
             cell = self._cell
             if cell is None:
                 cell = self._get_cell(self._neuron_list[index])
-                
+
             manager = Manager()
             if self.verbatim:
                 print "starting simulation : " + self._neuron_list[index]
@@ -126,25 +180,27 @@ class Simulator(object):
                     if flag:
                         # Start in new process.
                         if self.verbatim:
-                            print "new process         : " \
-                                    + self._neuron_list[index] + " " + sim.__str__()
+                            print "new process         : "\
+                                + self._neuron_list[index] \
+                                + " " + sim.__str__()
                         # Replace sim.data and sim.run_param with shared memory
                         # versions so data can be retrived from subprocesses.
                         sim.data = manager.dict(sim.data)
                         sim.run_param = manager.dict(sim.run_param)
 
                         process = Process(
-                                target=Simulator._simulate,
-                                args=(sim,cell,dir_data),
-                                )
+                            target=Simulator._simulate,
+                            args=(sim, cell, dir_data),
+                            )
                         process.start()
                         process_list.append(process)
                     else:
                         # Start in current process.
                         if self.verbatim:
                             print "current process     : " \
-                                    + self._neuron_list[index] + " " + sim.__str__()
-                        self._simulate(sim,cell,dir_data)
+                                + self._neuron_list[index] +\
+                                " " + sim.__str__()
+                        self._simulate(sim, cell, dir_data)
                 # If not a Simulation object assume it is a function.
                 else:
                     func = sim_or_func
@@ -155,7 +211,7 @@ class Simulator(object):
 
         if self.plot:
             if self.verbatim:
-                print "starting plotting   : " 
+                print "starting plotting   : "
             process_list = []
             for i, sim_or_func in enumerate(self._sim_stack):
                 if isinstance(sim_or_func, LFPy_util.sims.Simulation):
@@ -163,12 +219,12 @@ class Simulator(object):
                     dir_plot = self.get_dir_neuron_plot(index)
                     if not sim.data:
                         print "loading data from   : " \
-                                + self.get_path_sim_data(sim,index)
+                            + self.get_path_sim_data(sim, index)
                         sim.load(self.get_dir_neuron_data(index))
                         if not sim.data:
                             raise ValueError("No data to plot.")
                     # Start each Simulation.plot in a new process.
-                    process = Process(target=self._plot,args=(sim,dir_plot))
+                    process = Process(target=self._plot, args=(sim, dir_plot))
                     process_list.append(process)
 
             # Start and end plotting.
@@ -179,33 +235,33 @@ class Simulator(object):
             if self.parallel_plot:
                 process.join()
 
-
     def run(self):
+        """
+        Start simulations.
+        """
         self._is_ready()
         process_list = []
-        for i, neuron in enumerate(self._neuron_list):
+        for i in xrange(len(self._neuron_list)):
             # For each neuron make a new process.
             process = Process(
-                    target=Simulator._run_neuron,
-                    args=(self, i),
-                    )
+                target=Simulator._run_neuron,
+                args=(self, i),
+                )
             process_list.append(process)
 
         cnt = 0
         finished = False
         while not finished:
             for i in xrange(self.processes):
-                if cnt+i >= len(self._neuron_list): continue
+                if cnt+i >= len(self._neuron_list):
+                    continue
                 process = process_list[cnt+i]
                 process.start()
             for i in xrange(self.processes):
-                if cnt+i >= len(self._neuron_list): continue
+                if cnt+i >= len(self._neuron_list):
+                    continue
                 process = process_list[cnt+i]
                 process.join()
             cnt += self.processes
-            if cnt >= len(self._neuron_list): finished = True
-
-
-
-
-        
+            if cnt >= len(self._neuron_list):
+                finished = True
