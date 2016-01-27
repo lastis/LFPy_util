@@ -265,7 +265,7 @@ def getPositionData():
         d.append(d_i)
     return x,y,z,d
 
-def getPositionDataShort():
+def get_pos_data_short():
     """
     Get positions of all segments currently loaded in Neuron in a simple matrix.
     Section position information is not available.
@@ -277,7 +277,7 @@ def getPositionDataShort():
     Example:
         .. code-block:: python
 
-            data = getPositionDataShort()
+            data = get_pos_data_short()
     """
     n = 0
     for sec in h.allsec():
@@ -311,9 +311,9 @@ def find_major_axes():
             axes = LFPy_util.data_extraction.findMajorAxes()
             LFPy_util.rotation.alignCellToAxes(cell,axes[0],axes[1])
     """
-    points = getPositionDataShort();
+    points = get_pos_data_short();
     pca = PCA(n_components=3)
-    pca.fit(points.T)
+    pca.fit(points[:3].T)
     return pca.components_
 
 def find_wave_width_type_II(matrix, threshold=0.5, dt=1,amp_option='both'):
