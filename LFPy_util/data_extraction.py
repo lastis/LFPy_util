@@ -293,7 +293,7 @@ def getPositionDataShort():
             cnt += 1
     return data
 
-def findMajorAxes():
+def find_major_axes():
     """
     Find the principal geometrical components of the neuron currently loaded 
     with Neuron. Uses :class:`sklearn.decomposition.PCA`. 
