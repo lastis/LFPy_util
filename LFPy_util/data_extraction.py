@@ -313,7 +313,7 @@ def findMajorAxes():
     """
     points = getPositionDataShort();
     pca = PCA(n_components=3)
-    pca.fit(points)
+    pca.fit(points.T)
     return pca.components_
 
 def find_wave_width_type_II(matrix, threshold=0.5, dt=1,amp_option='both'):
