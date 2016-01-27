@@ -18,7 +18,6 @@ class Symmetry(Simulation):
         self.debug = False
         self.run_param['n'] = 9
         self.run_param['n_phi'] = 8
-        # self.run_param['theta'] = np.arange(10,180,20)
         self.run_param['theta'] = [10,50,90,130,170]
         self.run_param['R'] = 50
         self.run_param['sigma'] = 0.3
@@ -162,10 +161,14 @@ class Symmetry(Simulation):
         ax.set_xlim(-run_param['R'],run_param['R'])
         ax.set_ylim(-run_param['R'],run_param['R'])
         ax.set_zlim(-run_param['R'],run_param['R'])
+        ax.set_xlabel("X axis")
+        ax.set_ylabel("Y axis")
+        ax.set_zlabel("Z axis")
         # Save plt.
         path = os.path.join(dir_plot,fname+"."+format)
         plt.savefig(path,format=format,bbox_inches='tight')
         plt.close()
+
 
         # New plot.
         fname = 'sym_spike_amps'
@@ -266,8 +269,8 @@ class Symmetry(Simulation):
         LFPy_util.plot.morphology(
             data['poly_morph'],
             data['poly_morph_axon'],
-            elec_x = data['elec_y'],
-            elec_y = data['elec_x'],
+            elec_x = data['elec_x'],
+            elec_y = data['elec_y'],
             fig_size=lplot.size_common,
             fname="sym_morph_elec",
             plot_save_dir=dir_plot,

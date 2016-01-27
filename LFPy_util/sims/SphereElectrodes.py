@@ -26,7 +26,7 @@ class SphereElectrodes(Simulation):
         self.threshold = 3
         self.elec_to_plot = []
         self.bins = 11
-        self.amp_threshold = 20 # uV
+        self.amp_threshold = 0 # uV
 
     def __str__(self):
         return "Sphere Electrodes"

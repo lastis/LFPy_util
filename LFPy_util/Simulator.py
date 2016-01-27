@@ -37,7 +37,7 @@ class Simulator(object):
         return text
 
     def set_neuron_name(self, name):
-        # Assume input is a string.
+        # If input is a stiring, make it a list of strings.
         if not isinstance(name,list):
             name = [name]
         self._neuron_list = name
@@ -152,7 +152,7 @@ class Simulator(object):
         if self.plot:
             if self.verbatim:
                 print "starting plotting   : " 
-            process_list = []
+            # process_list = []
             for i, sim_or_func in enumerate(self._sim_stack):
                 if isinstance(sim_or_func, LFPy_util.sims.Simulation):
                     sim = sim_or_func
@@ -163,31 +163,26 @@ class Simulator(object):
                         sim.load(self.get_dir_neuron_data(index))
                         if not sim.data:
                             raise ValueError("No data to plot.")
-                    if self.parallel:
-                        # Start each Simulation.plot in a new process.
-                        process = Process(target=self._plot,args=(sim,dir_plot))
-                        process.start()
-                        process_list.append(process)
-                    else:
-                        self._plot(sim,dir_plot)
-            for process in process_list:
-                process.join()
+                    # Start each Simulation.plot in a new process.
+                    process = Process(target=self._plot,args=(sim,dir_plot))
+                    process.start()
+                    process.join()
 
 
     def run(self):
         self._is_ready()
         process_list = []
         for i, neuron in enumerate(self._neuron_list):
+            # For each neuron start a new process.
+            process = Process(
+                    target=Simulator._run_neuron,
+                    args=(self, i),
+                    )
+            process.start()
             if self.parallel and len(self._neuron_list) != 1:
-                # For each neuron start a new process.
-                process = Process(
-                        target=Simulator._run_neuron,
-                        args=(self, i),
-                        )
-                process.start()
                 process_list.append(process)
             else:
-                self._run_neuron(i)
+                process.join()
         for process in process_list:
             process.join()
 

@@ -642,8 +642,6 @@ def electrodeSignals(t_vec, LFP, mode='all', elec_pos=[],
         Output directiory.
     :param bool show: 
         Show plot. 
-
-    Example:
         .. code-block:: python
 
             # Create a vector of the radial position of the electrodes.
@@ -1362,11 +1360,11 @@ def spikeAmplitudes(amps, dr=1, r_0=0, show=True, scale='linear',
         if not os.path.exists(plot_save_dir):
             os.makedirs(plot_save_dir)
         # Create different versions of the file. 
-        os.chdir(plot_save_dir)
         for format_str in plot_format:
             name = fname+'.'+format_str
+            path = os.path.join(plot_save_dir,name)
             plt.savefig(
-                    name,
+                    path,
                     format=format_str,
                     transparent=False, 
                     bbox_inches='tight',
@@ -1376,6 +1374,267 @@ def spikeAmplitudes(amps, dr=1, r_0=0, show=True, scale='linear',
         plt.show()
     plt.close()
     print 'finished            :', fname
+
+def spike_widths_grouped_new(grouped_widths_mean, grouped_widths_std,
+        grouped_elec_pos, group_labels=None, 
+        show=True, fname=None, plot_save_dir=None):
+
+    print "plotting            :", fname
+
+    # Inital plot paramters.
+    set_rc_param()
+    fig = plt.figure(figsize=size_common)
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.grid()
+
+    if len(grouped_widths_mean) != len(grouped_elec_pos):
+        raise ValueError("grouped_widths_mean and grouped_elec_pos are of unequal lengths.")
+
+    # All data must be of equal lengths. Get the length of data of
+    # the first neuron of the first group.
+    elec_pos = np.array(grouped_elec_pos[0])
+
+    # For each group of neurons.
+    color_array = get_short_color_array(len(grouped_elec_pos)+1)
+    # For each group of neurons.
+    for i in xrange(len(grouped_elec_pos)):
+        label = None
+        if group_labels is not None:
+            label = group_labels[i]
+        widths_mean = np.array(grouped_widths_mean[i])
+        widths_std = np.array(grouped_widths_std[i])
+        line = ax.plot(
+                elec_pos,
+                widths_mean,
+                color=color_array[i],
+                label=label,
+                marker='o',
+                markersize=5,)
+        ax.fill_between(
+                elec_pos,
+                widths_mean-widths_std,
+                widths_mean+widths_std,
+                color=color_array[i],
+                alpha=0.2
+        )
+    if group_labels is not None:
+        handles,labels = ax.get_legend_handles_labels()
+        ax.legend(
+                handles,
+                labels,
+                loc='center left',
+                bbox_to_anchor=(1,0.5),
+        )
+
+    ylabel = r'\textbf[$\mathbf{\bm\upmu V}$\textbf]'
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(
+            r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
+
+    plt.tight_layout()
+    if (fname is not None):
+        # Create the directory if it does not exist.
+        if not os.path.exists(plot_save_dir):
+            os.makedirs(plot_save_dir)
+        # Create different versions of the file. 
+        for format_str in plot_format:
+            name = fname+'.'+format_str
+            path = os.path.join(plot_save_dir,name)
+            plt.savefig(
+                    path,
+                    format=format_str,
+                    transparent=False, 
+                    bbox_inches='tight',
+                    pad_inches=0
+            )
+    if show :
+        plt.show()
+    plt.close()
+    print 'finished            :', fname
+
+def spike_amps_grouped_new(grouped_amps_mean, grouped_amps_std,
+        grouped_elec_pos, group_labels=None, 
+        show=True, fname=None, plot_save_dir=None):
+
+    print "plotting            :", fname
+
+    # Inital plot paramters.
+    set_rc_param()
+    fig = plt.figure(figsize=size_common)
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.grid()
+
+    if len(grouped_amps_mean) != len(grouped_elec_pos):
+        raise ValueError("grouped_amps_mean and grouped_elec_pos are of unequal lengths.")
+
+    # All data must be of equal lengths. Get the length of data of
+    # the first neuron of the first group.
+    elec_pos = np.array(grouped_elec_pos[0])
+
+    # For each group of neurons.
+    color_array = get_short_color_array(len(grouped_elec_pos)+1)
+    # For each group of neurons.
+    for i in xrange(len(grouped_elec_pos)):
+        label = None
+        if group_labels is not None:
+            label = group_labels[i]
+        amps_mean = np.array(grouped_amps_mean[i])
+        amps_std = np.array(grouped_amps_std[i])
+        line = ax.plot(
+                elec_pos,
+                amps_mean,
+                color=color_array[i],
+                label=label,
+                marker='o',
+                markersize=5,)
+        ax.fill_between(
+                elec_pos,
+                amps_mean-amps_std,
+                amps_mean+amps_std,
+                color=color_array[i],
+                alpha=0.2
+        )
+    if group_labels is not None:
+        handles,labels = ax.get_legend_handles_labels()
+        ax.legend(
+                handles,
+                labels,
+                loc='center left',
+                bbox_to_anchor=(1,0.5),
+        )
+
+    ylabel = r'\textbf[$\mathbf{\bm\upmu V}$\textbf]'
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(
+            r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
+
+    plt.tight_layout()
+    if (fname is not None):
+        # Create the directory if it does not exist.
+        if not os.path.exists(plot_save_dir):
+            os.makedirs(plot_save_dir)
+        # Create different versions of the file. 
+        for format_str in plot_format:
+            name = fname+'.'+format_str
+            path = os.path.join(plot_save_dir,name)
+            plt.savefig(
+                    path,
+                    format=format_str,
+                    transparent=False, 
+                    bbox_inches='tight',
+                    pad_inches=0
+            )
+    if show :
+        plt.show()
+    plt.close()
+    print 'finished            :', fname
+
+def spike_widths_and_amps_grouped_new(
+        grouped_widths_mean, grouped_widths_std,
+        grouped_amps_mean, grouped_amps_std, grouped_elec_pos,
+        group_labels=None,
+        show=True, fname=None, plot_save_dir=None):
+
+    print "plotting            :", fname
+
+    # Inital plot paramters.
+    set_rc_param()
+    fig = plt.figure(figsize=size_common)
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.grid()
+
+    if len(grouped_amps_mean) != len(grouped_elec_pos):
+        raise ValueError("grouped_amps_mean and grouped_elec_pos are of unequal lengths.")
+
+    # All data must be of equal lengths. Get the length of data of
+    # the first neuron of the first group.
+    elec_pos = np.array(grouped_elec_pos[0])
+
+    # For each group of neurons.
+    color_array = get_short_color_array(len(grouped_elec_pos)+1)
+    # For each group of neurons.
+    for i in xrange(len(grouped_elec_pos)):
+        label = None
+        if group_labels is not None:
+            label = group_labels[i]
+        amps_mean = np.array(grouped_amps_mean[i])
+        amps_std = np.array(grouped_amps_std[i])
+        widths_mean = np.array(grouped_widths_mean[i])
+        widths_std = np.array(grouped_widths_std[i])
+
+        # Plot.
+        ax.plot(widths_mean,
+                amps_mean,
+                color=color_array[i],
+                label=label,
+                marker='o',
+                markersize=5,
+        )
+        upper_y = amps_mean + amps_std
+        upper_x = widths_mean + widths_std
+        lower_y = amps_mean - amps_std
+        lower_x = widths_mean - widths_std
+        # Fill between does not works for specials shapes like these functions.
+        # Using a polygon instead. [::-1] reverses the array.
+        y = np.hstack((upper_y,lower_y[::-1]))
+        x = np.hstack((upper_x,lower_x[::-1]))
+        points = np.zeros([len(elec_pos)*2,2])
+        points[:,0] = x
+        points[:,1] = y
+        points = points.tolist()
+        patch = plt.Polygon(
+                points,
+                color=color_array[i],
+                fill=True,
+                edgecolor=None,
+                alpha=0.2,
+        )
+        ax.add_patch(patch)
+    if group_labels is not None:
+        handles,labels = ax.get_legend_handles_labels()
+        ax.legend(
+                handles,
+                labels,
+                loc='center left',
+                bbox_to_anchor=(1,0.5),
+        )
+
+    ax.set_xlabel(r'Spike width \textbf[$\mathbf{ms}$\textbf]')
+    ax.set_ylabel(r'Amplitude \textbf[$\mathbf{\bm\upmu V}$\textbf]')
+
+    plt.tight_layout()
+    if (fname is not None):
+        # Create the directory if it does not exist.
+        if not os.path.exists(plot_save_dir):
+            os.makedirs(plot_save_dir)
+        # Create different versions of the file. 
+        for format_str in plot_format:
+            name = fname+'.'+format_str
+            path = os.path.join(plot_save_dir,name)
+            plt.savefig(
+                    path,
+                    format=format_str,
+                    transparent=False, 
+                    bbox_inches='tight',
+                    pad_inches=0
+            )
+    if show :
+        plt.show()
+    plt.close()
+    print 'finished            :', fname
+
 
 def spike_widths_and_amp_grouped(grouped_widths,
         grouped_amps, grouped_elec_pos,
