@@ -20,6 +20,8 @@ class Simulator(object):
         self.simulate = True
         self.verbatim = True
         self.parallel = True
+        self.parallel_plot = False
+        self.processes = 2
 
         self.set_cell(cell)
         self.set_dir_neurons("neuron")
@@ -31,7 +33,9 @@ class Simulator(object):
         text += "neurons             : " + self._neuron_list[0] + "\n"
         for neuron in self._neuron_list[1:]:
             text += "                    : " + neuron + "\n"
+        text += "concurrent neurons  : " + str(self.processes)+ "\n"
         text += "parallel            : " + str(self.parallel)+ "\n"
+        text += "parallel plot       : " + str(self.parallel_plot)+ "\n"
         text += "simulate            : " + str(self.simulate)+ "\n"
         text += "plot                : " + str(self.plot)
         return text
@@ -99,7 +103,7 @@ class Simulator(object):
         sim.plot(dir_plot)
 
     def _run_neuron(self,index=0):
-        # If everything works as intended, this function (can) is run in 
+        # If everything works as intended, this function (can be) is run in 
         # parallel. Which means there are multiple instances of self and
         # hopefully all of its parameters have been deep copied.
         if self.simulate:
@@ -152,7 +156,7 @@ class Simulator(object):
         if self.plot:
             if self.verbatim:
                 print "starting plotting   : " 
-            # process_list = []
+            process_list = []
             for i, sim_or_func in enumerate(self._sim_stack):
                 if isinstance(sim_or_func, LFPy_util.sims.Simulation):
                     sim = sim_or_func
@@ -165,26 +169,41 @@ class Simulator(object):
                             raise ValueError("No data to plot.")
                     # Start each Simulation.plot in a new process.
                     process = Process(target=self._plot,args=(sim,dir_plot))
-                    process.start()
+                    process_list.append(process)
+
+            # Start and end plotting.
+            for process in process_list:
+                process.start()
+                if not self.parallel_plot:
                     process.join()
+            if self.parallel_plot:
+                process.join()
 
 
     def run(self):
         self._is_ready()
         process_list = []
         for i, neuron in enumerate(self._neuron_list):
-            # For each neuron start a new process.
+            # For each neuron make a new process.
             process = Process(
                     target=Simulator._run_neuron,
                     args=(self, i),
                     )
-            process.start()
-            if self.parallel and len(self._neuron_list) != 1:
-                process_list.append(process)
-            else:
+            process_list.append(process)
+
+        cnt = 0
+        finished = False
+        while not finished:
+            for i in xrange(self.processes):
+                if cnt+i >= len(self._neuron_list): continue
+                process = process_list[cnt+i]
+                process.start()
+            for i in xrange(self.processes):
+                if cnt+i >= len(self._neuron_list): continue
+                process = process_list[cnt+i]
                 process.join()
-        for process in process_list:
-            process.join()
+            cnt += self.processes
+            if cnt >= len(self._neuron_list): finished = True
 
 
 
