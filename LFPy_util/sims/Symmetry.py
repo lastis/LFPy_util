@@ -359,9 +359,6 @@ class Symmetry(Simulation):
                         trace_idx = np.where(~np.isnan(data['widths_I_trace'][
                             cnt]))[0]
                         trace_idx = [trace_idx[0], trace_idx[-1]]
-                        plt.plot(data['spikes_t_vec'],
-                                 data['widths_I_trace'][cnt],
-                                 color=c[1])
                         plt.plot(data['spikes_t_vec'][trace_idx],
                                  data['widths_I_trace'][i][trace_idx],
                                  color=c[1],
