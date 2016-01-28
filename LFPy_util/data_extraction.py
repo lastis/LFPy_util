@@ -1,3 +1,7 @@
+"""
+Data extraction module
+"""
+# pylint: disable=ungrouped-imports, no-member
 import numpy as np
 import scipy.fftpack as ff
 from sklearn.decomposition import PCA
@@ -7,6 +11,10 @@ from scipy.stats.mstats import zscore
 
 
 def find_spikes(v_vec, threshold=1):
+    """
+    Get the indices of the spikes.
+    """
+    # pylint: disable=no-member
     v_vec = zscore(v_vec)
     max_idx = argrelextrema(v_vec, np.greater)[0]
     v_max = v_vec[max_idx]
@@ -14,18 +22,24 @@ def find_spikes(v_vec, threshold=1):
     for i in xrange(length, -1, -1):
         # Remove local maxima that is not above threshold or if the spike
         # shape cannot fit inside pre_dur and post_dur
-        if (v_max[i] < threshold):
+        if v_max[i] < threshold:
             # v_max = np.delete(v_max,i)
             max_idx = np.delete(max_idx, i)
     return max_idx
 
 
 def get_polygons_axon(cell, projection=('x', 'y')):
+    """
+    Get polygons of the axon.
+    """
     axon_exclude = lambda s: True if 'axon' in s else False
     return get_polygons(cell, projection, axon_exclude)
 
 
 def get_polygons_no_axon(cell, projection=('x', 'y')):
+    """
+    Get polygons excluding the axon.
+    """
     axon = lambda s: False if 'axon' in s else True
     return get_polygons(cell, projection, axon)
 
@@ -34,10 +48,11 @@ def get_polygons(cell, projection=('x', 'y'), comp_func=None):
     """
     If comp_func(str) is False, the section will be skipped.
     """
+    # pylint: disable=protected-access
     polygons = []
     cnt = -1
     for sec in cell.allseclist:
-        for i in xrange(sec.nseg):
+        for _ in xrange(sec.nseg):
             cnt += 1
             if comp_func is not None and not comp_func(sec.name()):
                 continue
@@ -45,8 +60,12 @@ def get_polygons(cell, projection=('x', 'y'), comp_func=None):
     return polygons
 
 
-def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
-        amp_option='pos'):
+def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0, threshold=3,
+                   amp_option='pos'):
+    """
+    Get a new matrix of all spikes of the input v_vec.
+    """
+    # pylint: disable=invalid-name
     t_vec = np.array(t_vec)
     v_vec = np.array(v_vec)
     if len(t_vec) != len(v_vec):
@@ -54,8 +73,8 @@ def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
 
     threshold = np.fabs(threshold)
     dt = t_vec[1] - t_vec[0]
-    pre_idx = int(pre_dur/float(dt));
-    post_idx = int(post_dur/float(dt));
+    pre_idx = int(pre_dur/float(dt))
+    post_idx = int(post_dur/float(dt))
     if pre_idx + post_idx > len(t_vec):
         # The desired durations before and after spike are too long.
         raise ValueError("pre_dur + post_dur are longer than the time vector.")
@@ -71,7 +90,7 @@ def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
         v_vec = -v_vec
 
     # Find local maxima (or minima).
-    max_idx = argrelextrema(v_vec,np.greater)[0]
+    max_idx = argrelextrema(v_vec, np.greater)[0]
 
     # Return if no spikes were found.
     if len(max_idx) == 0:
@@ -81,14 +100,14 @@ def extract_spikes(t_vec, v_vec, pre_dur=0, post_dur=0,threshold=3,
     # Only count local maxima over threshold as spikes.
     v_max = v_vec[max_idx]
     length = len(v_max)-1
-    for i in xrange(length,-1,-1):
+    for i in xrange(length, -1, -1):
         # Remove local maxima that is not above threshold or if the spike
         # shape cannot fit inside pre_dur and post_dur
         if (v_max[i] < threshold or
                 max_idx[i] < pre_idx or
                 max_idx[i] + post_idx > len(t_vec)):
-            v_max = np.delete(v_max,i)
-            max_idx = np.delete(max_idx,i)
+            v_max = np.delete(v_max, i)
+            max_idx = np.delete(max_idx, i)
 
     # Return if no spikes were found.
     if len(max_idx) == 0:
