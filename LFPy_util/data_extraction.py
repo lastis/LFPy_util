@@ -69,7 +69,7 @@ def extract_spikes(t_vec,
     """
     Get a new matrix of all spikes of the input v_vec.
     """
-    # pylint: disable=invalid-name, too-many-branches
+    # pylint: disable=invalid-name, too-many-branches, too-many-arguments,too-many-locals
     t_vec = np.array(t_vec)
     v_vec = np.array(v_vec)
     if len(t_vec) != len(v_vec):
@@ -139,7 +139,7 @@ def extract_spikes(t_vec,
     return spikes, t_vec_new, I
 
 
-def findFreqAndFft(tvec, sig):
+def find_freq_and_fft(tvec, sig):
     """
     Amplitude and frequency of the input signal using fourier analysis.
 
@@ -170,7 +170,7 @@ def findFreqAndFft(tvec, sig):
         raise RuntimeError("Not compatible with given array shape!")
 
     timestep = (
-        tvec[1] - tvec[0]) / 1. if type(tvec) in [list, np.ndarray] else tvec
+        tvec[1] - tvec[0]) / 1. if isinstance(tvec) in [list, np.ndarray] else tvec
     sample_freq = ff.fftfreq(sig.shape[1], d=timestep)
     pidxs = np.where(sample_freq >= 0)
     freqs = sample_freq[pidxs]
@@ -263,7 +263,7 @@ def rec_along_longest_branch():
     return _walk_path(sr, path)
 
 
-def getPositionData():
+def get_pos_data():
     """
     Get positions x, y, z for all segments and their diameter. 
 
@@ -274,7 +274,7 @@ def getPositionData():
     Example:
         .. code-block:: python
 
-            x,y,z,d = getPositionData()
+            x,y,z,d = get_pos_data()
             for sec in xrange(len(x)):
                 for seg in xrange(len(x[sec]):
                     print x[sec][seg], y[sec][seg], z[sec][seg]
@@ -436,7 +436,7 @@ def find_wave_width_type_I(matrix, dt=1):
     return widths * dt, trace
 
 
-def find_amplitude(matrix, amp_option='both'):
+def find_amplitude_type_I(matrix, amp_option='both'):
     """
     Finds the amplitude of signals. Simply takes the maximum absolute value.
 
@@ -469,3 +469,35 @@ def find_amplitude(matrix, amp_option='both'):
             amp_high[row] = np.abs(np.max(matrix[row, :]))
     amp = np.maximum(amp_low, amp_high)
     return amp
+
+
+def find_amplitude_type_II(matrix):
+    """
+    Finds the amplitude of signals from minimum to maximum.
+
+    :param `~numpy.ndarray` matrix:
+        Matrix (nSignals x frames) of 1D signals at each row. Can
+        also be a single vector.
+    :returns:
+        *
+         :class:`~numpy.ndarray` --
+         Array (nSignals) of amplitudes.
+
+    Example:
+        .. code-block:: python
+
+            amps = LFPy_util.data_extraction.findAmplitudeSimple(LFP)
+    """
+    matrix = np.array(matrix)
+    if matrix.ndim == 1:
+        matrix = matrix.reshape([1, -1])
+    amps = np.zeros(matrix.shape[0])
+    for row in xrange(matrix.shape[0]):
+        signal = matrix[row]
+        offset = signal[0]
+        signal -= offset
+
+        amp_1 = signal.max()
+        amp_2 = signal.min()
+        amps[row] = np.fabs(amp_2 - amp_1)
+    return amps

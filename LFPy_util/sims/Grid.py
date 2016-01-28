@@ -5,7 +5,7 @@ import numpy as np
 import LFPy
 import LFPy_util
 import LFPy_util.data_extraction as de
-from LFPy_util.sims import Simulation
+from LFPy_util.sims.Simulation import Simulation
 
 
 class Grid(Simulation):

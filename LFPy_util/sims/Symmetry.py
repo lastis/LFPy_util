@@ -1,15 +1,19 @@
-from Simulation import Simulation
 import os
+import numpy as np
 import LFPy
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import LFPy_util
 import LFPy_util.data_extraction as de
 import LFPy_util.plot as lplot
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from LFPy_util.sims.Simulation import Simulation
 
 
 class Symmetry(Simulation):
+    """
+    Symmetry simulation
+    """
+
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
@@ -33,6 +37,7 @@ class Symmetry(Simulation):
         return "Symmetry"
 
     def simulate(self, cell):
+        # pylint: disable=invalid-name,no-member
         data = self.data
         run_param = self.run_param
         elec_x = np.empty([
@@ -94,7 +99,8 @@ class Symmetry(Simulation):
             amp_option=self.amp_option, )
         spikes = data['LFP'][:, I[0, 0]:I[0, 1]]
 
-        amps = de.find_amplitude(spikes, amp_option=self.amp_option)
+        amps_I = de.find_amplitude_type_I(spikes, amp_option=self.amp_option)
+        amps_II = de.find_amplitude_type_II(spikes)
         widths_I, widths_I_trace = de.find_wave_width_type_I(spikes,
                                                              dt=data['dt'])
         widths_II, widths_II_trace = de.find_wave_width_type_II(
@@ -106,21 +112,27 @@ class Symmetry(Simulation):
         p = run_param['n_phi']
         n = run_param['n']
 
-        amps = np.reshape(amps, (t, p, n))
+        amps_I = np.reshape(amps_I, (t, p, n))
+        amps_II = np.reshape(amps_II, (t, p, n))
         widths_I = np.reshape(widths_I, (t, p, n))
         widths_II = np.reshape(widths_II, (t, p, n))
 
         # Becomes [t x n] matrix.
-        amps_mean = np.mean(amps, 1)
-        amps_std = np.std(amps, 1)
+        amps_I_mean = np.mean(amps_I, 1)
+        amps_I_std = np.std(amps_I, 1)
+        amps_II_mean = np.mean(amps_II, 1)
+        amps_II_std = np.std(amps_II, 1)
         widths_I_mean = np.mean(widths_I, 1)
         widths_I_std = np.std(widths_I, 1)
         widths_II_mean = np.mean(widths_II, 1)
         widths_II_std = np.std(widths_II, 1)
 
-        data['amps_mean'] = amps_mean * 1000
-        data['amps_std'] = amps_std * 1000
-        data['amps'] = amps * 1000
+        data['amps_I_mean'] = amps_I_mean * 1000
+        data['amps_I_std'] = amps_I_std * 1000
+        data['amps_I'] = amps_I * 1000
+        data['amps_II_mean'] = amps_II_mean * 1000
+        data['amps_II_std'] = amps_II_std * 1000
+        data['amps_II'] = amps_II * 1000
 
         data['widths_I_mean'] = widths_I_mean
         data['widths_I_std'] = widths_I_std
@@ -173,24 +185,58 @@ class Symmetry(Simulation):
         plt.close()
 
         # New plot.
-        fname = 'sym_spike_amps'
+        fname = 'sym_spike_amps_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
         lplot.nice_axes(ax)
         # Plot
-        c = lplot.get_short_color_array(data['amps_mean'].shape[0] + 1)
-        for t in xrange(data['amps_mean'].shape[0]):
+        c = lplot.get_short_color_array(data['amps_I_mean'].shape[0] + 1)
+        for t in xrange(data['amps_I_mean'].shape[0]):
             label = r'$\theta = {}\degree$'.format(run_param['theta'][t])
             plt.plot(data['r_vec'],
-                     data['amps_mean'][t],
+                     data['amps_I_mean'][t],
                      color=c[t],
                      marker='o',
                      markersize=5,
                      label=label)
             ax.fill_between(data['r_vec'],
-                            data['amps_mean'][t] - data['amps_std'][t],
-                            data['amps_mean'][t] + data['amps_std'][t],
+                            data['amps_I_mean'][t] - data['amps_I_std'][t],
+                            data['amps_I_mean'][t] + data['amps_I_std'][t],
+                            color=c[t],
+                            alpha=0.2)
+        handles, labels = ax.get_legend_handles_labels()
+        # Position the legen on the right side of the plot.
+        ax.legend(handles,
+                  labels,
+                  loc='upper left',
+                  bbox_to_anchor=(1.0, 1.04), )
+        ax.set_ylabel("Amplitude")
+        ax.set_xlabel("Distance from Soma")
+        # Save plt.
+        path = os.path.join(dir_plot, fname + "." + format)
+        plt.savefig(path, format=format, bbox_inches='tight')
+        plt.close()
+
+        # New plot.
+        fname = 'sym_spike_amps_II'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        c = lplot.get_short_color_array(data['amps_II_mean'].shape[0] + 1)
+        for t in xrange(data['amps_II_mean'].shape[0]):
+            label = r'$\theta = {}\degree$'.format(run_param['theta'][t])
+            plt.plot(data['r_vec'],
+                     data['amps_II_mean'][t],
+                     color=c[t],
+                     marker='o',
+                     markersize=5,
+                     label=label)
+            ax.fill_between(data['r_vec'],
+                            data['amps_II_mean'][t] - data['amps_II_std'][t],
+                            data['amps_II_mean'][t] + data['amps_II_std'][t],
                             color=c[t],
                             alpha=0.2)
         handles, labels = ax.get_legend_handles_labels()

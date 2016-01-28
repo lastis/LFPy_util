@@ -1,12 +1,12 @@
-from Simulation import Simulation
 import os
+import numpy as np
 import LFPy
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import LFPy_util
 import LFPy_util.data_extraction as de
 import LFPy_util.plot as lplot
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from LFPy_util.sims.Simulation import Simulation
 
 
 class SphereElectrodes(Simulation):
@@ -100,7 +100,8 @@ class SphereElectrodes(Simulation):
             spikes,
             dt=data['dt'],
             amp_option=self.amp_option)
-        amps = de.find_amplitude(spikes, amp_option=self.amp_option)
+        amps_I = de.find_amplitude_type_I(spikes, amp_option=self.amp_option)
+        amps_II = de.find_amplitude_type_II(spikes)
         # Put widths_I in bins decided by the radial distance. 
         # Then calculate std and mean.
         bins = np.linspace(0, run_param['R'], self.bins, endpoint=True)
@@ -109,24 +110,30 @@ class SphereElectrodes(Simulation):
         widths_I_std = np.empty(self.bins)
         widths_II_mean = np.empty(self.bins)
         widths_II_std = np.empty(self.bins)
-        amps_mean = np.empty(self.bins)
-        amps_std = np.empty(self.bins)
+        amps_I_mean = np.empty(self.bins)
+        amps_I_std = np.empty(self.bins)
+        amps_II_mean = np.empty(self.bins)
+        amps_II_std = np.empty(self.bins)
         for bin_1 in xrange(len(bins)):
             widths_I_at_r = []
             widths_II_at_r = []
-            amps_at_r = []
+            amps_I_at_r = []
+            amps_II_at_r = []
             for i, bin_2 in enumerate(inds):
                 if bin_1 != bin_2: continue
                 widths_I_at_r.append(widths_I[i])
                 widths_II_at_r.append(widths_II[i])
-                amps_at_r.append(amps[i])
+                amps_I_at_r.append(amps_I[i])
+                amps_II_at_r.append(amps_II[i])
             if len(widths_I_at_r) == 0:
                 widths_I_mean[bin_1] = np.nan
                 widths_I_std[bin_1] = np.nan
                 widths_II_mean[bin_1] = np.nan
                 widths_II_std[bin_1] = np.nan
-                amps_mean[bin_1] = np.nan
-                amps_std[bin_1] = np.nan
+                amps_I_mean[bin_1] = np.nan
+                amps_I_std[bin_1] = np.nan
+                amps_II_mean[bin_1] = np.nan
+                amps_II_std[bin_1] = np.nan
             else:
                 widths_I_at_r = np.array(widths_I_at_r)
                 widths_I_mean[bin_1] = np.mean(widths_I_at_r)
@@ -134,14 +141,20 @@ class SphereElectrodes(Simulation):
                 widths_II_at_r = np.array(widths_II_at_r)
                 widths_II_mean[bin_1] = np.mean(widths_II_at_r)
                 widths_II_std[bin_1] = np.sqrt(np.var(widths_II_at_r))
-                amps_mean[bin_1] = np.mean(amps_at_r)
-                amps_std[bin_1] = np.sqrt(np.var(amps_at_r))
+                amps_I_mean[bin_1] = np.mean(amps_I_at_r)
+                amps_I_std[bin_1] = np.sqrt(np.var(amps_I_at_r))
+                amps_II_mean[bin_1] = np.mean(amps_II_at_r)
+                amps_II_std[bin_1] = np.sqrt(np.var(amps_II_at_r))
 
         data['elec_r_all'] = r_all
 
-        data['amps_mean'] = amps_mean * 1000
-        data['amps_std'] = amps_std * 1000
-        data['amps'] = amps * 1000
+        data['amps_I_mean'] = amps_I_mean * 1000
+        data['amps_I_std'] = amps_I_std * 1000
+        data['amps_I'] = amps_I * 1000
+
+        data['amps_II_mean'] = amps_II_mean * 1000
+        data['amps_II_std'] = amps_II_std * 1000
+        data['amps_II'] = amps_II * 1000
 
         data['widths_I_mean'] = widths_I_mean
         data['widths_I_std'] = widths_I_std
@@ -183,20 +196,44 @@ class SphereElectrodes(Simulation):
         plt.close()
 
         # New plot.
-        fname = 'sphere_spike_amps'
+        fname = 'sphere_spike_amps_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
         lplot.nice_axes(ax)
         # Plot
         plt.plot(data['bins'],
-                 data['amps_mean'],
+                 data['amps_I_mean'],
                  color=lplot.color_array_long[0],
                  marker='o',
                  markersize=5)
         ax.fill_between(data['bins'],
-                        data['amps_mean'] - data['amps_std'],
-                        data['amps_mean'] + data['amps_std'],
+                        data['amps_I_mean'] - data['amps_I_std'],
+                        data['amps_I_mean'] + data['amps_I_std'],
+                        color=lplot.color_array_long[0],
+                        alpha=0.2)
+        ax.set_ylabel("Amplitude")
+        ax.set_xlabel("Distance from Soma")
+        # Save plt.
+        path = os.path.join(dir_plot, fname + "." + format)
+        plt.savefig(path, format=format, bbox_inches='tight')
+        plt.close()
+
+        # New plot.
+        fname = 'sphere_spike_amps_II'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        plt.plot(data['bins'],
+                 data['amps_II_mean'],
+                 color=lplot.color_array_long[0],
+                 marker='o',
+                 markersize=5)
+        ax.fill_between(data['bins'],
+                        data['amps_II_mean'] - data['amps_II_std'],
+                        data['amps_II_mean'] + data['amps_II_std'],
                         color=lplot.color_array_long[0],
                         alpha=0.2)
         ax.set_ylabel("Amplitude")
@@ -268,9 +305,6 @@ class SphereElectrodes(Simulation):
             # Trace I
             trace_idx = np.where(~np.isnan(data['widths_I_trace'][i]))[0]
             trace_idx = [trace_idx[0], trace_idx[-1]]
-            plt.plot(data['spikes_t_vec'],
-                     data['widths_I_trace'][i],
-                     color=c[1])
             plt.plot(data['spikes_t_vec'][trace_idx],
                      data['widths_I_trace'][i][trace_idx],
                      color=c[1],
