@@ -17,6 +17,9 @@ def find_spikes(v_vec, threshold=1):
     # pylint: disable=no-member
     v_vec = zscore(v_vec)
     max_idx = argrelextrema(v_vec, np.greater)[0]
+    # TODO: make some warning or something.
+    if len(max_idx) == 0:
+        return []
     v_max = v_vec[max_idx]
     length = len(v_max) - 1
     for i in xrange(length, -1, -1):
