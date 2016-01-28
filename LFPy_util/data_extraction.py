@@ -170,7 +170,7 @@ def find_freq_and_fft(tvec, sig):
         raise RuntimeError("Not compatible with given array shape!")
 
     timestep = (
-        tvec[1] - tvec[0]) / 1. if isinstance(tvec) in [list, np.ndarray] else tvec
+        tvec[1] - tvec[0]) / 1. if isinstance(tvec, (list, np.ndarray)) else tvec
     sample_freq = ff.fftfreq(sig.shape[1], d=timestep)
     pidxs = np.where(sample_freq >= 0)
     freqs = sample_freq[pidxs]

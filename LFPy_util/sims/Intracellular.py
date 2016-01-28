@@ -59,7 +59,7 @@ class Intracellular(Simulation):
         soma_t = self.data['soma_t']
         soma_v = self.data['soma_v']
         freqs, amps, phase = \
-            LFPy_util.data_extraction.findFreqAndFft(soma_t,soma_v)
+            LFPy_util.data_extraction.find_freq_and_fft(soma_t,soma_v)
         # Remove the first coefficient as we don't care about the baseline.
         freqs = np.delete(freqs, 0)
         amps = np.delete(amps, 0)
