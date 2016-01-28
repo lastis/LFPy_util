@@ -22,6 +22,7 @@ class Simulation(object):
     makes it more easy to use the LFPy_util.other.collect_data function.
 
     """
+
     def __init__(self):
         """
         """

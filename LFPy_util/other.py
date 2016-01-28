@@ -1,5 +1,5 @@
 import os
-import neuron 
+import neuron
 import subprocess
 import LFPy_util
 import pickle
@@ -8,7 +8,8 @@ import numpy as np
 import inspect
 from neuron import hoc
 
-def collect_data(dir_neurons,sim,func):
+
+def collect_data(dir_neurons, sim, func):
     if len(inspect.getargspec(func)[0]) != 4:
         raise ValueError("DataCollection function must have 3 arguments.")
     neurons = os.listdir(dir_neurons)
@@ -21,21 +22,23 @@ def collect_data(dir_neurons,sim,func):
         sim.data = LFPy_util.other.load_kwargs(path_data)
         sim.run_param = LFPy_util.other.load_kwargs_json(path_run_param)
         sim.process_data()
-        func(neuron,sim.ID,sim.run_param,sim.data)
+        func(neuron, sim.ID, sim.run_param, sim.data)
+
 
 def nrnivmodl(directory='.', suppress=False):
     tmp = os.getcwd()
     os.chdir(directory)
     if suppress:
         with LFPy_util.suppress_stdout_stderr():
-            devnull = open(os.devnull,'w')
-            subprocess.call(['nrnivmodl'],stdout=devnull,shell=True)
+            devnull = open(os.devnull, 'w')
+            subprocess.call(['nrnivmodl'], stdout=devnull, shell=True)
             neuron.load_mechanisms(directory)
     else:
-            devnull = open(os.devnull,'w')
-            subprocess.call(['nrnivmodl'],stdout=devnull,shell=True)
-            neuron.load_mechanisms(directory)
+        devnull = open(os.devnull, 'w')
+        subprocess.call(['nrnivmodl'], stdout=devnull, shell=True)
+        neuron.load_mechanisms(directory)
     os.chdir(tmp)
+
 
 def save_kwargs(path, **kwargs):
     # Create the directory path if it doesn't exist yet.
@@ -44,25 +47,27 @@ def save_kwargs(path, **kwargs):
         os.makedirs(directory)
     _, ext = os.path.splitext(path)
     if ext == '':
-        path = path+'.pkl'
+        path = path + '.pkl'
     with open(path, 'wb') as f:
         pickle.dump(kwargs, f, pickle.HIGHEST_PROTOCOL)
+
 
 def load_kwargs(path):
     _, ext = os.path.splitext(path)
     if ext == '':
-        path = path+'.pkl'
+        path = path + '.pkl'
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-def save_kwargs_json(path,**kwargs):
+
+def save_kwargs_json(path, **kwargs):
     # Create the directory path if it doesn't exist yet.
     directory = os.path.dirname(path)
     if not os.path.exists(directory) and directory != '':
         os.makedirs(directory)
     _, ext = os.path.splitext(path)
     if ext == '':
-        path = path+'.js'
+        path = path + '.js'
 
     def default(obj):
         if isinstance(obj, np.ndarray):
@@ -71,10 +76,11 @@ def save_kwargs_json(path,**kwargs):
             return obj.to_python()
         raise TypeError('Not serializeable')
     # Save the kwargs to json.
-    data_string = json.dumps(kwargs,default=default,indent=4,sort_keys=True)
-    f = open(path,'w')
+    data_string = json.dumps(kwargs, default=default, indent=4, sort_keys=True)
+    f = open(path, 'w')
     f.write(data_string)
     f.close()
+
 
 def load_kwargs_json(path):
     """
@@ -89,11 +95,12 @@ def load_kwargs_json(path):
     """
     _, ext = os.path.splitext(path)
     if ext == '':
-        path = path+'.js'
-    f = open(path,'r')
+        path = path + '.js'
+    f = open(path, 'r')
     param_dict = json.load(f)
     f.close()
     return param_dict
+
 
 class suppress_stdout_stderr(object):
     '''
@@ -105,21 +112,22 @@ class suppress_stdout_stderr(object):
     exited (at least, I think that is why it lets exceptions through).      
 
     '''
+
     def __init__(self):
         # Open a pair of null files
-        self.null_fds =  [os.open(os.devnull,os.O_RDWR) for x in range(2)]
+        self.null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
         # Save the actual stdout (1) and stderr (2) file descriptors.
         self.save_fds = (os.dup(1), os.dup(2))
 
     def __enter__(self):
         # Assign the null pointers to stdout and stderr.
-        os.dup2(self.null_fds[0],1)
-        os.dup2(self.null_fds[1],2)
+        os.dup2(self.null_fds[0], 1)
+        os.dup2(self.null_fds[1], 2)
 
     def __exit__(self, *_):
         # Re-assign the real stdout/stderr back to (1) and (2)
-        os.dup2(self.save_fds[0],1)
-        os.dup2(self.save_fds[1],2)
+        os.dup2(self.save_fds[0], 1)
+        os.dup2(self.save_fds[1], 2)
         # Close the null files
         os.close(self.null_fds[0])
         os.close(self.null_fds[1])

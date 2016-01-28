@@ -9,6 +9,7 @@ import LFPy_util
 
 class Simulator(object):
     """docstring for SimulationHandler"""
+
     # pylint: disable=too-many-instance-attributes
     def __init__(self, cell=None):
         self._neuron_list = None
@@ -73,8 +74,8 @@ class Simulator(object):
         and take a string as argument.
         """
         if len(inspect.getargspec(func)[0]) != 1:
-            raise ValueError("The load cell function must have one argument"
-                             + " and return a Cell object.")
+            raise ValueError("The load cell function must have one argument" +
+                             " and return a Cell object.")
         self._get_cell = func
 
     def _is_ready(self):
@@ -178,8 +179,7 @@ class Simulator(object):
 
                         process = Process(
                             target=Simulator._simulate,
-                            args=(sim, cell, dir_data, self.save),
-                            )
+                            args=(sim, cell, dir_data, self.save), )
                         process.start()
                         process_list.append(process)
                     else:
@@ -231,24 +231,21 @@ class Simulator(object):
         process_list = []
         for i in xrange(len(self._neuron_list)):
             # For each neuron make a new process.
-            process = Process(
-                target=Simulator._run_neuron,
-                args=(self, i),
-                )
+            process = Process(target=Simulator._run_neuron, args=(self, i), )
             process_list.append(process)
 
         cnt = 0
         finished = False
         while not finished:
             for i in xrange(self.processes):
-                if cnt+i >= len(self._neuron_list):
+                if cnt + i >= len(self._neuron_list):
                     continue
-                process = process_list[cnt+i]
+                process = process_list[cnt + i]
                 process.start()
             for i in xrange(self.processes):
-                if cnt+i >= len(self._neuron_list):
+                if cnt + i >= len(self._neuron_list):
                     continue
-                process = process_list[cnt+i]
+                process = process_list[cnt + i]
                 process.join()
             cnt += self.processes
             if cnt >= len(self._neuron_list):

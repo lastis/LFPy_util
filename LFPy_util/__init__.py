@@ -7,4 +7,3 @@ import LFPy_util.rotation
 import LFPy_util.sims
 import LFPy_util.other
 from LFPy_util.Simulator import Simulator
-
