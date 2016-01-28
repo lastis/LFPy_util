@@ -13,7 +13,7 @@ class Symmetry(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.ID = "sym"
+        self.name = "sym"
 
         self.debug = False
         self.run_param['n'] = 9

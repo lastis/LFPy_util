@@ -8,7 +8,7 @@ class Morphology(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.ID = "morph"
+        self.name = "morph"
 
         self.debug = False
 

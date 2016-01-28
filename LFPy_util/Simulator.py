@@ -19,7 +19,6 @@ class Simulator(object):
         self._str_plot_dir = "plot"
         self._get_cell = None
         self._cell = None
-        self._on_load = None
 
         self.save = True
         self.plot = True
@@ -45,16 +44,6 @@ class Simulator(object):
         text += "simulate            : " + str(self.simulate) + "\n"
         text += "plot                : " + str(self.plot)
         return text
-
-    def set_on_load_func(self, on_load):
-        """
-        Set function that will be called at the start of every
-        neuron simulation.
-        """
-        if len(inspect.getargspec(on_load)[0]) != 2:
-            raise ValueError("The on_load function must have two arguments. "
-                             "A list of Simulation objects and neuron index.")
-        self._on_load = on_load
 
     def set_neuron_name(self, name):
         """
@@ -145,9 +134,10 @@ class Simulator(object):
         return path
 
     @staticmethod
-    def _simulate(sim, cell, dir_data):
+    def _simulate(sim, cell, dir_data, save):
+        sim.previous_run(dir_data)
         sim.simulate(cell)
-        if dir_data is not None:
+        if save:
             sim.save(dir_data)
 
     @staticmethod
@@ -174,9 +164,7 @@ class Simulator(object):
                 flag = self._sim_stack_flag[i]
                 if isinstance(sim_or_func, LFPy_util.sims.Simulation):
                     sim = sim_or_func
-                    dir_data = None
-                    if self.save:
-                        dir_data = self.get_dir_neuron_data(index)
+                    dir_data = self.get_dir_neuron_data(index)
                     if flag:
                         # Start in new process.
                         if self.verbatim:
@@ -190,7 +178,7 @@ class Simulator(object):
 
                         process = Process(
                             target=Simulator._simulate,
-                            args=(sim, cell, dir_data),
+                            args=(sim, cell, dir_data, self.save),
                             )
                         process.start()
                         process_list.append(process)
@@ -200,7 +188,7 @@ class Simulator(object):
                             print "current process     : " \
                                 + self._neuron_list[index] +\
                                 " " + sim.__str__()
-                        self._simulate(sim, cell, dir_data)
+                        self._simulate(sim, cell, dir_data, self.save)
                 # If not a Simulation object assume it is a function.
                 else:
                     func = sim_or_func

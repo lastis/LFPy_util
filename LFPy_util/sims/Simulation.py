@@ -36,6 +36,13 @@ class Simulation(object):
     def __str__(self):
         return self.name
 
+    def previous_run(self, dir_data):
+        """
+        Called by Simulator during each neuron simulation.
+        Is usually empty.
+        """
+        pass
+
     def simulate(self, cell):
         """
         Start simulation
@@ -49,15 +56,29 @@ class Simulation(object):
         raise NotImplementedError("Function must be overrided.")
 
     def plot(self, dir_plot):
+        """
+        Plot from simulation. Usually using self.run_param and self.data.
+        """
         raise NotImplementedError("Function must be overrided.")
 
     def get_fname_data(self):
+        """
+        Get the filename of the data that is stored by the simulation.
+        """
         return self.name + self._str_data + "." + self.format_save_data
 
     def get_fname_run_param(self):
-        return self.name + self._str_run_param + "." + self.format_save_run_param
+        """
+        Get the filename of the run_param that is stored by the simulation.
+        """
+        return self.name + self._str_run_param + "." \
+            + self.format_save_run_param
 
     def save(self, dir_data):
+        """
+        Store run_param and data to files specified by .format_save_data and
+        .format_save_run_param.
+        """
         # Save data.
         fname = self.get_fname_data()
         path = os.path.join(dir_data, fname)
@@ -78,6 +99,10 @@ class Simulation(object):
             raise ValueError("Unsupported format")
 
     def load(self, dir_data):
+        """
+        Load run_param and data that has been stored according to the
+        save function.
+        """
         # Load data.
         fname = self.get_fname_data()
         path = os.path.join(dir_data, fname)

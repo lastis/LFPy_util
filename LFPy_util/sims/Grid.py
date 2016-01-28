@@ -11,7 +11,7 @@ class Grid(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.ID = 'grid_{}_{}'.format('x','y')
+        self.name = 'grid_{}_{}'.format('x','y')
         
         # Used by the custom simulate and plot function.
         self.run_param['plane'] = ['x','y']

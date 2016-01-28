@@ -1,11 +1,10 @@
-import colormaps
-import data_extraction
-import electrodes
-import meshgen
-import plot
-import rotation
-import sims
-from other import *
-from suppress import *
-from Simulator import Simulator
+import LFPy_util.colormaps
+import LFPy_util.data_extraction
+import LFPy_util.electrodes
+import LFPy_util.meshgen
+import LFPy_util.plot
+import LFPy_util.rotation
+import LFPy_util.sims
+import LFPy_util.other
+from LFPy_util.Simulator import Simulator
 

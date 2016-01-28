@@ -1,14 +1,18 @@
-from Simulation import Simulation
-import LFPy
-import LFPy_util
-import numpy as np
+"""
+Simulation that calculates the current needed to give one spike over
+the simulation time. Also applies that electrode when simulation is finised.
+"""
 import os
 from multiprocessing import Process, Manager
+import numpy as np
+import LFPy
+import LFPy_util
+from LFPy_util.sims import Simulation
 
-fname_current_plot_soma_spike       = 'current_soma_spike'
-fname_current_plot_soma_mem         = 'current_soma_mem'
+fname_current_plot_soma_spike = 'current_soma_spike'
+fname_current_plot_soma_mem  = 'current_soma_mem'
 fname_current_plot_soma_i_mem_v_mem = 'current_soma_i_mem_v_mem'
-fname_current_run_info              = 'current_run_info.md'
+fname_current_run_info = 'current_run_info.md'
 
 class SingleSpike(Simulation):
     """docstring for Grid"""
@@ -16,7 +20,7 @@ class SingleSpike(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.ID = 'current'
+        self.name = 'current'
         
         # Used by the custom simulate and plot function.
         self.run_param['threshold'] = 3
@@ -28,7 +32,7 @@ class SingleSpike(Simulation):
         self.run_param['post_dur'] = 16.7*0.5
         self.apply_electrode_at_finish = True
         self.debug = False
-        self.prev_data = None
+        self._prev_data = None
 
         # Used by the custom plot function.
         self.show = False
@@ -36,10 +40,18 @@ class SingleSpike(Simulation):
     def __str__(self):
         return "SingleSpike"
 
+    def previous_run(self, dir_data):
+        """
+        If this simulation has been ran before, try setting init_amp
+        to the amp of that file to avoid doing uneccessary simulations.
+        """
+        fname = self.get_fname_data()
+        self._prev_data = os.path.join(dir_data, fname)
+
     def get_previous_amp(self):
         # If this simulation has been ran before, try setting init_amp
         # to the amp of that file to avoid doing uneccessary simulations.
-        path = self.prev_data
+        path = self._prev_data
         if path is None or not os.path.isfile(path):
             if self.debug:
                 print "Could not load previous one spike amp."
