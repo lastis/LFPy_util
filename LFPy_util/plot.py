@@ -203,10 +203,10 @@ def frequency_amp(firing_rate,
         if not os.path.exists(plot_save_dir):
             os.makedirs(plot_save_dir)
         # Create different versions of the file.
-        os.chdir(plot_save_dir)
         for format_str in plot_format:
             name = fname + '.' + format_str
-            plt.savefig(name,
+            path = os.path.join(plot_save_dir, name)
+            plt.savefig(path,
                         format=format_str,
                         transparent=False,
                         bbox_inches='tight',
@@ -343,10 +343,10 @@ def morphology(poly_morph,
         if not os.path.exists(plot_save_dir):
             os.makedirs(plot_save_dir)
         # Create different versions of the file.
-        os.chdir(plot_save_dir)
         for format_str in plot_format:
             name = fname + '.' + format_str
-            plt.savefig(name,
+            path = os.path.join(plot_save_dir, name)
+            plt.savefig(path,
                         format=format_str,
                         transparent=False,
                         bbox_inches='tight',
