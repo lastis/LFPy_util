@@ -31,16 +31,12 @@ def nrnivmodl(directory='.', suppress=False):
     running neuron.load_mechanisms twice on the same directory path.
     """
     tmp = os.getcwd()
-    os.chdir(directory)
-    if suppress:
-        with suppress_stdout_stderr():
-            devnull = open(os.devnull, 'w')
-            subprocess.call(['nrnivmodl'], stdout=devnull, shell=True)
-    else:
+    with suppress_stdout_stderr(suppress):
+        os.chdir(directory)
         devnull = open(os.devnull, 'w')
         subprocess.call(['nrnivmodl'], stdout=devnull, shell=True)
+        neuron.load_mechanisms(directory)
     os.chdir(tmp)
-    neuron.load_mechanisms(directory)
 
 
 def save_kwargs(path, **kwargs):
@@ -114,23 +110,30 @@ class suppress_stdout_stderr(object):
     to stderr just before a script exits, and after the context manager has
     exited (at least, I think that is why it lets exceptions through).      
 
+    Added supress as a boolean keyword, if false it will not supress anything.
+    Done to enable easier usage.
+
     '''
 
-    def __init__(self):
-        # Open a pair of null files
-        self.null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
-        # Save the actual stdout (1) and stderr (2) file descriptors.
-        self.save_fds = (os.dup(1), os.dup(2))
+    def __init__(self, suppress=True):
+        self.suppress = suppress
+        if self.suppress:
+            # Open a pair of null files
+            self.null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
+            # Save the actual stdout (1) and stderr (2) file descriptors.
+            self.save_fds = (os.dup(1), os.dup(2))
 
     def __enter__(self):
-        # Assign the null pointers to stdout and stderr.
-        os.dup2(self.null_fds[0], 1)
-        os.dup2(self.null_fds[1], 2)
+        if self.suppress:
+            # Assign the null pointers to stdout and stderr.
+            os.dup2(self.null_fds[0], 1)
+            os.dup2(self.null_fds[1], 2)
 
     def __exit__(self, *_):
-        # Re-assign the real stdout/stderr back to (1) and (2)
-        os.dup2(self.save_fds[0], 1)
-        os.dup2(self.save_fds[1], 2)
-        # Close the null files
-        os.close(self.null_fds[0])
-        os.close(self.null_fds[1])
+        if self.suppress:
+            # Re-assign the real stdout/stderr back to (1) and (2)
+            os.dup2(self.save_fds[0], 1)
+            os.dup2(self.save_fds[1], 2)
+            # Close the null files
+            os.close(self.null_fds[0])
+            os.close(self.null_fds[1])
