@@ -164,10 +164,10 @@ def soma(t_vec,
         if not os.path.exists(plot_save_dir):
             os.makedirs(plot_save_dir)
         # Create different versions of the file.
-        os.chdir(plot_save_dir)
         for format_str in plot_format:
             name = fname + '.' + format_str
-            plt.savefig(name, format=format_str, bbox_inches='tight')
+            path = os.path.join(plot_save_dir, name)
+            plt.savefig(path, format=format_str, bbox_inches='tight')
     if show:
         plt.show()
     print 'finished            :', fname
@@ -454,10 +454,10 @@ def scattered_i_mem_v_mem(v_vec_list,
         if not os.path.exists(plot_save_dir):
             os.makedirs(plot_save_dir)
         # Create different versions of the file.
-        os.chdir(plot_save_dir)
         for format_str in plot_format:
             name = fname + '.' + format_str
-            plt.savefig(name,
+            path = os.path.join(plot_save_dir, name)
+            plt.savefig(path,
                         format=format_str,
                         transparent=False,
                         bbox_inches='tight',
