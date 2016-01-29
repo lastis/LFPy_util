@@ -333,7 +333,7 @@ class SphereElectrodes(Simulation):
                     marker='x')
         ax.set_xlabel("Spike Width Type II")
         ax.set_ylabel("Spike Width Type I")
-        ax.set_aspect('equal')
+        # ax.set_aspect('equal')
         # Save plt.
         path = os.path.join(dir_plot, fname + "." + format)
         plt.savefig(path, format=format, bbox_inches='tight')
