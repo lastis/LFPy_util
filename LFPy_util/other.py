@@ -26,18 +26,21 @@ def collect_data(dir_neurons, sim, func):
 
 
 def nrnivmodl(directory='.', suppress=False):
+    """
+    Should avoid using relative paths as neuron will complain on
+    running neuron.load_mechanisms twice on the same directory path.
+    """
     tmp = os.getcwd()
     os.chdir(directory)
     if suppress:
-        with LFPy_util.suppress_stdout_stderr():
+        with suppress_stdout_stderr():
             devnull = open(os.devnull, 'w')
             subprocess.call(['nrnivmodl'], stdout=devnull, shell=True)
-            neuron.load_mechanisms(".")
     else:
         devnull = open(os.devnull, 'w')
         subprocess.call(['nrnivmodl'], stdout=devnull, shell=True)
-        neuron.load_mechanisms(".")
     os.chdir(tmp)
+    neuron.load_mechanisms(directory)
 
 
 def save_kwargs(path, **kwargs):
