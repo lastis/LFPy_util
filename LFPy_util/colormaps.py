@@ -826,14 +826,30 @@ _viridis_data = [
     [0.983868, 0.904867, 0.136897],
     [0.993248, 0.906157, 0.143936],
 ]
+
 import numpy as np
-_viridis_data = np.asarray(_viridis_data)
+
+white_r = np.concatenate((
+    np.linspace(_viridis_data[0][0],1.0,round(len(_viridis_data)*0.5)),
+    np.linspace(1.0,_viridis_data[-121][0],round(len(_viridis_data)*0.5)),
+    ))
+white_g = np.concatenate((
+    np.linspace(_viridis_data[0][1],1.0,round(len(_viridis_data)*0.5)),
+    np.linspace(1.0,_viridis_data[-121][1],round(len(_viridis_data)*0.5))
+    ))
+white_b = np.concatenate((
+    np.linspace(_viridis_data[0][2],1.0,round(len(_viridis_data)*0.5)),
+    np.linspace(1.0,_viridis_data[-121][2],round(len(_viridis_data)*0.5))
+    ))
+_viridis_white_data = np.vstack((white_r,white_g,white_b)).T
+_viridis_data = np.array(_viridis_data)
 
 from matplotlib.colors import ListedColormap
 
 cmaps = {}
 for (name, data) in (('magma', _magma_data), ('inferno', _inferno_data),
-                     ('plasma', _plasma_data), ('viridis', _viridis_data)):
+                     ('plasma', _plasma_data), ('viridis', _viridis_data),
+                     ('viridis_white',_viridis_white_data)):
 
     cmaps[name] = ListedColormap(data, name=name)
 
@@ -841,3 +857,4 @@ magma = cmaps['magma']
 inferno = cmaps['inferno']
 plasma = cmaps['plasma']
 viridis = cmaps['viridis']
+viridis_white = cmaps['viridis_white']
