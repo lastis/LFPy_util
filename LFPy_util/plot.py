@@ -1276,7 +1276,8 @@ def signals2D(LFP,
         os.chdir(plot_save_dir)
         for format_str in plot_format:
             name = fname + '.' + format_str
-            plt.savefig(name,
+            path = os.path.join(plot_save_dir,name)
+            plt.savefig(path,
                         format=format_str,
                         transparent=False,
                         bbox_inches='tight',

@@ -1,4 +1,5 @@
 from LFPy_util.sims.Grid import Grid
+from LFPy_util.sims.GridDense import GridDense
 from LFPy_util.sims.Simulation import Simulation
 from LFPy_util.sims.SingleSpike import SingleSpike
 from LFPy_util.sims.Morphology import Morphology

@@ -263,7 +263,7 @@ def directionElectrodes(x0, x1, n):
     return grid_electrode_parameters
 
 
-def gridElectrodes(x, y, z):
+def grid_electrodes(x, y, z):
     """
     Creates a dictionary with positions of electrodes in a grid. The parameters
     are suggested to be generated with :func:`~numpy.linspace`.
