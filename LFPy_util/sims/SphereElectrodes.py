@@ -19,6 +19,7 @@ class SphereElectrodes(Simulation):
         self.run_param['N'] = 500
         self.run_param['R'] = 50
         self.run_param['sigma'] = 0.3
+        self.run_param['ext_method'] = 'som_as_point'
 
         self.amp_option = 'both'
         self.pre_dur = 16.7 * 0.5
@@ -52,6 +53,7 @@ class SphereElectrodes(Simulation):
                                          y=y,
                                          z=z,
                                          sigma=run_param['sigma'])
+        electrode.method = run_param['ext_method']
         electrode.calc_lfp()
 
         data['LFP'] = electrode.LFP

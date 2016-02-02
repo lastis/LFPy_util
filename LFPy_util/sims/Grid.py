@@ -23,6 +23,7 @@ class Grid(Simulation):
         self.run_param['x_lim'] = [-100, 100]
         self.run_param['y_lim'] = [-100, 100]
         self.run_param['amp_option'] = 'both'
+        self.run_param['ext_method'] = 'som_as_point'
 
     def __str__(self):
         return "Grid x y"
@@ -52,6 +53,7 @@ class Grid(Simulation):
 
         electrode_dict['sigma'] = 0.3
         electrode = LFPy.RecExtElectrode(cell, **electrode_dict)
+        electrode.method = run_param['ext_method']
         electrode.calc_lfp()
 
         self.data['electrode_dict'] = electrode_dict
