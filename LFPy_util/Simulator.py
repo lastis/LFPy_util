@@ -192,7 +192,22 @@ class Simulator(object):
                 # If not a Simulation object assume it is a function.
                 else:
                     func = sim_or_func
-                    func(cell)
+                    if flag:
+                        if self.verbatim:
+                            print "new process         : "\
+                                + self._neuron_list[index] \
+                                + " " + func.__name__
+                        process = Process(
+                            target=func._simulate,
+                            args=(cell), )
+                        process.start()
+                        process_list.append(process)
+                    else:
+                        if self.verbatim:
+                            print "current process     : " \
+                                + self._neuron_list[index] \
+                                + " " + func.__name__
+                        func(cell)
             # Join all processes.
             for process in process_list:
                 process.join()
