@@ -24,7 +24,7 @@ class Simulator(object):
         self.save = True
         self.plot = True
         self.simulate = True
-        self.verbatim = True
+        self.verbose = True
         self.parallel = True
         self.parallel_plot = False
         self.processes = 2
@@ -157,7 +157,7 @@ class Simulator(object):
                 cell = self._get_cell(self._neuron_list[index])
 
             manager = Manager()
-            if self.verbatim:
+            if self.verbose:
                 print "starting simulation : " + self._neuron_list[index]
             # Run the simulations.
             process_list = []
@@ -168,7 +168,7 @@ class Simulator(object):
                     dir_data = self.get_dir_neuron_data(index)
                     if flag:
                         # Start in new process.
-                        if self.verbatim:
+                        if self.verbose:
                             print "new process         : "\
                                 + self._neuron_list[index] \
                                 + " " + sim.__str__()
@@ -184,7 +184,7 @@ class Simulator(object):
                         process_list.append(process)
                     else:
                         # Start in current process.
-                        if self.verbatim:
+                        if self.verbose:
                             print "current process     : " \
                                 + self._neuron_list[index] +\
                                 " " + sim.__str__()
@@ -193,7 +193,7 @@ class Simulator(object):
                 else:
                     func = sim_or_func
                     if flag:
-                        if self.verbatim:
+                        if self.verbose:
                             print "new process         : "\
                                 + self._neuron_list[index] \
                                 + " " + func.__name__
@@ -203,7 +203,7 @@ class Simulator(object):
                         process.start()
                         process_list.append(process)
                     else:
-                        if self.verbatim:
+                        if self.verbose:
                             print "current process     : " \
                                 + self._neuron_list[index] \
                                 + " " + func.__name__
@@ -213,7 +213,7 @@ class Simulator(object):
                 process.join()
 
         if self.plot:
-            if self.verbatim:
+            if self.verbose:
                 print "starting plotting   : "
             process_list = []
             for i, sim_or_func in enumerate(self._sim_stack):
