@@ -26,23 +26,20 @@ def maxabs(a, axis=None):
     out[n] = mina[n]
     return out
 
-def find_spikes(v_vec, threshold=1):
+def find_spikes(v_vec, threshold=3):
     """
     Get the indices of the spikes.
     """
     # pylint: disable=no-member
     v_vec = zscore(v_vec)
     max_idx = argrelextrema(v_vec, np.greater)[0]
-    # TODO: make some warning or something.
     if len(max_idx) == 0:
         return []
     v_max = v_vec[max_idx]
     length = len(v_max) - 1
     for i in xrange(length, -1, -1):
-        # Remove local maxima that is not above threshold or if the spike
-        # shape cannot fit inside pre_dur and post_dur
+        # Remove local maxima that is not above threshold.
         if v_max[i] < threshold:
-            # v_max = np.delete(v_max,i)
             max_idx = np.delete(max_idx, i)
     return max_idx
 
