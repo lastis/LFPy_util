@@ -3,7 +3,7 @@ import scipy.interpolate
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import matplotlib.cm as cmx
+import matplotlib.cm as cm
 import matplotlib.animation as animation
 import LFPy_util.colormaps as cmaps
 import os
@@ -43,7 +43,7 @@ def get_short_color_array(n):
     """
     values = range(n)
     cNorm = colors.Normalize(vmin=0, vmax=values[-1])
-    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmaps.viridis)
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmaps.viridis)
     color_arr = []
     for i in xrange(n):
         colorVal = scalarMap.to_rgba(values[i])
@@ -57,6 +57,16 @@ def nice_axes(ax):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     ax.grid()
+
+def save_plt(plt, fname, plot_save_dir):
+    # Create the directory if it does not exist.
+    if not os.path.exists(plot_save_dir):
+        os.makedirs(plot_save_dir)
+    # Create different versions of the file.
+    for format_str in plot_format:
+        name = fname + '.' + format_str
+        path = os.path.join(plot_save_dir, name)
+        plt.savefig(path, format=format_str, bbox_inches='tight')
 
 
 def _get_line_segments(t_vec, width_trace_1d):
@@ -1190,7 +1200,7 @@ def signals2D(LFP,
     # using scalarMap.to_rgba(val).
     cmap = cmaps.viridis
     cNorm = colors.Normalize(vmin=amp.min(), vmax=amp.max())
-    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
 
     # Use plt.scatter only to create a colorbar
     fig = plt.figure(figsize=figsize)

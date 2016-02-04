@@ -26,21 +26,36 @@ def maxabs(a, axis=None):
     out[n] = mina[n]
     return out
 
-def find_spikes(v_vec, threshold=3):
+def find_spikes(t_vec, v_vec, threshold=4, pre_dur=0, post_dur=0, amp_option='both'):
     """
     Get the indices of the spikes.
     """
     # pylint: disable=no-member
     v_vec = zscore(v_vec)
+    threshold = np.fabs(threshold)
+    dt = t_vec[1] - t_vec[0]
+
+    pre_idx = int(pre_dur / float(dt))
+    post_idx = len(t_vec) - int(post_dur / float(dt))
+    if pre_idx > post_idx :
+        raise ValueError("pre_dur + post_dur are longer than the time vector.")
+
+    if amp_option == 'pos':
+        pass
+    elif amp_option == 'neg':
+        v_vec = - v_vec
+    elif amp_option == 'both':
+        v_vec = np.fabs(v_vec)
+
+
+    # Find local maxima.
     max_idx = argrelextrema(v_vec, np.greater)[0]
-    if len(max_idx) == 0:
-        return []
+    max_idx = np.array(max_idx,dtype='int')
     v_max = v_vec[max_idx]
-    length = len(v_max) - 1
-    for i in xrange(length, -1, -1):
-        # Remove local maxima that is not above threshold.
-        if v_max[i] < threshold:
-            max_idx = np.delete(max_idx, i)
+    max_idx = max_idx[v_max > threshold]
+    max_idx = max_idx[max_idx > pre_idx]
+    max_idx = max_idx[max_idx < post_idx]
+
     return max_idx
 
 
@@ -80,8 +95,8 @@ def extract_spikes(t_vec,
                    v_vec,
                    pre_dur=0,
                    post_dur=0,
-                   threshold=3,
-                   amp_option='pos'):
+                   threshold=4,
+                   amp_option='both'):
     """
     Get a new matrix of all spikes of the input v_vec.
     """

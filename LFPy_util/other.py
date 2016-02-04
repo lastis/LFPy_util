@@ -22,7 +22,7 @@ def collect_data(dir_neurons, sim, func):
         sim.data = LFPy_util.other.load_kwargs(path_data)
         sim.run_param = LFPy_util.other.load_kwargs_json(path_run_param)
         sim.process_data()
-        func(neuron, sim.ID, sim.run_param, sim.data)
+        func(neuron, sim.name, sim.run_param, sim.data)
 
 
 def nrnivmodl(directory='.', suppress=False):

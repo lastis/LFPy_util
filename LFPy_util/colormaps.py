@@ -858,3 +858,31 @@ inferno = cmaps['inferno']
 plasma = cmaps['plasma']
 viridis = cmaps['viridis']
 viridis_white = cmaps['viridis_white']
+
+import matplotlib.colors as colors
+import matplotlib.cm as cm
+
+def get_color(value, name='viridis'):
+    """
+    Get the rgb color from the cmap from 0.0 to 1.0.
+    """
+    return cm.ScalarMappable(colors.Normalize(0.0,1.0), viridis).to_rgba(value)
+
+def get_short_color_array(n, name='viridis'):
+    """
+    Create a linspace of the colors in the default collor array. Currently
+    viridis.
+
+    :param int n:
+        Returned array length.
+    :returns: 
+        :class:`list` -- (n x 3) color array.
+    """
+    values = range(n)
+    cNorm = colors.Normalize(vmin=0, vmax=values[-1])
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmaps[name])
+    color_arr = []
+    for i in xrange(n):
+        colorVal = scalarMap.to_rgba(values[i])
+        color_arr.append(colorVal)
+    return color_arr
