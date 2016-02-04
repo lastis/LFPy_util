@@ -106,9 +106,9 @@ class MultiSpike(Simulation):
                 amp_low = amp
             elif spike_cnt > run_param['spikes']:
                 amp_high = amp
-            # Double the amp until we have more than the desired number of spikes.
+            # Increase the amp until we have more than the desired number of spikes.
             if amp_high == 0:
-                amp = 2 * amp
+                amp = 1.25 * amp
                 continue
             amp = 0.5 * (amp_high + amp_low)
             if amp < 1e-4 or amp > 1e4:
