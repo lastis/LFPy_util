@@ -49,12 +49,15 @@ class MultiSpike(Simulation):
         """
         Loads data from previous simulation and finds which amp was used.
         """
+        # String to put before some output to the terminal.
+        str_start = self.name
+        str_start += " "*(20 - len(self.name)) + ":"
         # If this simulation has been ran before, try setting init_amp
         # to the amp of that file to avoid doing uneccessary simulations.
         path = self._prev_data
         if path is None or not os.path.isfile(path):
             if self.verbose:
-                print "Could not load previous one spike amp."
+                print str_start + " Could not load previous amp."
             return self.run_param['init_amp']
         if self.format_save_data == 'pkl':
             data_tmp = LFPy_util.other.load_kwargs(path)
@@ -63,14 +66,18 @@ class MultiSpike(Simulation):
         else:
             raise ValueError("Unsupported format")
         if self.verbose:
-            print "Previous one spike amp: " + str(data_tmp['amp'])
+            print str_start + " Previous amp = " + str(data_tmp['amp'])
         return data_tmp['amp']
 
     def simulate(self, cell):
         run_param = self.run_param
         amp = self.get_previous_amp()
 
-        # Find a current that generates one spike.
+        # String to put before some output to the terminal.
+        str_start = self.name
+        str_start += " "*(20 - len(self.name)) + ":"
+
+        # Find a current that generates n spikes.
         amp_low = 0
         amp_high = 0
         # Copy the run param so they can be given to the "sub" simulation.
@@ -91,7 +98,7 @@ class MultiSpike(Simulation):
             # Change the amplitude according to the spike cnt.
             spike_cnt = sub_data.get('spike_cnt', 0)
             if self.verbose:
-                print 'Found {} spikes at current {} nA.'.format(spike_cnt,
+                print str_start + ' Found {} spikes at current {} nA.'.format(spike_cnt,
                                                                  amp)
             if spike_cnt == run_param['spikes']:
                 break
@@ -104,8 +111,8 @@ class MultiSpike(Simulation):
                 amp = 2 * amp
                 continue
             amp = 0.5 * (amp_high + amp_low)
-            if amp < 1e-9 or amp > 1e9:
-                print 'Curent amplitude is above or under threshold, finishing.'
+            if amp < 1e-4 or amp > 1e4:
+                print str_start + ' Curent amplitude is above or under threshold, finishing.'
                 return
 
         # Give the data back.
@@ -115,6 +122,17 @@ class MultiSpike(Simulation):
         self.data['stimulus_i'] = sub_data['stimulus_i']
         self.data['soma_v'] = sub_data['soma_v']
         self.data['soma_t'] = sub_data['soma_t']
+
+        if self.apply_electrode_at_finish:
+            soma_clamp_params = {
+                'idx': cell.somaidx,
+                'record_current': True,
+                'amp': self.data['amp'],  #  [nA]
+                'dur': self.run_param['duration'],  # [ms]
+                'delay': self.run_param['delay'],  # [ms]
+                'pptype': self.run_param['pptype'],
+            }
+            stim = LFPy.StimIntElectrode(cell, **soma_clamp_params)
 
     @staticmethod
     def simulate_sub(cell, data, run_param):
@@ -155,17 +173,6 @@ class MultiSpike(Simulation):
         data['spike_cnt'] = spike_cnt
         data['soma_v'] = cell.somav
         data['soma_t'] = cell.tvec
-
-        if self.apply_electrode_at_finish:
-            soma_clamp_params = {
-                'idx': cell.somaidx,
-                'record_current': True,
-                'amp': self.data['amp'],  #  [nA]
-                'dur': self.run_param['duration'],  # [ms]
-                'delay': self.run_param['delay'],  # [ms]
-                'pptype': self.run_param['pptype'],
-            }
-            stim = LFPy.StimIntElectrode(cell, **soma_clamp_params)
 
     def process_data(self):
         data = self.data
