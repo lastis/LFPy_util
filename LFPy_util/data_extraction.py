@@ -30,7 +30,8 @@ def combined_mean_var(mean, var):
 
     # Combine the data recursively 1 and 1. 
     mean_tot, var_tot = _combined_mean_var_recur(mean, var)
-    return mean_tot, var_tot
+    # TODO: Should not be flattened.
+    return mean_tot.flatten(), var_tot.flatten()
 
 def _combined_mean_var_recur(mean, var, weight_ratio=0.5):
     samples = mean.shape[0]
