@@ -21,56 +21,17 @@ def combined_mean_std(mean, std, axis=0):
     mean_tot, var_tot = combined_mean_var(mean, var, axis)
     return mean_tot, np.sqrt(var_tot)
 
-def combined_mean_var(mean, var, axis=0):
-    mean = np.array(mean)
-    var = np.array(var)
+def combined_mean_var(mean_array, var_array, axis=0):
+    mean_array = np.array(mean_array)
+    var_array = np.array(var_array)
 
-    if mean.shape != var.shape:
-        raise ValueError("mean and var must have equal shape.")
+    if mean_array.shape != var_array.shape:
+        raise ValueError("mean_array and var must have equal shape.")
 
-    # Combine the data recursively 1 and 1. 
-    mean_tot, var_tot = _combined_mean_var_recur(mean, var, axis=axis)
-    return mean_tot.squeeze(), var_tot.squeeze()
+    mean_array_new = np.mean(mean_array, axis=axis)
+    var_array_new = np.mean(var_array + mean_array*mean_array, axis=axis) - mean_array_new*mean_array_new
 
-def _combined_mean_var_recur(mean, var, weight_ratio=0.5, axis=0):
-    samples = mean.shape[axis]
-
-    if samples == 1:
-        return mean, var
-    elif samples == 2:
-        mean_split = np.array_split(mean, 2, axis=axis)
-        var_split = np.array_split(var, 2, axis=axis)
-        mean_0 = mean_split[0]
-        mean_1 = mean_split[1]
-        var_0 = var_split[0]
-        var_1 = var_split[1]
-        
-        weight_ratio = 0.5
-    else:
-        samples_0 = samples/2
-        samples_1 = samples - samples_0
-
-        mean_split = np.array_split(mean, 2, axis=axis)
-        var_split = np.array_split(var, 2, axis=axis)
-
-        weight_ratio = float(samples_0)/float(samples_1)
-
-        mean_0, var_0 = _combined_mean_var_recur(mean_split[0], var_split[0], weight_ratio, axis)
-        mean_1, var_1 = _combined_mean_var_recur(mean_split[1], var_split[1], weight_ratio, axis)
-
-    mean_tot, var_tot = _combined_mean_var(mean_0, mean_1, var_0, var_1, weight_ratio)
-    return mean_tot, var_tot
-
-def _combined_mean_var(mean_0, mean_1, var_0, var_1, weight_ratio=0.5):
-    """
-    Calculates the combined variance of two arrays of equal length.
-    
-    """
-    N = weight_ratio
-    M = 1 - weight_ratio
-    mean_tot = N*mean_0 + M*mean_1
-    var_tot = N*(var_0 + mean_0*mean_0) + M*(var_1 + mean_1*mean_1) - mean_tot*mean_tot
-    return mean_tot, var_tot
+    return mean_array_new.squeeze(), var_array_new.squeeze()
 
 def maxabs(a, axis=None):
     """Return slice of a, keeping only those values that are furthest away
