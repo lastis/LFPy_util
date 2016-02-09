@@ -10,7 +10,7 @@ from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
 
-def combined_mean_std(mean, std):
+def combined_mean_std(mean, std, axis=0):
     mean = np.array(mean)
     std = np.array(std)
 
@@ -18,10 +18,10 @@ def combined_mean_std(mean, std):
         raise ValueError("mean and std must have equal shape.")
 
     var = np.power(std,2)
-    mean_tot, var_tot = combined_mean_var(mean, var)
+    mean_tot, var_tot = combined_mean_var(mean, var, axis)
     return mean_tot, np.sqrt(var_tot)
 
-def combined_mean_var(mean, var):
+def combined_mean_var(mean, var, axis=0):
     mean = np.array(mean)
     var = np.array(var)
 
@@ -29,42 +29,39 @@ def combined_mean_var(mean, var):
         raise ValueError("mean and var must have equal shape.")
 
     # Combine the data recursively 1 and 1. 
-    mean_tot, var_tot = _combined_mean_var_recur(mean, var)
-    # TODO: Should not be flattened.
-    return mean_tot.flatten(), var_tot.flatten()
+    mean_tot, var_tot = _combined_mean_var_recur(mean, var, axis=axis)
+    return mean_tot.squeeze(), var_tot.squeeze()
 
-def _combined_mean_var_recur(mean, var, weight_ratio=0.5):
-    samples = mean.shape[0]
+def _combined_mean_var_recur(mean, var, weight_ratio=0.5, axis=0):
+    samples = mean.shape[axis]
 
     if samples == 1:
         return mean, var
     elif samples == 2:
-        mean_0 = mean[0]
-        mean_1 = mean[1]
-        var_0 = var[0]
-        var_1 = var[1]
+        mean_split = np.array_split(mean, 2, axis=axis)
+        var_split = np.array_split(var, 2, axis=axis)
+        mean_0 = mean_split[0]
+        mean_1 = mean_split[1]
+        var_0 = var_split[0]
+        var_1 = var_split[1]
         
         weight_ratio = 0.5
     else:
-        # First half.
         samples_0 = samples/2
-        mean_0 = mean[:samples_0]
-        var_0 = var[:samples_0]
-
-        # Second half.
         samples_1 = samples - samples_0
-        mean_1 = mean[samples_0:]
-        var_1 = var[samples_0:]
+
+        mean_split = np.array_split(mean, 2, axis=axis)
+        var_split = np.array_split(var, 2, axis=axis)
 
         weight_ratio = float(samples_0)/float(samples_1)
 
-        mean_0, var_0 = _combined_mean_var_recur(mean_0, var_0)
-        mean_1, var_1 = _combined_mean_var_recur(mean_1, var_1)
+        mean_0, var_0 = _combined_mean_var_recur(mean_split[0], var_split[0], weight_ratio, axis)
+        mean_1, var_1 = _combined_mean_var_recur(mean_split[1], var_split[1], weight_ratio, axis)
 
     mean_tot, var_tot = _combined_mean_var(mean_0, mean_1, var_0, var_1, weight_ratio)
     return mean_tot, var_tot
 
-def _combined_mean_var(mean_0, mean_1, var_0, var_1, axis=None, weight_ratio=0.5):
+def _combined_mean_var(mean_0, mean_1, var_0, var_1, weight_ratio=0.5):
     """
     Calculates the combined variance of two arrays of equal length.
     

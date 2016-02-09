@@ -11,7 +11,7 @@ from neuron import hoc
 
 def collect_data(dir_neurons, sim, func):
     if len(inspect.getargspec(func)[0]) != 4:
-        raise ValueError("DataCollection function must have 3 arguments.")
+        raise ValueError("DataCollection function must have 4 arguments.")
     neurons = os.listdir(dir_neurons)
     s = LFPy_util.Simulator()
     s.set_dir_neurons(dir_neurons)
