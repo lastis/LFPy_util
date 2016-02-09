@@ -4,10 +4,75 @@ Data extraction module
 # pylint: disable=ungrouped-imports, no-member
 import numpy as np
 import scipy.fftpack as ff
+import warnings
 from sklearn.decomposition import PCA
 from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
+
+def combined_mean_std(mean, std):
+    mean = np.array(mean)
+    std = np.array(std)
+
+    if mean.shape != std.shape:
+        raise ValueError("mean and std must have equal shape.")
+
+    var = np.power(std,2)
+    mean_tot, var_tot = combined_mean_var(mean, var)
+    return mean_tot, np.sqrt(var_tot)
+
+def combined_mean_var(mean, var):
+    mean = np.array(mean)
+    var = np.array(var)
+
+    if mean.shape != var.shape:
+        raise ValueError("mean and var must have equal shape.")
+
+    # Combine the data recursively 1 and 1. 
+    mean_tot, var_tot = _combined_mean_var_recur(mean, var)
+    return mean_tot, var_tot
+
+def _combined_mean_var_recur(mean, var, weight_ratio=0.5):
+    samples = mean.shape[0]
+
+    if samples == 1:
+        return mean, var
+    elif samples == 2:
+        mean_0 = mean[0]
+        mean_1 = mean[1]
+        var_0 = var[0]
+        var_1 = var[1]
+        
+        weight_ratio = 0.5
+    else:
+        # First half.
+        samples_0 = samples/2
+        mean_0 = mean[:samples_0]
+        var_0 = var[:samples_0]
+
+        # Second half.
+        samples_1 = samples - samples_0
+        mean_1 = mean[samples_0:]
+        var_1 = var[samples_0:]
+
+        weight_ratio = float(samples_0)/float(samples_1)
+
+        mean_0, var_0 = _combined_mean_var_recur(mean_0, var_0)
+        mean_1, var_1 = _combined_mean_var_recur(mean_1, var_1)
+
+    mean_tot, var_tot = _combined_mean_var(mean_0, mean_1, var_0, var_1, weight_ratio)
+    return mean_tot, var_tot
+
+def _combined_mean_var(mean_0, mean_1, var_0, var_1, axis=None, weight_ratio=0.5):
+    """
+    Calculates the combined variance of two arrays of equal length.
+    
+    """
+    N = weight_ratio
+    M = 1 - weight_ratio
+    mean_tot = N*mean_0 + M*mean_1
+    var_tot = N*(var_0 + mean_0*mean_0) + M*(var_1 + mean_1*mean_1) - mean_tot*mean_tot
+    return mean_tot, var_tot
 
 def maxabs(a, axis=None):
     """Return slice of a, keeping only those values that are furthest away
@@ -129,7 +194,7 @@ def extract_spikes(t_vec,
 
     # Return if no spikes were found.
     if len(max_idx) == 0:
-        # print "Warning (extract_spikes): No local maxima found!"
+        warnings.warn("No local maxima found.", RuntimeWarning)
         return [], [], []
 
     # Only count local maxima over threshold as spikes.
@@ -145,7 +210,7 @@ def extract_spikes(t_vec,
 
     # Return if no spikes were found.
     if len(max_idx) == 0:
-        print "Warning (extract_spikes): No maxima above threshold."
+        warnings.warn("No maxima above threshold.", RuntimeWarning)
         return [], [], []
 
     spike_cnt = len(max_idx)

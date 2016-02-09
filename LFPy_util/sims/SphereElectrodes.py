@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import LFPy_util
 import LFPy_util.data_extraction as de
 import LFPy_util.plot as lplot
+import warnings
 from LFPy_util.sims.Simulation import Simulation
 
 
@@ -21,13 +22,14 @@ class SphereElectrodes(Simulation):
         self.run_param['sigma'] = 0.3
         self.run_param['ext_method'] = 'som_as_point'
 
-        self.amp_option = 'both'
-        self.pre_dur = 16.7 * 0.5
-        self.post_dur = 16.7 * 0.5
-        self.threshold = 3
-        self.elec_to_plot = []
-        self.bins = 11
-        self.amp_threshold = 0  # uV
+        self.process_param['amp_option'] = 'both'
+        self.process_param['pre_dur'] = 16.7 * 0.5
+        self.process_param['post_dur'] = 16.7 * 0.5
+        self.process_param['threshold'] = 3
+        self.process_param['elec_to_plot'] = []
+        self.process_param['bins'] = 11
+        self.process_param['amp_threshold'] = 0  # uV
+        self.process_param['spike_to_measure'] = 0 
 
     def __str__(self):
         return "Sphere Electrodes"
@@ -66,8 +68,9 @@ class SphereElectrodes(Simulation):
     def process_data(self):
         data = self.data
         run_param = self.run_param
+        process_param = self.process_param
         t_vec = np.array(data['t_vec'])
-        v_vec = np.array(data['LFP'])
+        v_vec = np.array(data['LFP'])*1000
         x = np.array(data['elec_x'])
         y = np.array(data['elec_y'])
         z = np.array(data['elec_z'])
@@ -80,18 +83,18 @@ class SphereElectrodes(Simulation):
         for row in xrange(v_vec.shape[0]):
             signal = v_vec[row]
             # If the amplitude is less than what can be "recorded", skip it.
-            if np.fabs(signal).max() * 1000 < self.amp_threshold:
+            if np.fabs(signal).max() * 1000 < self.process_param['amp_threshold']:
                 deleted_elem.append(row)
                 continue
             spike, spikes_t_vec, I = de.extract_spikes(
                 t_vec,
                 signal,
-                pre_dur=self.pre_dur,
-                post_dur=self.post_dur,
-                threshold=self.threshold,
-                amp_option=self.amp_option, )
-            # Assume there is only one spike.
-            spikes.append(spike[0])
+                pre_dur=self.process_param['pre_dur'],
+                post_dur=self.process_param['post_dur'],
+                threshold=self.process_param['threshold'],
+                amp_option=self.process_param['amp_option'], )
+            # Only use one spike from each electrode.
+            spikes.append(spike[process_param['spike_to_measure']])
         spikes = np.array(spikes)
         r = np.delete(r, deleted_elem)
 
@@ -101,76 +104,67 @@ class SphereElectrodes(Simulation):
         widths_II, widths_II_trace = de.find_wave_width_type_II(
             spikes,
             dt=data['dt'],
-            amp_option=self.amp_option)
-        amps_I = de.find_amplitude_type_I(spikes, amp_option=self.amp_option)
+            amp_option=self.process_param['amp_option'])
+        amps_I = de.find_amplitude_type_I(spikes, amp_option=self.process_param['amp_option'])
         amps_II = de.find_amplitude_type_II(spikes)
         # Put widths_I in bins decided by the radial distance. 
         # Then calculate std and mean.
-        bins = np.linspace(0, run_param['R'], self.bins, endpoint=True)
+        bins = np.linspace(0, run_param['R'], self.process_param['bins'], endpoint=True)
+        # Find the indices of the bins to which each value in r array belongs.
         inds = np.digitize(r, bins)
-        widths_I_mean = np.empty(self.bins)
-        widths_I_std = np.empty(self.bins)
-        widths_II_mean = np.empty(self.bins)
-        widths_II_std = np.empty(self.bins)
-        amps_I_mean = np.empty(self.bins)
-        amps_I_std = np.empty(self.bins)
-        amps_II_mean = np.empty(self.bins)
-        amps_II_std = np.empty(self.bins)
-        for bin_1 in xrange(len(bins)):
-            widths_I_at_r = []
-            widths_II_at_r = []
-            amps_I_at_r = []
-            amps_II_at_r = []
-            for i, bin_2 in enumerate(inds):
-                if bin_1 != bin_2: continue
-                widths_I_at_r.append(widths_I[i])
-                widths_II_at_r.append(widths_II[i])
-                amps_I_at_r.append(amps_I[i])
-                amps_II_at_r.append(amps_II[i])
-            if len(widths_I_at_r) == 0:
-                widths_I_mean[bin_1] = np.nan
-                widths_I_std[bin_1] = np.nan
-                widths_II_mean[bin_1] = np.nan
-                widths_II_std[bin_1] = np.nan
-                amps_I_mean[bin_1] = np.nan
-                amps_I_std[bin_1] = np.nan
-                amps_II_mean[bin_1] = np.nan
-                amps_II_std[bin_1] = np.nan
-            else:
-                widths_I_at_r = np.array(widths_I_at_r)
-                widths_I_mean[bin_1] = np.mean(widths_I_at_r)
-                widths_I_std[bin_1] = np.sqrt(np.var(widths_I_at_r))
-                widths_II_at_r = np.array(widths_II_at_r)
-                widths_II_mean[bin_1] = np.mean(widths_II_at_r)
-                widths_II_std[bin_1] = np.sqrt(np.var(widths_II_at_r))
-                amps_I_mean[bin_1] = np.mean(amps_I_at_r)
-                amps_I_std[bin_1] = np.sqrt(np.var(amps_I_at_r))
-                amps_II_mean[bin_1] = np.mean(amps_II_at_r)
-                amps_II_std[bin_1] = np.sqrt(np.var(amps_II_at_r))
+        # Widths and amps binned by distance.
+        widths_I_at_r = [widths_I[inds == i] for i in range(len(bins))]
+        widths_II_at_r = [widths_II[inds == i] for i in range(len(bins))]
+        amps_I_at_r = [amps_I[inds == i] for i in range(len(bins))]
+        amps_II_at_r = [amps_II[inds == i] for i in range(len(bins))]
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            widths_I_mean = [widths_I[inds == i].mean() for i in range(len(bins))]
+            widths_I_std = [np.sqrt(widths_I[inds == i].var()) for i in range(len(bins))]
+            widths_II_mean = [widths_II[inds == i].mean() for i in range(len(bins))]
+            widths_II_std = [np.sqrt(widths_II[inds == i].var()) for i in range(len(bins))]
+            amps_I_mean = [amps_I[inds == i].mean() for i in range(len(bins))]
+            amps_I_std = [np.sqrt(amps_I[inds == i].var()) for i in range(len(bins))]
+            amps_II_mean = [amps_II[inds == i].mean() for i in range(len(bins))]
+            amps_II_std = [np.sqrt(amps_II[inds == i].var()) for i in range(len(bins))]
+
+            widths_I_mean = np.array(widths_I_mean)
+            widths_II_mean = np.array(widths_II_mean)
+            amps_I_mean = np.array(amps_I_mean)
+            amps_II_mean = np.array(amps_II_mean)
+            widths_I_std = np.array(widths_I_std)
+            widths_II_std = np.array(widths_II_std)
+            amps_I_std = np.array(amps_I_std)
+            amps_II_std = np.array(amps_II_std)
 
         data['elec_r_all'] = r_all
 
-        data['amps_I_mean'] = amps_I_mean * 1000
-        data['amps_I_std'] = amps_I_std * 1000
-        data['amps_I'] = amps_I * 1000
+        data['amps_I_mean'] = amps_I_mean
+        data['amps_I_std'] = amps_I_std
+        data['amps_I'] = amps_I
+        data['amps_I_at_r'] = amps_I_at_r
 
-        data['amps_II_mean'] = amps_II_mean * 1000
-        data['amps_II_std'] = amps_II_std * 1000
-        data['amps_II'] = amps_II * 1000
+        data['amps_II_mean'] = amps_II_mean
+        data['amps_II_std'] = amps_II_std
+        data['amps_II'] = amps_II
+        data['amps_II_at_r'] = amps_II_at_r
 
         data['widths_I_mean'] = widths_I_mean
         data['widths_I_std'] = widths_I_std
         data['widths_I'] = widths_I
-        data['widths_I_trace'] = widths_I_trace * 1000
+        data['widths_I_trace'] = widths_I_trace 
+        data['widths_I_at_r'] = widths_I_at_r 
 
         data['widths_II_mean'] = widths_II_mean
         data['widths_II_std'] = widths_II_std
         data['widths_II'] = widths_II
-        data['widths_II_trace'] = widths_II_trace * 1000
+        data['widths_II_trace'] = widths_II_trace 
+        data['widths_II_at_r'] = widths_II_at_r
 
         data['bins'] = bins
         data['elec_r'] = r
-        data['spikes'] = spikes * 1000
+        data['spikes'] = spikes
         data['spikes_t_vec'] = spikes_t_vec
 
     def plot(self, dir_plot):
@@ -294,7 +288,7 @@ class SphereElectrodes(Simulation):
         plt.close()
 
         # New plot.
-        for i in self.elec_to_plot:
+        for i in self.process_param['elec_to_plot']:
             fname = 'sphere_elec_{}'.format(i)
             print "plotting            :", fname
             c = lplot.get_short_color_array(2 + 1)
@@ -349,7 +343,7 @@ class SphereElectrodes(Simulation):
         lplot.nice_axes(ax)
         # Plot
         plt.hist(data['elec_r_all'],
-                 self.bins - 1,
+                 self.process_param['bins'] - 1,
                  range=(0, data['elec_r_all'].max()),
                  facecolor=lplot.color_array_long[0],
                  alpha=0.5)

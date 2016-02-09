@@ -196,15 +196,13 @@ class MultiSpike(Simulation):
         data = self.data
         run_param = self.run_param
 
-        # String to put before some output to the terminal.
+        # String to put before output to the terminal.
         str_start = self.name
         str_start += " "*(20 - len(self.name)) + ":"
 
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
-        # Create the directory if it does not exist.
-        if not os.path.exists(dir_plot):
-            os.makedirs(dir_plot)
+
         # New plot.
         fname = self.name + '_all_spikes'
         if run_param['pre_dur'] != 0 and run_param['post_dur'] != 0:
@@ -217,7 +215,14 @@ class MultiSpike(Simulation):
             rows = data['spikes'].shape[0]
             colors = cmaps.get_short_color_array(rows)
             for row in xrange(rows):
-                plt.plot(data['t_vec_spike'], data['spikes'][row], color=colors[row])
+                plt.plot(
+                    data['t_vec_spike'], 
+                    data['spikes'][row], 
+                    color=colors[row],
+                    label="Spike {}".format(row)
+                    )
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles, labels)
             lplot.save_plt(plt, fname, dir_plot)
         else:
             if self.verbose:
@@ -233,6 +238,7 @@ class MultiSpike(Simulation):
         lplot.nice_axes(ax)
         plt.plot(data['soma_t'], data['soma_v'], color=cmaps.get_color(0))
         lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
 
         # New plot.
         fname = self.name + '_soma_v_mem_i_mem'
@@ -251,4 +257,5 @@ class MultiSpike(Simulation):
         ax.set_ylabel(r'Stimulus Current \textbf[$\mathbf{nA}$\textbf]')
         ax.set_xlabel(r'Time \textbf[$\mathbf{ms}$\textbf]')
         lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
 

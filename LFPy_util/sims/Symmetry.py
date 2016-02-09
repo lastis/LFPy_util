@@ -19,7 +19,7 @@ class Symmetry(Simulation):
         # Used by the super save and load function.
         self.name = "sym"
 
-        self.debug = False
+        self.verbose = False
         self.run_param['n'] = 9
         self.run_param['n_phi'] = 8
         self.run_param['theta'] = [10, 50, 90, 130, 170]
@@ -28,10 +28,12 @@ class Symmetry(Simulation):
         self.run_param['R_0'] = 10
         self.run_param['ext_method'] = 'som_as_point'
 
-        self.amp_option = 'both'
-        self.pre_dur = 16.7 * 0.5
-        self.post_dur = 16.7 * 0.5
-        self.threshold = 3
+        self.process_param['amp_option'] = 'both'
+        self.process_param['pre_dur'] = 16.7 * 0.5
+        self.process_param['post_dur'] = 16.7 * 0.5
+        self.process_param['threshold'] = 4
+        # Index of the spike to measure from.
+        self.process_param['spike_to_measure'] = 0
         self.plot_detailed = False
 
     def __str__(self):
@@ -89,26 +91,31 @@ class Symmetry(Simulation):
     def process_data(self):
         data = self.data
         run_param = self.run_param
+        process_param = self.process_param
 
         # Get the signal from the first electrode.
         signal = data['LFP'][0]
         spike, spikes_t_vec, I = de.extract_spikes(
             data['t_vec'],
             signal,
-            pre_dur=self.pre_dur,
-            post_dur=self.post_dur,
-            threshold=self.threshold,
-            amp_option=self.amp_option, )
-        spikes = data['LFP'][:, I[0, 0]:I[0, 1]]
+            pre_dur=process_param['pre_dur'],
+            post_dur=process_param['post_dur'],
+            threshold=process_param['threshold'],
+            amp_option=process_param['amp_option'], 
+            )
+        # Gather all spikes from the same indices as where the spike appears
+        # in the first electrode.
+        spike_index = process_param['spike_to_measure']
+        spikes = data['LFP'][:, I[spike_index, 0]:I[spike_index, 1]]
 
-        amps_I = de.find_amplitude_type_I(spikes, amp_option=self.amp_option)
+        amps_I = de.find_amplitude_type_I(spikes, amp_option=process_param['amp_option'])
         amps_II = de.find_amplitude_type_II(spikes)
         widths_I, widths_I_trace = de.find_wave_width_type_I(spikes,
                                                              dt=data['dt'])
         widths_II, widths_II_trace = de.find_wave_width_type_II(
             spikes,
             dt=data['dt'],
-            amp_option=self.amp_option)
+            amp_option=process_param['amp_option'])
 
         t = len(run_param['theta'])
         p = run_param['n_phi']
@@ -152,17 +159,22 @@ class Symmetry(Simulation):
                                     run_param['n'])
 
     def plot(self, dir_plot):
+        """
+        Plotting stats about the spikes.
+        """
+        # pylint: disable=too-many-locals
         data = self.data
         run_param = self.run_param
-        format = 'pdf'
+
+        # String to put before output to the terminal.
+        str_start = self.name
+        str_start += " "*(20 - len(self.name)) + ":"
+
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
-        # Create the directory if it does not exist.
-        if not os.path.exists(dir_plot):
-            os.makedirs(dir_plot)
 
         # 3D plot.
-        fname = "sym_elec_pos"
+        fname = self.name + "_elec_pos"
         c = lplot.get_short_color_array(5)[2]
         fig = plt.figure(figsize=lplot.size_common)
         ax = fig.add_subplot(111, projection='3d')
@@ -181,13 +193,11 @@ class Symmetry(Simulation):
         ax.set_xlabel("X axis")
         ax.set_ylabel("Y axis")
         ax.set_zlabel("Z axis")
-        # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
 
         # New plot.
-        fname = 'sym_spike_amps_I'
+        fname = self.name + '_spike_amps_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -215,13 +225,11 @@ class Symmetry(Simulation):
                   bbox_to_anchor=(1.0, 1.04), )
         ax.set_ylabel("Amplitude")
         ax.set_xlabel("Distance from Soma")
-        # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
 
         # New plot.
-        fname = 'sym_spike_amps_II'
+        fname = self.name + '_spike_amps_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -249,13 +257,11 @@ class Symmetry(Simulation):
                   bbox_to_anchor=(1.0, 1.04), )
         ax.set_ylabel("Amplitude")
         ax.set_xlabel("Distance from Soma")
-        # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
 
         # New plot.
-        fname = 'sym_spike_width_I'
+        fname = self.name + '_spike_width_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -283,13 +289,11 @@ class Symmetry(Simulation):
                   bbox_to_anchor=(1.0, 1.04), )
         ax.set_ylabel("Spike Width")
         ax.set_xlabel("Distance from Soma")
-        # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
 
         # New plot.
-        fname = 'sym_spike_width_II'
+        fname = self.name + '_spike_width_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -318,9 +322,7 @@ class Symmetry(Simulation):
                   bbox_to_anchor=(1.0, 1.04), )
         ax.set_ylabel("Spike Width")
         ax.set_xlabel("Distance from Soma")
-        # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
 
         LFPy_util.plot.morphology(data['poly_morph'],
@@ -328,7 +330,7 @@ class Symmetry(Simulation):
                                   elec_x=data['elec_x'],
                                   elec_y=data['elec_y'],
                                   fig_size=lplot.size_common,
-                                  fname="sym_morph_elec",
+                                  fname=self.name + "_morph_elec",
                                   plot_save_dir=dir_plot,
                                   show=False)
 
@@ -345,7 +347,7 @@ class Symmetry(Simulation):
             for i in xrange(t):
                 for j in xrange(p):
                     for k in xrange(n):
-                        fname = 'sym_elec_t_{}_p_{}_n_{}'.format(
+                        fname = self.name + '_elec_t_{}_p_{}_n_{}'.format(
                             run_param['theta'][i], j * 360 / p, k)
                         print "plotting            :", fname
                         c = lplot.get_short_color_array(2 + 1)
@@ -373,7 +375,6 @@ class Symmetry(Simulation):
                                  data['widths_II_trace'][cnt],
                                  color=c[1])
                         # Save plt.
-                        path = os.path.join(sub_dir, fname + "." + format)
-                        plt.savefig(path, format=format, bbox_inches='tight')
+                        lplot.save_plt(plt, fname, dir_plot)
                         plt.close()
                         cnt += 1

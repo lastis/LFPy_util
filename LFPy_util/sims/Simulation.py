@@ -31,6 +31,7 @@ class Simulation(object):
         self.format_save_run_param = 'js'
         self.data = {}
         self.run_param = {}
+        self.process_param = {}
         self._str_data = "_data"
         self._str_run_param = "_run_param"
 
