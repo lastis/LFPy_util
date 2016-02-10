@@ -7,3 +7,4 @@ from LFPy_util.sims.Intracellular import Intracellular
 from LFPy_util.sims.SphereElectrodes import SphereElectrodes
 from LFPy_util.sims.Symmetry import Symmetry
 from LFPy_util.sims.MultiSpike import MultiSpike
+from LFPy_util.sims.SymmetryFiltered import SymmetryFiltered

@@ -119,6 +119,7 @@ class SphereElectrodes(Simulation):
         amps_II_at_r = [amps_II[inds == i] for i in range(len(bins))]
 
         with warnings.catch_warnings():
+            # Ignore warnings where mean or var has zero sized array as input.
             warnings.simplefilter("ignore", category=RuntimeWarning)
             widths_I_mean = [widths_I[inds == i].mean() for i in range(len(bins))]
             widths_I_std = [np.sqrt(widths_I[inds == i].var()) for i in range(len(bins))]

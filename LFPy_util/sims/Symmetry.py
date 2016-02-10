@@ -36,9 +36,6 @@ class Symmetry(Simulation):
         self.process_param['spike_to_measure'] = 0
         self.plot_detailed = False
 
-    def __str__(self):
-        return "Symmetry"
-
     def simulate(self, cell):
         # pylint: disable=invalid-name,no-member
         data = self.data
