@@ -29,9 +29,6 @@ class GridDense(Simulation):
         self.run_param['amp_option'] = 'both'
         self.run_param['ext_method'] = 'som_as_point'
 
-    def __str__(self):
-        return "Grid x y"
-
     def simulate(self, cell):
         run_param = self.run_param
         cell = cell

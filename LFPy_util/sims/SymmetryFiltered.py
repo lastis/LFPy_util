@@ -1,6 +1,5 @@
 from scipy.signal import butter, filtfilt
-import LFPy_util.sims.Symmetry as Symmetry
-
+from LFPy_util.sims.Symmetry import Symmetry
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
@@ -29,6 +28,6 @@ class SymmetryFiltered(Symmetry):
         data = self.data
         # Applying band pass filter.
         data['frec_sample'] = 1.0/run_param['dt'] # kHz
-        b, a = butter_bandpass(run_param['low_cut'], run_param['high_cut']
+        b, a = butter_bandpass(run_param['low_cut'], run_param['high_cut'])
         LFP = filtfilt(b, a, data['LFP'], axis=1)
         data['LFP'] = LFP

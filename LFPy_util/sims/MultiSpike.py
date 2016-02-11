@@ -34,9 +34,6 @@ class MultiSpike(Simulation):
         self.verbose = False
         self._prev_data = None
 
-    def __str__(self):
-        return "MultiSpike"
-
     def previous_run(self, dir_data):
         """
         If this simulation has been ran before, try setting init_amp

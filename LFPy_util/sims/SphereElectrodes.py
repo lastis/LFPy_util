@@ -31,9 +31,6 @@ class SphereElectrodes(Simulation):
         self.process_param['amp_threshold'] = 0  # uV
         self.process_param['spike_to_measure'] = 0 
 
-    def __str__(self):
-        return "Sphere Electrodes"
-
     def simulate(self, cell):
         data = self.data
         run_param = self.run_param
