@@ -117,8 +117,8 @@ def get_polygons(cell, projection=('x', 'y'), comp_func=None):
 
 def extract_spikes(t_vec,
                    v_vec,
-                   pre_dur=0,
-                   post_dur=0,
+                   pre_dur=16.7*0.5,
+                   post_dur=16.7*0.5,
                    threshold=4,
                    amp_option='both'):
     """
@@ -137,15 +137,14 @@ def extract_spikes(t_vec,
     if pre_idx + post_idx > len(t_vec):
         # The desired durations before and after spike are too long.
         raise ValueError("pre_dur + post_dur are longer than the time vector.")
+    if pre_idx == 0 and post_idx == 0:
+        raise ValueError("pre_dur and post_dur cannot both be 0.")
 
     v_vec_unmod = v_vec
     v_vec = zscore(v_vec)
     if amp_option == 'both':
-        if v_vec.max() < -v_vec.min():
-            amp_option = 'neg'
-        else:
-            amp_option = 'pos'
-    if amp_option == 'neg':
+        v_vec = np.fabs(v_vec)
+    elif amp_option == 'neg':
         v_vec = -v_vec
 
     # Find local maxima (or minima).
@@ -167,26 +166,19 @@ def extract_spikes(t_vec,
             v_max = np.delete(v_max, i)
             max_idx = np.delete(max_idx, i)
 
+    spike_cnt = len(max_idx)
     # Return if no spikes were found.
-    if len(max_idx) == 0:
+    if spike_cnt == 0:
         warnings.warn("No maxima above threshold.", RuntimeWarning)
         return [], [], []
-
-    spike_cnt = len(max_idx)
     n = pre_idx + post_idx
-    if n == 0:
-        n = len(t_vec)
 
     spikes = np.zeros([spike_cnt, n])
     I = np.zeros([spike_cnt, 2], dtype=np.int)
 
     for i in xrange(spike_cnt):
-        if n == len(t_vec):
-            start_idx = 0
-            end_idx = len(t_vec)
-        else:
-            start_idx = max_idx[i] - pre_idx
-            end_idx = max_idx[i] + post_idx
+        start_idx = max_idx[i] - pre_idx
+        end_idx = max_idx[i] + post_idx
         I[i, 0] = start_idx
         I[i, 1] = end_idx
         spikes[i, :] = v_vec_unmod[start_idx:end_idx]
@@ -233,7 +225,7 @@ def find_freq_and_fft(tvec, sig):
     amplitude = np.abs(Y) / Y.shape[1]
     phase = np.angle(Y, deg=0)
     #power = np.abs(Y)**2/Y.shape[1]
-    return freqs, [amplitude], [phase]
+    return freqs, amplitude, phase
 
 
 def _from_to_distance(origin_segment, to_segment):

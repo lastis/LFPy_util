@@ -17,17 +17,23 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
 class SymmetryFiltered(Symmetry):
     """docstring for SymmetryFiltered"""
     def __init__(self):
-        super(Symmetry, self).__init__()
+        Symmetry.__init__(self)
         self.name = "symf"
 
-        self.run_param['low_cut'] = 0.8
-        self.run_param['high_cut'] = 6.7
+        self.process_param['low_cut'] = 0.8
+        self.process_param['high_cut'] = 6.7
         
     def process_data(self):
         run_param = self.run_param
         data = self.data
+        process_param = self.process_param
         # Applying band pass filter.
-        data['frec_sample'] = 1.0/run_param['dt'] # kHz
-        b, a = butter_bandpass(run_param['low_cut'], run_param['high_cut'])
-        LFP = filtfilt(b, a, data['LFP'], axis=1)
-        data['LFP'] = LFP
+        data['frec_sample'] = 1.0/data['dt'] # kHz
+        b, a = butter_bandpass(
+            process_param['low_cut']*1000, 
+            process_param['high_cut']*1000, 
+            data['frec_sample']*1000
+            )
+        data['LFP'] = filtfilt(b, a, data['LFP'], axis=1)
+
+        Symmetry.process_data(self)

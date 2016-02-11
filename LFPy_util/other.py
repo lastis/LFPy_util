@@ -29,6 +29,16 @@ def nrnivmodl(directory='.', suppress=False):
     """
     Should avoid using relative paths as neuron will complain on
     running neuron.load_mechanisms twice on the same directory path.
+
+    E.g. :
+    Don't do this.
+        os.chdir(mech_1)
+        LFPy_util.other.nrnivmodl(".")
+        os.chdir(mech_2)
+        LFPy_util.other.nrnivmodl(".")
+    Do this.
+        LFPy_util.other.nrnivmodl(mech_1)
+        LFPy_util.other.nrnivmodl(mech_2)
     """
     tmp = os.getcwd()
     with suppress_stdout_stderr(suppress):

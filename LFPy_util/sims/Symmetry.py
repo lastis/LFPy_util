@@ -34,7 +34,9 @@ class Symmetry(Simulation):
         self.process_param['threshold'] = 4
         # Index of the spike to measure from.
         self.process_param['spike_to_measure'] = 0
-        self.plot_detailed = False
+        self.plot_param['plot_detailed'] = False
+        # kHz.
+        self.plot_param['freq_end'] = None
 
     def simulate(self, cell):
         # pylint: disable=invalid-name,no-member
@@ -331,9 +333,104 @@ class Symmetry(Simulation):
                                   plot_save_dir=dir_plot,
                                   show=False)
 
-        if self.plot_detailed:
+        # Plot the first electrode.
+        fname = self.name + '_first_elec_spike'
+        print "plotting            :", fname
+        c = lplot.get_short_color_array(2 + 1)
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        plt.plot(data['spikes_t_vec'],
+                 data['spikes'][0],
+                 color=c[0])
+        # Trace I
+        trace_idx = np.where(~np.isnan(data['widths_I_trace'][0]))[0]
+        trace_idx = [trace_idx[0], trace_idx[-1]]
+        plt.plot(data['spikes_t_vec'][trace_idx],
+                 data['widths_I_trace'][i][trace_idx],
+                 color=c[1],
+                 marker="|")
+        # Trace II
+        trace_idx = np.where(~np.isnan(data['widths_II_trace'][0]))[0]
+        trace_idx = [trace_idx[0], trace_idx[-1]]
+        plt.plot(data['spikes_t_vec'],
+                 data['widths_II_trace'][0],
+                 color=c[1])
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+
+        # Fourier plot of the first electrode.
+        fname = self.name + '_first_elec_spik_fourier'
+        freq, amp, phase = de.find_freq_and_fft(
+            data['spikes_t_vec'],
+            data['spikes'][0],
+            )
+        # Remove the first coefficient as we don't care about the baseline.
+        freq = np.delete(freq, 0)
+        amp = np.delete(amp, 0)
+        if self.plot_param['freq_end'] is not None:
+            idx = min(
+                range(len(freq)), 
+                key=lambda i: abs(freq[i] - self.plot_param['freq_end'])
+                )
+            freq = freq[0:idx]
+            amp = amp[0:idx]
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(freq, amp, color=c[0])
+        ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
+        ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+
+        # Plot the first electrode whole signal.
+        fname = self.name + '_first_elec'
+        print "plotting            :", fname
+        c = lplot.get_short_color_array(2 + 1)
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        plt.plot(data['t_vec'],
+                 data['LFP'][0],
+                 color=c[0])
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+
+        # Fourier plot of the first electrode.
+        fname = self.name + '_first_elec_fourier'
+        freq, amp, phase = de.find_freq_and_fft(
+            data['t_vec'],
+            data['LFP'][0],
+            )
+        # Remove the first coefficient as we don't care about the baseline.
+        freq = np.delete(freq, 0)
+        amp = np.delete(amp, 0)
+        if self.plot_param['freq_end'] is not None:
+            idx = min(
+                range(len(freq)), 
+                key=lambda i: abs(freq[i] - self.plot_param['freq_end'])
+                )
+            freq = freq[0:idx]
+            amp = amp[0:idx]
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(freq, amp, color=c[0])
+        ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
+        ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+
+        if self.plot_param['plot_detailed']:
             # Create the directory if it does not exist.
-            sub_dir = os.path.join(dir_plot, "sym_detailed")
+            sub_dir = os.path.join(dir_plot, self.name + "_detailed")
             if not os.path.exists(sub_dir):
                 os.makedirs(sub_dir)
             t = len(run_param['theta'])
@@ -372,6 +469,34 @@ class Symmetry(Simulation):
                                  data['widths_II_trace'][cnt],
                                  color=c[1])
                         # Save plt.
-                        lplot.save_plt(plt, fname, dir_plot)
+                        lplot.save_plt(plt, fname, sub_dir)
                         plt.close()
+
+                        # Fourier plot.
+                        fname = self.name + '_freq_elec_t_{}_p_{}_n_{}'.format(
+                            run_param['theta'][i], j * 360 / p, k)
+                        freq, amp, phase = de.find_freq_and_fft(
+                            data['spikes_t_vec'],
+                            data['spikes'][cnt],
+                            )
+                        # Remove the first coefficient as we don't care about the baseline.
+                        freq = np.delete(freq, 0)
+                        amp = np.delete(amp, 0)
+                        if self.plot_param['freq_end'] is not None:
+                            idx = min(
+                                range(len(freq)), 
+                                key=lambda i: abs(freq[i] - self.plot_param['freq_end'])
+                                )
+                            freq = freq[0:idx]
+                            amp = amp[0:idx]
+                        print "plotting            :", fname
+                        plt.figure(figsize=lplot.size_common)
+                        ax = plt.gca()
+                        lplot.nice_axes(ax)
+                        plt.plot(freq, amp, color=c[0])
+                        ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
+                        ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
+                        lplot.save_plt(plt, fname, sub_dir)
+                        plt.close()
+
                         cnt += 1
