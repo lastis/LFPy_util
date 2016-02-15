@@ -430,30 +430,18 @@ def find_wave_width_type_II(matrix, threshold=0.5, dt=1, amp_option='both'):
     trace = np.empty(matrix.shape)
     trace[:] = np.NAN
     for row in xrange(matrix.shape[0]):
-        signal = matrix[row, :]
-
+        signal = matrix[row]
+        signal -= signal[0]
         # Flip the signal if the negative side should be used.
         if amp_option == 'neg':
             signal = -signal
         elif amp_option == 'both' and signal.max() < -signal.min():
             signal = -signal
-        offset = signal[0]
-        signal -= offset
-
-        amp_max = np.max(signal)
-        thresh_abs = amp_max * np.fabs(threshold)
-        for i in xrange(matrix.shape[1]):
-            if signal[i] >= thresh_abs:
-                widths[row] += 1
-                trace[row, i] = thresh_abs + offset
-        if amp_option == 'neg':
-            trace[row] = -trace[row]
-        elif amp_option == 'both' and signal.max() < -signal.min():
-            trace[row] = -trace[row]
-    # If the input matrix is a single signal, return the trace 
-    # as a vector and not a matrix.
-    if matrix.shape[0] == 1:
-        trace = trace.flatten()
+        thresh_abs = signal.max() * np.fabs(threshold)
+        signal_bool = signal > thresh_abs
+        signal_index = np.where(signal_bool)[0]
+        widths[row] = np.sum(signal_bool)
+        trace[row, signal_index] = matrix[row, signal_index[0]]
     return widths * dt, trace
 
 
