@@ -442,13 +442,17 @@ class Symmetry(Simulation):
             if not os.path.exists(sub_dir):
                 os.makedirs(sub_dir)
             t = len(run_param['theta'])
-            p = run_param['n_phi']
+            # p = run_param['n_phi']
+            p = 1
             n = run_param['n']
+            # This title string should be formatted.
+            title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
 
             cnt = 0
             for i in xrange(t):
                 for j in xrange(p):
                     for k in xrange(n):
+                        title_str_1 = title_str.format(data['r_vec'][k])
                         # Plot all elec spikes {{{1 #
                         fname = self.name + '_elec_t_{}_p_{}_n_{}'.format(
                             run_param['theta'][i], j * 360 / p, k)
@@ -464,13 +468,14 @@ class Symmetry(Simulation):
 
                         # Trace I
                         plt.plot(data['spikes_t_vec'],
-                                 data['widths_I_trace'][i],
+                                 data['widths_I_trace'][cnt],
                                  color=c[1],
                                  )
                         # Trace II
                         plt.plot(data['spikes_t_vec'],
                                  data['widths_II_trace'][cnt],
                                  color=c[1])
+                        plt.title(title_str_1)
                         # Save plt.
                         lplot.save_plt(plt, fname, sub_dir)
                         plt.close()
@@ -500,6 +505,7 @@ class Symmetry(Simulation):
                         plt.plot(freq, amp, color=c[0])
                         ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
                         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
+                        plt.title(title_str_1)
                         lplot.save_plt(plt, fname, sub_dir)
                         plt.close()
                         # 1}}} #

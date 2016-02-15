@@ -448,7 +448,7 @@ def find_wave_width_type_II(matrix, threshold=0.5, dt=1, amp_option='both'):
                 trace[row, i] = thresh_abs + offset
         if amp_option == 'neg':
             trace[row] = -trace[row]
-        elif amp_option == 'both' and signal.max() > -signal.min():
+        elif amp_option == 'both' and signal.max() < -signal.min():
             trace[row] = -trace[row]
     # If the input matrix is a single signal, return the trace 
     # as a vector and not a matrix.
