@@ -13,14 +13,6 @@ class Morphology(Simulation):
 
         self.debug = False
 
-        # Used by the custom plot function.
-        self.show = False
-
-        # Plot names.
-        self.fname_morph_plot_xy = 'morph_xy'
-        self.fname_morph_plot_xz = 'morph_xz'
-        self.fname_morph_plot_yz = 'morph_yz'
-
     def simulate(self, cell):
         self.data['poly_morph_x_y'] \
                 = de.get_polygons_no_axon(cell,('x','y'))
@@ -44,23 +36,23 @@ class Morphology(Simulation):
         # Plot.
         LFPy_util.plot.morphology(data['poly_morph_x_y'],
                                   data['poly_morph_x_y_axon'],
-                                  fname=self.fname_morph_plot_xy,
+                                  fname=self.name + '_xy',
                                   plot_save_dir=dir_plot,
-                                  show=self.show,
+                                  show=False,
                                   mirror=True,
                                   x_label='y',
                                   y_label='x', )
         LFPy_util.plot.morphology(data['poly_morph_x_z'],
                                   data['poly_morph_x_z_axon'],
-                                  fname=self.fname_morph_plot_xz,
+                                  fname=self.name + '_xz',
                                   plot_save_dir=dir_plot,
-                                  show=self.show,
+                                  show=False,
                                   x_label='x',
                                   y_label='z', )
         LFPy_util.plot.morphology(data['poly_morph_y_z'],
                                   data['poly_morph_y_z_axon'],
-                                  fname=self.fname_morph_plot_yz,
+                                  fname=self.name + '_yz',
                                   plot_save_dir=dir_plot,
                                   x_label='y',
                                   y_label='z',
-                                  show=self.show, )
+                                  show=False, )
