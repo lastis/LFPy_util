@@ -284,7 +284,7 @@ class SphereRand(Simulation):
         # Plot Single Electrodes {{{1 #
         # Title string that can be formatted.
         title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
-        for i in self.plot_param_param['elec_to_plot']:
+        for i in self.plot_param['elec_to_plot']:
             title_str_1 = title_str.format(data['elec_r'][[i]])
             fname = self.name + '_elec_{}'.format(i)
             print "plotting            :", fname
