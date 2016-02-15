@@ -174,7 +174,7 @@ class Symmetry(Simulation):
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
 
-        # 3D plot.
+        # 3D plot {{{1 #
         fname = self.name + "_elec_pos"
         c = lplot.get_short_color_array(5)[2]
         fig = plt.figure(figsize=lplot.size_common)
@@ -196,8 +196,8 @@ class Symmetry(Simulation):
         ax.set_zlabel("Z axis")
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # New plot.
+        # 1}}} #
+        # Plot spike amps I {{{1 #
         fname = self.name + '_spike_amps_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
@@ -228,8 +228,8 @@ class Symmetry(Simulation):
         ax.set_xlabel("Distance from Soma")
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # New plot.
+        # }}} # 
+        # Plot spike amps II {{{1 #
         fname = self.name + '_spike_amps_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
@@ -260,8 +260,8 @@ class Symmetry(Simulation):
         ax.set_xlabel("Distance from Soma")
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # New plot.
+        # 1}}} #
+        # Plot spike width I {{{1 #
         fname = self.name + '_spike_width_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
@@ -292,8 +292,8 @@ class Symmetry(Simulation):
         ax.set_xlabel("Distance from Soma")
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # New plot.
+        # 1}}} #
+        # Plot spike widths II {{{1 #
         fname = self.name + '_spike_width_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
@@ -325,7 +325,8 @@ class Symmetry(Simulation):
         ax.set_xlabel("Distance from Soma")
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
+        # 1}}} #
+        # Plot morphology {{{1 #
         LFPy_util.plot.morphology(data['poly_morph'],
                                   data['poly_morph_axon'],
                                   elec_x=data['elec_x'],
@@ -334,9 +335,11 @@ class Symmetry(Simulation):
                                   fname=self.name + "_morph_elec",
                                   plot_save_dir=dir_plot,
                                   show=False)
-
-        # Plot the first electrode.
-        fname = self.name + '_first_elec_spike'
+        # 1}}} #
+        # Get the spike to plot.
+        elec_index = run_param['n']/2
+        # Plot middle electrode spike {{{1 #
+        fname = self.name + '_middle_elec_spike'
         print "plotting            :", fname
         c = lplot.get_short_color_array(2 + 1)
         plt.figure(figsize=lplot.size_common)
@@ -344,30 +347,31 @@ class Symmetry(Simulation):
         lplot.nice_axes(ax)
         # Plot
         plt.plot(data['spikes_t_vec'],
-                 data['spikes'][0],
+                 data['spikes'][elec_index],
                  color=c[0])
         # Trace I
         plt.plot(data['spikes_t_vec'],
-                 data['widths_I_trace'][i],
+                 data['widths_I_trace'][elec_index],
                  color=c[1],
                  )
         # Trace II
         plt.plot(data['spikes_t_vec'],
-                 data['widths_II_trace'][0],
+                 data['widths_II_trace'][elec_index],
                  color=c[1])
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # Fourier plot of the first electrode.
-        fname = self.name + '_first_elec_spike_fourier'
+        # 1}}} #
+        # Plot middle electrode spike freq {{{1 #
+        fname = self.name + '_middle_elec_spike_fourier'
         freq, amp, phase = de.find_freq_and_fft(
             data['spikes_t_vec'],
-            data['spikes'][0],
+            data['spikes'][elec_index],
             )
         # Remove the first coefficient as we don't care about the baseline.
         freq = np.delete(freq, 0)
         amp = np.delete(amp, 0)
+        # Delete frequencies above the option.
         if self.plot_param['freq_end'] is not None:
             idx = min(
                 range(len(freq)), 
@@ -384,9 +388,9 @@ class Symmetry(Simulation):
         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # Plot the first electrode whole signal.
-        fname = self.name + '_first_elec'
+        # 1}}} #
+        # Plot middle electrode signal {{{1 #
+        fname = self.name + '_middle_elec'
         print "plotting            :", fname
         c = lplot.get_short_color_array(2 + 1)
         plt.figure(figsize=lplot.size_common)
@@ -394,17 +398,17 @@ class Symmetry(Simulation):
         lplot.nice_axes(ax)
         # Plot
         plt.plot(data['t_vec'],
-                 data['LFP'][0],
+                 data['LFP'][elec_index],
                  color=c[0])
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # Fourier plot of the first electrode.
-        fname = self.name + '_first_elec_fourier'
+        # 1}}} #
+        # Plot middle electrode signal freq {{{1 #
+        fname = self.name + '_middle_elec_fourier'
         freq, amp, phase = de.find_freq_and_fft(
             data['t_vec'],
-            data['LFP'][0],
+            data['LFP'][elec_index],
             )
         # Remove the first coefficient as we don't care about the baseline.
         freq = np.delete(freq, 0)
@@ -425,6 +429,7 @@ class Symmetry(Simulation):
         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
+        # 1}}} #
 
         if self.plot_param['plot_detailed']:
             # Create the directory if it does not exist.
@@ -439,6 +444,7 @@ class Symmetry(Simulation):
             for i in xrange(t):
                 for j in xrange(p):
                     for k in xrange(n):
+                        # Plot all elec spikes {{{1 #
                         fname = self.name + '_elec_t_{}_p_{}_n_{}'.format(
                             run_param['theta'][i], j * 360 / p, k)
                         print "plotting            :", fname
@@ -463,7 +469,8 @@ class Symmetry(Simulation):
                         # Save plt.
                         lplot.save_plt(plt, fname, sub_dir)
                         plt.close()
-
+                        # 1}}} #
+                        # Plot all elec spikes freq {{{1 #
                         # Fourier plot.
                         fname = self.name + '_freq_elec_t_{}_p_{}_n_{}'.format(
                             run_param['theta'][i], j * 360 / p, k)
@@ -490,5 +497,5 @@ class Symmetry(Simulation):
                         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
                         lplot.save_plt(plt, fname, sub_dir)
                         plt.close()
-
+                        # 1}}} #
                         cnt += 1
