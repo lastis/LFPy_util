@@ -168,13 +168,10 @@ class SphereRand(Simulation):
     def plot(self, dir_plot):
         data = self.data
         run_param = self.run_param
-        format = 'pdf'
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
-        # Create the directory if it does not exist.
-        if not os.path.exists(dir_plot):
-            os.makedirs(dir_plot)
 
+        # Plot 3d points {{{1 #
         # 3D plot.
         fname = self.name + "_elec_pos"
         c = lplot.get_short_color_array(5)[2]
@@ -185,10 +182,10 @@ class SphereRand(Simulation):
         ax.set_ylim(-run_param['R'], run_param['R'])
         ax.set_zlim(-run_param['R'], run_param['R'])
         # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
+        # 1}}} #
+        # Plot spike amps I {{{1 #
         # New plot.
         fname = self.name + '_spike_amps_I'
         print "plotting            :", fname
@@ -209,10 +206,10 @@ class SphereRand(Simulation):
         ax.set_ylabel("Amplitude")
         ax.set_xlabel("Distance from Soma")
         # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
+        # 1}}} #
+        # Plot spike amps II {{{1 #
         # New plot.
         fname = self.name + '_spike_amps_II'
         print "plotting            :", fname
@@ -233,10 +230,10 @@ class SphereRand(Simulation):
         ax.set_ylabel("Amplitude")
         ax.set_xlabel("Distance from Soma")
         # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
+        # 1}}} #
+        # Plot Spike Width I {{{1 #
         # New plot.
         fname = self.name + '_spike_width_I'
         print "plotting            :", fname
@@ -257,10 +254,10 @@ class SphereRand(Simulation):
         ax.set_ylabel("Width Type I")
         ax.set_xlabel("Distance from Soma")
         # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
+        #  }}} #
+        # Plot Spike Width I {{{1 #
         # New plot.
         fname = self.name + '_spike_width_II'
         print "plotting            :", fname
@@ -281,12 +278,14 @@ class SphereRand(Simulation):
         ax.set_ylabel("Width Type II")
         ax.set_xlabel("Distance from Soma")
         # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # New plot.
-        for i in self.process_param['elec_to_plot']:
+        #  }}} #
+        # Plot Single Electrodes {{{1 #
+        # Title string that can be formatted.
+        title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
+        for i in self.plot_param_param['elec_to_plot']:
+            title_str_1 = title_str.format(data['elec_r'][[i]])
             fname = self.name + '_elec_{}'.format(i)
             print "plotting            :", fname
             c = lplot.get_short_color_array(2 + 1)
@@ -305,11 +304,12 @@ class SphereRand(Simulation):
             plt.plot(data['spikes_t_vec'],
                      data['widths_II_trace'][i],
                      color=c[1])
+            plt.title(title_str_1)
             # Save plt.
-            path = os.path.join(dir_plot, fname + "." + format)
-            plt.savefig(path, format=format, bbox_inches='tight')
+            lplot.save_plt(plt, fname, sub_dir)
             plt.close()
-
+        # }}} #
+        # Plot Correlation {{{1 #
         # Correlation scatter plot of spike widths.
         fname = self.name + '_correlation'
         print "plotting            :", fname
@@ -325,11 +325,10 @@ class SphereRand(Simulation):
         ax.set_ylabel("Spike Width Type I")
         # ax.set_aspect('equal')
         # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
-
-        # Correlation scatter plot of spike widths.
+        # }}} #
+        # Plot Electrode Histo {{{1 #
         fname = self.name + '_r_hist'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
@@ -342,6 +341,6 @@ class SphereRand(Simulation):
                  facecolor=lplot.color_array_long[0],
                  alpha=0.5)
         # Save plt.
-        path = os.path.join(dir_plot, fname + "." + format)
-        plt.savefig(path, format=format, bbox_inches='tight')
+        lplot.save_plt(plt, fname, dir_plot)
         plt.close()
+        # }}} #
