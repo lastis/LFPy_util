@@ -338,6 +338,7 @@ class Symmetry(Simulation):
         # 1}}} #
         # Get the spike to plot.
         elec_index = run_param['n']/2
+        title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}".format(data['r_vec'][elec_index])
         # Plot middle electrode spike {{{1 #
         fname = self.name + '_middle_elec_spike'
         print "plotting            :", fname
@@ -358,6 +359,7 @@ class Symmetry(Simulation):
         plt.plot(data['spikes_t_vec'],
                  data['widths_II_trace'][elec_index],
                  color=c[1])
+        plt.title(title_str)
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
@@ -384,6 +386,7 @@ class Symmetry(Simulation):
         ax = plt.gca()
         lplot.nice_axes(ax)
         plt.plot(freq, amp, color=c[0])
+        plt.title(title_str)
         ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
         lplot.save_plt(plt, fname, dir_plot)
@@ -400,6 +403,7 @@ class Symmetry(Simulation):
         plt.plot(data['t_vec'],
                  data['LFP'][elec_index],
                  color=c[0])
+        plt.title(title_str)
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
@@ -427,6 +431,7 @@ class Symmetry(Simulation):
         plt.plot(freq, amp, color=c[0])
         ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
+        plt.title(title_str)
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # 1}}} #
