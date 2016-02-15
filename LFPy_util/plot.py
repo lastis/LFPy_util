@@ -24,7 +24,10 @@ def set_rc_param():
     mpl.rcParams['font.style'] = 'normal'
     mpl.rcParams['text.usetex'] = True
     mpl.rcParams['text.latex.preamble'] = [
-        r'\usepackage{bm,upgreek,textcomp,gensymb}'
+        r'\usepackage{bm,upgreek}',
+        r'\usepackage{textcomp}',
+        r'\usepackage{gensymb}',
+        r'\usepackage[redefsymbols=false]{siunitx}',
     ]
     mpl.rcParams['font.size'] = 12
     mpl.rcParams['font.serif'] = ['Times']
