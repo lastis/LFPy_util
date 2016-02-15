@@ -1,11 +1,11 @@
 from scipy.signal import butter, filtfilt
-from LFPy_util.sims.Symmetry import Symmetry
+from LFPy_util.sims.SphereRand import SphereRand
 
-class SymmetryFiltered(Symmetry):
-    """docstring for SymmetryFiltered"""
+class SphereRandFilt(SphereRand):
+    """docstring for SphereRandFilt"""
     def __init__(self):
-        Symmetry.__init__(self)
-        self.name = "sym_f"
+        SphereRand.__init__(self)
+        self.name = "sphere_f"
 
         self.process_param['freq_low'] = 0.3 # kHz
         self.process_param['freq_high'] = 6.7 # kHz
@@ -20,10 +20,10 @@ class SymmetryFiltered(Symmetry):
 
         nyq = 0.5 * data['freq_sample']
         low = process_param['freq_low'] / nyq 
-        high = process_param['freq_high'] / nyq 
+        high = process_param['freq_high'] / nyq
         b, a = butter(process_param['order'], [low, high], btype='band')
 
         data['LFP'] = filtfilt(b, a, data['LFP'], axis=1)
 
         # Run the rest of the processing.
-        Symmetry.process_data(self)
+        SphereRand.process_data(self)

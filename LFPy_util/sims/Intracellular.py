@@ -23,9 +23,6 @@ class Intracellular(Simulation):
         self.fname_intra_plot_fourier = 'intra_soma_mem_fourier'
         self.fname_intra_plot_i_mem_v_mem = 'intra_i_mem_v_mem'
 
-    def __str__(self):
-        return "Intracellular"
-
     def simulate(self, cell):
         data = self.data
         run_param = self.run_param

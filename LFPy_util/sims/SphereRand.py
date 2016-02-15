@@ -10,7 +10,7 @@ import warnings
 from LFPy_util.sims.Simulation import Simulation
 
 
-class SphereElectrodes(Simulation):
+class SphereRand(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
@@ -176,7 +176,7 @@ class SphereElectrodes(Simulation):
             os.makedirs(dir_plot)
 
         # 3D plot.
-        fname = "sphere_elec_pos"
+        fname = self.name + "_elec_pos"
         c = lplot.get_short_color_array(5)[2]
         fig = plt.figure(figsize=lplot.size_common)
         ax = fig.add_subplot(111, projection='3d')
@@ -190,7 +190,7 @@ class SphereElectrodes(Simulation):
         plt.close()
 
         # New plot.
-        fname = 'sphere_spike_amps_I'
+        fname = self.name + '_spike_amps_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -214,7 +214,7 @@ class SphereElectrodes(Simulation):
         plt.close()
 
         # New plot.
-        fname = 'sphere_spike_amps_II'
+        fname = self.name + '_spike_amps_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -238,7 +238,7 @@ class SphereElectrodes(Simulation):
         plt.close()
 
         # New plot.
-        fname = 'sphere_spike_width_I'
+        fname = self.name + '_spike_width_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -262,7 +262,7 @@ class SphereElectrodes(Simulation):
         plt.close()
 
         # New plot.
-        fname = 'sphere_spike_width_II'
+        fname = self.name + '_spike_width_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -287,7 +287,7 @@ class SphereElectrodes(Simulation):
 
         # New plot.
         for i in self.process_param['elec_to_plot']:
-            fname = 'sphere_elec_{}'.format(i)
+            fname = self.name + '_elec_{}'.format(i)
             print "plotting            :", fname
             c = lplot.get_short_color_array(2 + 1)
             plt.figure(figsize=lplot.size_common)
@@ -297,15 +297,11 @@ class SphereElectrodes(Simulation):
             plt.plot(data['spikes_t_vec'], data['spikes'][i], color=c[0])
 
             # Trace I
-            trace_idx = np.where(~np.isnan(data['widths_I_trace'][i]))[0]
-            trace_idx = [trace_idx[0], trace_idx[-1]]
-            plt.plot(data['spikes_t_vec'][trace_idx],
-                     data['widths_I_trace'][i][trace_idx],
+            plt.plot(data['spikes_t_vec'],
+                     data['widths_I_trace'][i],
                      color=c[1],
-                     marker="|")
+                     )
             # Trace II
-            trace_idx = np.where(~np.isnan(data['widths_II_trace'][i]))[0]
-            trace_idx = [trace_idx[0], trace_idx[-1]]
             plt.plot(data['spikes_t_vec'],
                      data['widths_II_trace'][i],
                      color=c[1])
@@ -315,7 +311,7 @@ class SphereElectrodes(Simulation):
             plt.close()
 
         # Correlation scatter plot of spike widths.
-        fname = 'sphere_correlation'
+        fname = self.name + '_correlation'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
@@ -334,7 +330,7 @@ class SphereElectrodes(Simulation):
         plt.close()
 
         # Correlation scatter plot of spike widths.
-        fname = 'sphere_r_hist'
+        fname = self.name + '_r_hist'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()

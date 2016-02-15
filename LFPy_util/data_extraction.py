@@ -153,8 +153,7 @@ def extract_spikes(t_vec,
     # Return if no spikes were found.
     if len(max_idx) == 0:
         warnings.warn("No local maxima found.", RuntimeWarning)
-        return [], [], []
-
+        return np.array([]), np.array([]), np.array([])
     # Only count local maxima over threshold as spikes.
     v_max = v_vec[max_idx]
     length = len(v_max) - 1
@@ -170,7 +169,7 @@ def extract_spikes(t_vec,
     # Return if no spikes were found.
     if spike_cnt == 0:
         warnings.warn("No maxima above threshold.", RuntimeWarning)
-        return [], [], []
+        return np.array([]), np.array([]), np.array([])
     n = pre_idx + post_idx
 
     spikes = np.zeros([spike_cnt, n])
@@ -479,7 +478,7 @@ def find_wave_width_type_I(matrix, dt=1):
         idx_1 = np.argmax(signal)
         idx_2 = idx_1 + np.argmin(signal[idx_1:])
         widths[row] = idx_2 - idx_1
-        trace[row, idx_1:idx_2] = matrix[row, idx_1:].max() * (1.05)
+        trace[row, idx_1:idx_2] = matrix[row, idx_1:].max() * 1.03
     return widths * dt, trace
 
 

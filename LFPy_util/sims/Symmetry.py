@@ -105,6 +105,8 @@ class Symmetry(Simulation):
         # Gather all spikes from the same indices as where the spike appears
         # in the first electrode.
         spike_index = process_param['spike_to_measure']
+        if spike.shape[0] < spike_index:
+            raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
         spikes = data['LFP'][:, I[spike_index, 0]:I[spike_index, 1]]
 
         amps_I = de.find_amplitude_type_I(spikes, amp_option=process_param['amp_option'])
@@ -345,15 +347,11 @@ class Symmetry(Simulation):
                  data['spikes'][0],
                  color=c[0])
         # Trace I
-        trace_idx = np.where(~np.isnan(data['widths_I_trace'][0]))[0]
-        trace_idx = [trace_idx[0], trace_idx[-1]]
-        plt.plot(data['spikes_t_vec'][trace_idx],
-                 data['widths_I_trace'][i][trace_idx],
+        plt.plot(data['spikes_t_vec'],
+                 data['widths_I_trace'][i],
                  color=c[1],
-                 marker="|")
+                 )
         # Trace II
-        trace_idx = np.where(~np.isnan(data['widths_II_trace'][0]))[0]
-        trace_idx = [trace_idx[0], trace_idx[-1]]
         plt.plot(data['spikes_t_vec'],
                  data['widths_II_trace'][0],
                  color=c[1])
@@ -362,7 +360,7 @@ class Symmetry(Simulation):
         plt.close()
 
         # Fourier plot of the first electrode.
-        fname = self.name + '_first_elec_spik_fourier'
+        fname = self.name + '_first_elec_spike_fourier'
         freq, amp, phase = de.find_freq_and_fft(
             data['spikes_t_vec'],
             data['spikes'][0],
@@ -454,17 +452,11 @@ class Symmetry(Simulation):
                                  color=c[0])
 
                         # Trace I
-                        trace_idx = np.where(~np.isnan(data['widths_I_trace'][
-                            cnt]))[0]
-                        trace_idx = [trace_idx[0], trace_idx[-1]]
-                        plt.plot(data['spikes_t_vec'][trace_idx],
-                                 data['widths_I_trace'][i][trace_idx],
+                        plt.plot(data['spikes_t_vec'],
+                                 data['widths_I_trace'][i],
                                  color=c[1],
-                                 marker="|")
+                                 )
                         # Trace II
-                        trace_idx = np.where(~np.isnan(data['widths_II_trace'][
-                            cnt]))[0]
-                        trace_idx = [trace_idx[0], trace_idx[-1]]
                         plt.plot(data['spikes_t_vec'],
                                  data['widths_II_trace'][cnt],
                                  color=c[1])

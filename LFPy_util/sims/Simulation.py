@@ -42,7 +42,7 @@ class Simulation(object):
     def previous_run(self, dir_data):
         """
         Called by Simulator during each neuron simulation.
-        Is usually empty.
+        Is usually empty. Can be used to load data from previous run.
         """
         pass
 

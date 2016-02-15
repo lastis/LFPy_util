@@ -21,9 +21,6 @@ class Morphology(Simulation):
         self.fname_morph_plot_xz = 'morph_xz'
         self.fname_morph_plot_yz = 'morph_yz'
 
-    def __str__(self):
-        return "Morphology"
-
     def simulate(self, cell):
         self.data['poly_morph_x_y'] \
                 = de.get_polygons_no_axon(cell,('x','y'))

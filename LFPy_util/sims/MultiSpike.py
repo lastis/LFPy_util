@@ -26,7 +26,7 @@ class MultiSpike(Simulation):
         self.run_param['pptype'] = 'IClamp'
         self.run_param['delay'] = 100
         self.run_param['duration'] = 300
-        self.run_param['init_amp'] = 1
+        self.run_param['init_amp'] = 0.1
         self.run_param['pre_dur'] = 16.7 * 0.5
         self.run_param['post_dur'] = 16.7 * 0.5
         self.run_param['spikes'] = 3
