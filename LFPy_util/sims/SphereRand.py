@@ -285,7 +285,7 @@ class SphereRand(Simulation):
         # Title string that can be formatted.
         title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
         for i in self.plot_param['elec_to_plot']:
-            title_str_1 = title_str.format(data['elec_r'][[i]])
+            title_str_1 = title_str.format(round(data['elec_r'][[i]],2))
             fname = self.name + '_elec_{}'.format(i)
             print "plotting            :", fname
             c = lplot.get_short_color_array(2 + 1)
@@ -306,7 +306,7 @@ class SphereRand(Simulation):
                      color=c[1])
             plt.title(title_str_1)
             # Save plt.
-            lplot.save_plt(plt, fname, sub_dir)
+            lplot.save_plt(plt, fname, dir_plot)
             plt.close()
         # }}} #
         # Plot Correlation {{{1 #

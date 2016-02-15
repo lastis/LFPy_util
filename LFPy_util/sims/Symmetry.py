@@ -338,7 +338,8 @@ class Symmetry(Simulation):
         # 1}}} #
         # Get the spike to plot.
         elec_index = run_param['n']/2
-        title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}".format(data['r_vec'][elec_index])
+        title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
+        title_str = title_str.format(round(data['r_vec'][elec_index]),2)
         # Plot middle electrode spike {{{1 #
         fname = self.name + '_middle_elec_spike'
         print "plotting            :", fname
