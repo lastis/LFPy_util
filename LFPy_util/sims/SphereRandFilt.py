@@ -9,7 +9,7 @@ class SphereRandFilt(SphereRand):
 
         self.process_param['freq_low'] = 0.3 # kHz
         self.process_param['freq_high'] = 6.7 # kHz
-        self.process_param['order'] = 5
+        self.process_param['order'] = 2
         
     def process_data(self):
         run_param = self.run_param
