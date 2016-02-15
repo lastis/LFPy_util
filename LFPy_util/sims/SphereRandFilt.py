@@ -5,7 +5,7 @@ class SphereRandFilt(SphereRand):
     """docstring for SphereRandFilt"""
     def __init__(self):
         SphereRand.__init__(self)
-        self.name = "sphere_f"
+        self.name = "spheref"
 
         self.process_param['freq_low'] = 0.3 # kHz
         self.process_param['freq_high'] = 6.7 # kHz
