@@ -478,7 +478,7 @@ def find_wave_width_type_I(matrix, dt=1):
         idx_1 = np.argmax(signal)
         idx_2 = idx_1 + np.argmin(signal[idx_1:])
         widths[row] = idx_2 - idx_1
-        trace[row, idx_1:idx_2] = matrix[row, idx_1:].max() * 1.03
+        trace[row, idx_1:idx_2] = matrix[row, idx_1:].max() * 1.05
     return widths * dt, trace
 
 
