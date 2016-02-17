@@ -3,6 +3,7 @@ Simulator class
 """
 import os
 import inspect
+import copy
 from multiprocessing import Process, Manager
 import LFPy_util
 
@@ -22,8 +23,6 @@ class Simulator(object):
         self._cell = None
 
         self.save = True
-        self.plot = True
-        self.simulate = True
         self.verbose = True
         self.parallel = True
         self.parallel_plot = False
@@ -42,8 +41,6 @@ class Simulator(object):
         text += "concurrent neurons  : " + str(self.processes) + "\n"
         text += "parallel            : " + str(self.parallel) + "\n"
         text += "parallel plot       : " + str(self.parallel_plot) + "\n"
-        text += "simulate            : " + str(self.simulate) + "\n"
-        text += "plot                : " + str(self.plot)
         return text
 
     def set_neuron_name(self, name):
@@ -90,8 +87,17 @@ class Simulator(object):
         """
         Push simulation of function to the simulator.
         """
+        if isinstance(sim_or_func, LFPy_util.sims.Simulation):
+            sim_or_func = copy.deepcopy(sim_or_func)
         self._sim_stack.append(sim_or_func)
         self._sim_stack_flag.append(own_process)
+
+    def clear_list(self):
+        """
+        Clear the list of simulation objects.
+        """
+        self._sim_stack = []
+        self._sim_stack_flag = []
 
     def get_path_neuron(self, index=0):
         """
@@ -134,6 +140,62 @@ class Simulator(object):
         path = os.path.join(dir_data, fname)
         return path
 
+    def plot(self):
+        """
+        Start plotting.
+        """
+        self._is_ready()
+        process_list = []
+        for i in xrange(len(self._neuron_list)):
+            # For each neuron make a new process.
+            process = Process(target=Simulator._plot_neuron, args=(self, i), )
+            process_list.append(process)
+
+        cnt = 0
+        finished = False
+        while not finished:
+            for i in xrange(self.processes):
+                if cnt + i >= len(self._neuron_list):
+                    continue
+                process = process_list[cnt + i]
+                process.start()
+            for i in xrange(self.processes):
+                if cnt + i >= len(self._neuron_list):
+                    continue
+                process = process_list[cnt + i]
+                process.join()
+            cnt += self.processes
+            if cnt >= len(self._neuron_list):
+                finished = True
+
+    def simulate(self):
+        """
+        Start simulations.
+        """
+        self._is_ready()
+        process_list = []
+        for i in xrange(len(self._neuron_list)):
+            # For each neuron make a new process.
+            process = Process(target=Simulator._simulate_neuron, args=(self, i), )
+            process_list.append(process)
+
+        cnt = 0
+        finished = False
+        while not finished:
+            for i in xrange(self.processes):
+                if cnt + i >= len(self._neuron_list):
+                    continue
+                process = process_list[cnt + i]
+                process.start()
+            for i in xrange(self.processes):
+                if cnt + i >= len(self._neuron_list):
+                    continue
+                process = process_list[cnt + i]
+                process.join()
+            cnt += self.processes
+            if cnt >= len(self._neuron_list):
+                finished = True
+
     @staticmethod
     def _simulate(sim, cell, dir_data, save):
         sim.previous_run(dir_data)
@@ -154,117 +216,88 @@ class Simulator(object):
         sim.process_data()
         sim.plot(dir_plot)
 
-    def _run_neuron(self, index=0):
-        # pylint: disable=too-many-branches
-        # If everything works as intended, this function (can be) is run in
+    def _simulate_neuron(self, index=0):
+        # This function (can be) is run in
         # parallel. Which means there are multiple instances of self and
         # hopefully all of its parameters have been deep copied.
-        if self.simulate:
-            cell = self._cell
-            if cell is None:
-                cell = self._get_cell(self._neuron_list[index])
+        cell = self._cell
+        if cell is None:
+            cell = self._get_cell(self._neuron_list[index])
 
-            manager = Manager()
-            if self.verbose:
-                print "starting simulation : " + self._neuron_list[index]
-            # Run the simulations.
-            process_list = []
-            for i, sim_or_func in enumerate(self._sim_stack):
-                flag = self._sim_stack_flag[i]
-                if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                    sim = sim_or_func
-                    dir_data = self.get_dir_neuron_data(index)
-                    if flag:
-                        # Start in new process.
-                        if self.verbose:
-                            print "new process         : "\
-                                + self._neuron_list[index] \
-                                + " " + sim.__str__()
-                        # Replace sim.data and sim.run_param with shared memory
-                        # versions so data can be retrived from subprocesses.
-                        sim.data = manager.dict(sim.data)
-                        sim.run_param = manager.dict(sim.run_param)
-
-                        process = Process(
-                            target=Simulator._simulate,
-                            args=(sim, cell, dir_data, self.save), )
-                        process.start()
-                        process_list.append(process)
-                    else:
-                        # Start in current process.
-                        if self.verbose:
-                            print "current process     : " \
-                                + self._neuron_list[index] +\
-                                " " + sim.__str__()
-                        self._simulate(sim, cell, dir_data, self.save)
-                # If not a Simulation object assume it is a function.
-                else:
-                    func = sim_or_func
-                    if flag:
-                        if self.verbose:
-                            print "new process         : "\
-                                + self._neuron_list[index] \
-                                + " " + func.__name__
-                        process = Process(
-                            target=func._simulate,
-                            args=(cell), )
-                        process.start()
-                        process_list.append(process)
-                    else:
-                        if self.verbose:
-                            print "current process     : " \
-                                + self._neuron_list[index] \
-                                + " " + func.__name__
-                        func(cell)
-            # Join all processes.
-            for process in process_list:
-                process.join()
-
-        if self.plot:
-            if self.verbose:
-                print "starting plotting   : "
-            process_list = []
-            for i, sim_or_func in enumerate(self._sim_stack):
-                if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-                    sim = sim_or_func
-                    dir_plot = self.get_dir_neuron_plot(index)
-                    dir_data = self.get_dir_neuron_data(index)
-                    # Start each Simulation.plot in a new process.
-                    process = Process(target=self._plot, args=(sim, dir_plot, dir_data))
-                    process_list.append(process)
-
-            # Start and end plotting.
-            for process in process_list:
-                process.start()
-                if not self.parallel_plot:
-                    process.join()
-            if self.parallel_plot:
-                process.join()
-
-    def run(self):
-        """
-        Start simulations.
-        """
-        self._is_ready()
+        manager = Manager()
+        if self.verbose:
+            print "starting simulation : " + self._neuron_list[index]
+        # Run the simulations.
         process_list = []
-        for i in xrange(len(self._neuron_list)):
-            # For each neuron make a new process.
-            process = Process(target=Simulator._run_neuron, args=(self, i), )
-            process_list.append(process)
+        for i, sim_or_func in enumerate(self._sim_stack):
+            flag = self._sim_stack_flag[i]
+            if isinstance(sim_or_func, LFPy_util.sims.Simulation):
+                sim = sim_or_func
+                dir_data = self.get_dir_neuron_data(index)
+                if flag:
+                    # Start in new process.
+                    if self.verbose:
+                        print "new process         : "\
+                            + self._neuron_list[index] \
+                            + " " + sim.__str__()
+                    # Replace sim.data and sim.run_param with shared memory
+                    # versions so data can be retrived from subprocesses.
+                    sim.data = manager.dict(sim.data)
+                    sim.run_param = manager.dict(sim.run_param)
 
-        cnt = 0
-        finished = False
-        while not finished:
-            for i in xrange(self.processes):
-                if cnt + i >= len(self._neuron_list):
-                    continue
-                process = process_list[cnt + i]
-                process.start()
-            for i in xrange(self.processes):
-                if cnt + i >= len(self._neuron_list):
-                    continue
-                process = process_list[cnt + i]
+                    process = Process(
+                        target=Simulator._simulate,
+                        args=(sim, cell, dir_data, self.save), )
+                    process.start()
+                    process_list.append(process)
+                else:
+                    # Start in current process.
+                    if self.verbose:
+                        print "current process     : " \
+                            + self._neuron_list[index] +\
+                            " " + sim.__str__()
+                    self._simulate(sim, cell, dir_data, self.save)
+            # If not a Simulation object assume it is a function.
+            else:
+                func = sim_or_func
+                if flag:
+                    if self.verbose:
+                        print "new process         : "\
+                            + self._neuron_list[index] \
+                            + " " + func.__name__
+                    process = Process(
+                        target=func._simulate,
+                        args=(cell), )
+                    process.start()
+                    process_list.append(process)
+                else:
+                    if self.verbose:
+                        print "current process     : " \
+                            + self._neuron_list[index] \
+                            + " " + func.__name__
+                    func(cell)
+        # Join all processes.
+        for process in process_list:
+            process.join()
+
+    def _plot_neuron(self, index):
+        if self.verbose:
+            print "starting plotting   : "
+        process_list = []
+        for i, sim_or_func in enumerate(self._sim_stack):
+            if isinstance(sim_or_func, LFPy_util.sims.Simulation):
+                sim = sim_or_func
+                dir_plot = self.get_dir_neuron_plot(index)
+                dir_data = self.get_dir_neuron_data(index)
+                # Start each Simulation.plot in a new process.
+                process = Process(target=self._plot, args=(sim, dir_plot, dir_data))
+                process_list.append(process)
+
+        # Start and end plotting.
+        for process in process_list:
+            process.start()
+            if not self.parallel_plot:
                 process.join()
-            cnt += self.processes
-            if cnt >= len(self._neuron_list):
-                finished = True
+        if self.parallel_plot:
+            process.join()
+
