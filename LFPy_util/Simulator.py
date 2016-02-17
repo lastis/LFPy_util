@@ -83,7 +83,8 @@ class Simulator(object):
 
     def push(self, sim_or_func, own_process):
         """
-        Push simulation of function to the simulator.
+        Push simulation or function to the simulator.
+        The simulation is deep copied.
         """
         if isinstance(sim_or_func, LFPy_util.sims.Simulation):
             sim_or_func = copy.deepcopy(sim_or_func)
