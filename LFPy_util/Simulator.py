@@ -139,6 +139,8 @@ class Simulator(object):
         sim.previous_run(dir_data)
         sim.simulate(cell)
         if save:
+            print "saving data to      : " \
+                + os.path.join(dir_data, sim.get_fname_data()) 
             sim.save(dir_data)
 
     @staticmethod

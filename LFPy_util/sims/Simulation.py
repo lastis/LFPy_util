@@ -26,7 +26,8 @@ class Simulation(object):
     def __init__(self):
         """
         """
-        self.name = "unnamed"
+        self.name = None
+        self.name_save_load = None
         self.format_save_data = 'pkl'
         self.format_save_run_param = 'js'
         self.data = {}
@@ -36,8 +37,19 @@ class Simulation(object):
         self._str_data = "_data"
         self._str_run_param = "_run_param"
 
+        self.set_name("unnamed")
+
     def __str__(self):
         return self.name
+
+    def set_name(self, name):
+        """
+        Sets the simulation name and load and save name. 
+        The variable "name_save_load" is the prefix of the data
+        that is stored.
+        """
+        self.name = name
+        self.name_save_load = name
 
     def previous_run(self, dir_data):
         """
@@ -68,13 +80,13 @@ class Simulation(object):
         """
         Get the filename of the data that is stored by the simulation.
         """
-        return self.name + self._str_data + "." + self.format_save_data
+        return self.name_save_load + self._str_data + "." + self.format_save_data
 
     def get_fname_run_param(self):
         """
         Get the filename of the run_param that is stored by the simulation.
         """
-        return self.name + self._str_run_param + "." \
+        return self.name_save_load + self._str_run_param + "." \
             + self.format_save_run_param
 
     def save(self, dir_data):

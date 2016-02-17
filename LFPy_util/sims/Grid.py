@@ -15,7 +15,7 @@ class Grid(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.name = 'grid_x_y'
+        self.set_name("grid_x_y")
 
         # Used by the custom simulate and plot function.
         self.run_param['n_elec_x'] = 11

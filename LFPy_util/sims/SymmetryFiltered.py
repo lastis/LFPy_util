@@ -6,6 +6,7 @@ class SymmetryFiltered(Symmetry):
     def __init__(self):
         Symmetry.__init__(self)
         self.name = "symfilt"
+        self.name_save_load = "sym"
 
         self.process_param['freq_low'] = 0.3 # kHz
         self.process_param['freq_high'] = 6.7 # kHz

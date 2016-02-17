@@ -10,7 +10,7 @@ class Intracellular(Simulation):
 
     def __init__(self):
         Simulation.__init__(self)
-        self.name = 'soma'
+        self.set_name("soma")
 
         self.debug = False
 

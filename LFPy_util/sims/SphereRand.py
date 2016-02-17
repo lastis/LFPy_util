@@ -14,7 +14,7 @@ class SphereRand(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.name = "sphere"
+        self.set_name("sphere")
 
         self.debug = False
         self.run_param['N'] = 500

@@ -17,7 +17,7 @@ class Symmetry(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.name = "sym"
+        self.set_name("sym")
 
         self.verbose = False
         self.run_param['n'] = 9

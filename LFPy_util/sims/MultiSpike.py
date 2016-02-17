@@ -19,7 +19,7 @@ class MultiSpike(Simulation):
     def __init__(self):
         Simulation.__init__(self)
         # Used by the super save and load function.
-        self.name = 'mspike'
+        self.set_name('mspike')
 
         # Used by the custom simulate and plot function.
         self.run_param['threshold'] = 4
