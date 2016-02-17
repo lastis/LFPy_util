@@ -10,7 +10,6 @@ setup(
         'NEURON >= 7.4',
         'matplotlib >= 1.3.1',
         'LFPy >= 1.1.0',
-        'JSAnimation >= 0.1',
     ],
 
     package_data = {
