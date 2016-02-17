@@ -25,8 +25,7 @@ class Simulator(object):
         self.save = True
         self.verbose = True
         self.parallel = True
-        self.parallel_plot = False
-        self.processes = 2
+        self.processes = 1
 
         self.set_cell(cell)
         self.set_dir_neurons("neuron")
@@ -39,8 +38,7 @@ class Simulator(object):
         for neuron in self._neuron_list[1:]:
             text += "                    : " + neuron + "\n"
         text += "concurrent neurons  : " + str(self.processes) + "\n"
-        text += "parallel            : " + str(self.parallel) + "\n"
-        text += "parallel plot       : " + str(self.parallel_plot) + "\n"
+        text += "parallel            : " + str(self.parallel)
         return text
 
     def set_neuron_name(self, name):
@@ -234,8 +232,9 @@ class Simulator(object):
             if isinstance(sim_or_func, LFPy_util.sims.Simulation):
                 sim = sim_or_func
                 dir_data = self.get_dir_neuron_data(index)
+                # Start the simulation in a new process if the 
+                # flag is true.
                 if flag:
-                    # Start in new process.
                     if self.verbose:
                         print "new process         : "\
                             + self._neuron_list[index] \
@@ -249,9 +248,12 @@ class Simulator(object):
                         target=Simulator._simulate,
                         args=(sim, cell, dir_data, self.save), )
                     process.start()
-                    process_list.append(process)
+                    # End the simulation here if parallel is not enabled.
+                    if self.parallel:
+                        process_list.append(process)
+                    else:
+                        process.join()
                 else:
-                    # Start in current process.
                     if self.verbose:
                         print "current process     : " \
                             + self._neuron_list[index] +\
@@ -269,7 +271,11 @@ class Simulator(object):
                         target=func._simulate,
                         args=(cell), )
                     process.start()
-                    process_list.append(process)
+                    # End the function here if parallel is not enabled.
+                    if self.parallel:
+                        process_list.append(process)
+                    else:
+                        process.join()
                 else:
                     if self.verbose:
                         print "current process     : " \
@@ -296,8 +302,8 @@ class Simulator(object):
         # Start and end plotting.
         for process in process_list:
             process.start()
-            if not self.parallel_plot:
+            if not self.parallel:
                 process.join()
-        if self.parallel_plot:
+        if self.parallel:
             process.join()
 

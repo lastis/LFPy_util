@@ -27,7 +27,7 @@ class SymmetryFiltered(Symmetry):
 
         if self.process_param['filter'] == 'filtfilt':
             data['LFP'] = filtfilt(b, a, data['LFP'], axis=1)
-        elif self.process_param['filter'] == 'lfilt':
+        elif self.process_param['filter'] == 'lfilter':
             data['LFP'] = lfilter(b, a, data['LFP'], axis=1)
         else:
             raise ValueError("process_param['filter'] is not a valid string.")
