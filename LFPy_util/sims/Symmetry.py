@@ -360,7 +360,7 @@ class Symmetry(Simulation):
         plt.plot(data['spikes_t_vec'],
                  data['widths_II_trace'][elec_index],
                  color=c[1])
-        plt.title(title_str)
+        # plt.title(title_str)
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
@@ -387,7 +387,7 @@ class Symmetry(Simulation):
         ax = plt.gca()
         lplot.nice_axes(ax)
         plt.plot(freq, amp, color=c[0])
-        plt.title(title_str)
+        # plt.title(title_str)
         ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
         lplot.save_plt(plt, fname, dir_plot)
@@ -404,7 +404,7 @@ class Symmetry(Simulation):
         plt.plot(data['t_vec'],
                  data['LFP'][elec_index],
                  color=c[0])
-        plt.title(title_str)
+        # plt.title(title_str)
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
@@ -432,7 +432,7 @@ class Symmetry(Simulation):
         plt.plot(freq, amp, color=c[0])
         ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
-        plt.title(title_str)
+        # plt.title(title_str)
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # 1}}} #
@@ -476,7 +476,7 @@ class Symmetry(Simulation):
                         plt.plot(data['spikes_t_vec'],
                                  data['widths_II_trace'][cnt],
                                  color=c[1])
-                        plt.title(title_str_1)
+                        # plt.title(title_str_1)
                         # Save plt.
                         lplot.save_plt(plt, fname, sub_dir)
                         plt.close()
@@ -506,7 +506,7 @@ class Symmetry(Simulation):
                         plt.plot(freq, amp, color=c[0])
                         ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
                         ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
-                        plt.title(title_str_1)
+                        # plt.title(title_str_1)
                         lplot.save_plt(plt, fname, sub_dir)
                         plt.close()
                         # 1}}} #
