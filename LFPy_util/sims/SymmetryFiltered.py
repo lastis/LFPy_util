@@ -5,7 +5,7 @@ class SymmetryFiltered(Symmetry):
     """docstring for SymmetryFiltered"""
     def __init__(self):
         Symmetry.__init__(self)
-        self.name = "symf"
+        self.name = "symfilt"
 
         self.process_param['freq_low'] = 0.3 # kHz
         self.process_param['freq_high'] = 6.7 # kHz
@@ -28,3 +28,4 @@ class SymmetryFiltered(Symmetry):
 
         # Run the rest of the processing.
         Symmetry.process_data(self)
+

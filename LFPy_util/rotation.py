@@ -33,7 +33,7 @@ def alignCellToAxes(cell, y_axis, x_axis=None):
     z_angle = np.arctan2(dx, np.sqrt(dy * dy + dz * dz))
 
     cell.set_rotation(x_angle, None, z_angle)
-    if x_axis == None:
+    if x_axis is None:
         return
 
     x_axis = np.asarray(x_axis)

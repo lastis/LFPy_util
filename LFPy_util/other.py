@@ -43,7 +43,7 @@ def nrnivmodl(directory='.', suppress=False):
     tmp = os.getcwd()
     with suppress_stdout_stderr(suppress):
         os.chdir(directory)
-        devnull = open(os.devnull, 'w')
+        devnull = open(os.devnull, 'w') if suppress else None
         subprocess.call(['nrnivmodl'], stdout=devnull, shell=True)
         neuron.load_mechanisms(directory)
     os.chdir(tmp)

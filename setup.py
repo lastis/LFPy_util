@@ -10,14 +10,19 @@ setup(
         'NEURON >= 7.4',
         'matplotlib >= 1.3.1',
         'LFPy >= 1.1.0',
+        'cycler',
+        'pyparsing',
+        'python-dateutil',
+        'scipy',
+        'sklearn',
     ],
 
-    package_data = {
-        # If any package contains *.txt or *.rst files, include them:
-        '': ['*.txt', '*.rst'],
-        # And include any *.msg files found in the 'hello' package, too:
-        'hello': ['*.msg'],
-    },
+    # package_data = {
+    #     # If any package contains *.txt or *.rst files, include them:
+    #     '': ['*.txt', '*.rst'],
+    #     # And include any *.msg files found in the 'hello' package, too:
+    #     'hello': ['*.msg'],
+    # },
 
     # metadata for upload to PyPI
     author = "Daniel Marelius Bjoernstad",

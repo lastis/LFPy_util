@@ -142,7 +142,13 @@ class Simulator(object):
             sim.save(dir_data)
 
     @staticmethod
-    def _plot(sim, dir_plot):
+    def _plot(sim, dir_plot, dir_data):
+        if not sim.data:
+            print "loading data from   : " \
+                + os.path.join(dir_data, sim.get_fname_data()) 
+            sim.load(dir_data)
+            if not sim.data:
+                raise ValueError("No data to plot.")
         sim.process_data()
         sim.plot(dir_plot)
 
@@ -220,14 +226,9 @@ class Simulator(object):
                 if isinstance(sim_or_func, LFPy_util.sims.Simulation):
                     sim = sim_or_func
                     dir_plot = self.get_dir_neuron_plot(index)
-                    if not sim.data:
-                        print "loading data from   : " \
-                            + self.get_path_sim_data(sim, index)
-                        sim.load(self.get_dir_neuron_data(index))
-                        if not sim.data:
-                            raise ValueError("No data to plot.")
+                    dir_data = self.get_dir_neuron_data(index)
                     # Start each Simulation.plot in a new process.
-                    process = Process(target=self._plot, args=(sim, dir_plot))
+                    process = Process(target=self._plot, args=(sim, dir_plot, dir_data))
                     process_list.append(process)
 
             # Start and end plotting.
