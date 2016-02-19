@@ -81,6 +81,7 @@ class Symmetry(Simulation):
         data['elec_y'] = y
         data['elec_z'] = z
         data['t_vec'] = cell.tvec
+        data['soma_v'] = cell.somav
         data['dt'] = cell.timeres_NEURON
         data['poly_morph'] \
                 = de.get_polygons_no_axon(cell,['x','y'])
@@ -92,8 +93,9 @@ class Symmetry(Simulation):
         run_param = self.run_param
         process_param = self.process_param
 
-        # Get the signal from the first electrode.
-        signal = data['LFP'][0]
+        # Get the signal from the soma potential.
+        # signal = data['LFP'][0]
+        signal = data['soma_v']
         spike, spikes_t_vec, I = de.extract_spikes(
             data['t_vec'],
             signal,
@@ -338,8 +340,8 @@ class Symmetry(Simulation):
         # 1}}} #
         # Get the spike to plot.
         elec_index = run_param['n']/2
-        title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
-        title_str = title_str.format(round(data['r_vec'][elec_index]),2)
+        # title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
+        # title_str = title_str.format(round(data['r_vec'][elec_index]),2)
         # Plot middle electrode spike {{{1 #
         fname = self.name + '_middle_elec_spike'
         print "plotting            :", fname

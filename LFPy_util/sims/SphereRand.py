@@ -26,10 +26,9 @@ class SphereRand(Simulation):
         self.process_param['pre_dur'] = 16.7 * 0.5
         self.process_param['post_dur'] = 16.7 * 0.5
         self.process_param['threshold'] = 3
-        self.process_param['elec_to_plot'] = []
         self.process_param['bins'] = 11
-        self.process_param['amp_threshold'] = 0  # uV
         self.process_param['spike_to_measure'] = 0 
+        self.plot_param['elec_to_plot'] = []
 
     def simulate(self, cell):
         data = self.data
@@ -60,6 +59,7 @@ class SphereRand(Simulation):
         data['elec_y'] = y
         data['elec_z'] = z
         data['t_vec'] = cell.tvec
+        data['soma_v'] = cell.somav
         data['dt'] = cell.timeres_NEURON
 
     def process_data(self):
@@ -73,27 +73,24 @@ class SphereRand(Simulation):
         z = np.array(data['elec_z'])
         # Calculate the radial distance to the electrodes.
         r = np.sqrt(x * x + y * y + z * z).flatten()
-        r_all = r
-        # Find the first spike of each electrode.
-        spikes = []
-        deleted_elem = []
-        for row in xrange(v_vec.shape[0]):
-            signal = v_vec[row]
-            # If the amplitude is less than what can be "recorded", skip it.
-            if np.fabs(signal).max() * 1000 < self.process_param['amp_threshold']:
-                deleted_elem.append(row)
-                continue
-            spike, spikes_t_vec, I = de.extract_spikes(
-                t_vec,
-                signal,
-                pre_dur=self.process_param['pre_dur'],
-                post_dur=self.process_param['post_dur'],
-                threshold=self.process_param['threshold'],
-                amp_option=self.process_param['amp_option'], )
-            # Only use one spike from each electrode.
-            spikes.append(spike[process_param['spike_to_measure']])
-        spikes = np.array(spikes)
-        r = np.delete(r, deleted_elem)
+
+        # Get the signal from the soma potential.
+        # signal = data['LFP'][0]
+        signal = data['soma_v']
+        spike, spikes_t_vec, I = de.extract_spikes(
+            data['t_vec'],
+            signal,
+            pre_dur=process_param['pre_dur'],
+            post_dur=process_param['post_dur'],
+            threshold=process_param['threshold'],
+            amp_option=process_param['amp_option'], 
+            )
+        # Gather all spikes from the same indices as where the spike appears
+        # in the first electrode.
+        spike_index = process_param['spike_to_measure']
+        if spike.shape[0] < spike_index:
+            raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
+        spikes = data['LFP'][:, I[spike_index, 0]:I[spike_index, 1]]
 
         # Find widths of the spikes, trace can be used for plotting.
         widths_I, widths_I_trace = de.find_wave_width_type_I(spikes,
@@ -136,7 +133,7 @@ class SphereRand(Simulation):
             amps_I_std = np.array(amps_I_std)
             amps_II_std = np.array(amps_II_std)
 
-        data['elec_r_all'] = r_all
+        data['elec_r_all'] = r
 
         data['amps_I_mean'] = amps_I_mean
         data['amps_I_std'] = amps_I_std
@@ -257,7 +254,7 @@ class SphereRand(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         #  }}} #
-        # Plot Spike Width I {{{1 #
+        # Plot Spike Width II {{{1 #
         # New plot.
         fname = self.name + '_spike_width_II'
         print "plotting            :", fname

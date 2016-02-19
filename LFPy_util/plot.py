@@ -1522,9 +1522,9 @@ def spike_widths_grouped_new(grouped_widths_mean,
                   loc='center left',
                   bbox_to_anchor=(1, 0.5), )
 
-    ylabel = r'\textbf[$\mathbf{\bm\upmu V}$\textbf]'
+    ylabel = r'Width [\si{\milli\second}]'
     ax.set_ylabel(ylabel)
-    ax.set_xlabel(r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
+    ax.set_xlabel(r'Distance from Soma [\si{\micro\metre}]')
 
     plt.tight_layout()
     if (fname is not None):
@@ -1601,9 +1601,9 @@ def spike_amps_grouped_new(grouped_amps_mean,
                   loc='center left',
                   bbox_to_anchor=(1, 0.5), )
 
-    ylabel = r'\textbf[$\mathbf{\bm\upmu V}$\textbf]'
+    ylabel = r'Width [\si{\micro\volt}]'
     ax.set_ylabel(ylabel)
-    ax.set_xlabel(r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
+    ax.set_xlabel(r'Distance from Soma [\si{\micro\metre}]')
 
     plt.tight_layout()
     if (fname is not None):
@@ -1699,8 +1699,8 @@ def spike_widths_and_amps_grouped_new(grouped_widths_mean,
                   loc='center left',
                   bbox_to_anchor=(1, 0.5), )
 
-    ax.set_xlabel(r'Spike width \textbf[$\mathbf{ms}$\textbf]')
-    ax.set_ylabel(r'Amplitude \textbf[$\mathbf{\bm\upmu V}$\textbf]')
+    ax.set_xlabel(r'Spike Width [\si{\milli\second}]')
+    ax.set_ylabel(r'Amplitude [\si{\micro\volt}]')
 
     plt.tight_layout()
     if (fname is not None):

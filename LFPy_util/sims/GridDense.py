@@ -24,10 +24,16 @@ class GridDense(Simulation):
         # Used by the custom simulate and plot function.
         self.run_param['elec_dx'] = 2
         self.run_param['elec_dy'] = 2
-        self.run_param['x_lim'] = [-40, 40]
-        self.run_param['y_lim'] = [-40, 40]
-        self.run_param['amp_option'] = 'both'
+        self.run_param['x_lim'] = [-50, 50]
+        self.run_param['y_lim'] = [-50, 50]
         self.run_param['ext_method'] = 'som_as_point'
+
+        self.process_param['amp_option'] = 'both'
+        self.process_param['pre_dur'] = 16.7 * 0.5
+        self.process_param['post_dur'] = 16.7 * 0.5
+        self.process_param['threshold'] = 4
+        # Index of the spike to measure from.
+        self.process_param['spike_to_measure'] = 0
 
     def simulate(self, cell):
         run_param = self.run_param
@@ -66,6 +72,7 @@ class GridDense(Simulation):
         self.data['lin_y'] = lin_y
         self.data['dt'] = cell.timeres_NEURON
         self.data['t_vec'] = cell.tvec
+        self.data['soma_v'] = cell.somav
 
         self.data['poly_morph'] = de.get_polygons_no_axon(cell, ['x', 'y'])
         self.data['poly_morph_axon'] = de.get_polygons_axon(cell, ['x', 'y'])
@@ -73,14 +80,57 @@ class GridDense(Simulation):
     def process_data(self):
         data = self.data
         run_param = self.run_param
+        process_param = self.process_param
 
         LFP_amp = LFPy_util.data_extraction.maxabs(data['LFP'],axis=1)
         LFP_amp = LFP_amp.reshape([data['n_elec_x'],data['n_elec_y']])
 
         grid_x, grid_y = np.meshgrid(data['lin_x'],data['lin_y'])
+
+        signal = data['soma_v']
+        spike, spikes_t_vec, I = de.extract_spikes(
+            data['t_vec'],
+            signal,
+            pre_dur=process_param['pre_dur'],
+            post_dur=process_param['post_dur'],
+            threshold=process_param['threshold'],
+            amp_option=process_param['amp_option'], 
+            )
+        # Gather all spikes from the same indices as where the spike appears
+        # in the first electrode.
+        spike_index = process_param['spike_to_measure']
+        if spike.shape[0] < spike_index:
+            raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
+        spikes = data['LFP'][:, I[spike_index, 0]:I[spike_index, 1]]
+
+        amps_I = de.find_amplitude_type_I(spikes, amp_option=process_param['amp_option'])
+        amps_II = de.find_amplitude_type_II(spikes)
+        widths_I, widths_I_trace = de.find_wave_width_type_I(spikes,
+                                                             dt=data['dt'])
+        widths_II, widths_II_trace = de.find_wave_width_type_II(
+            spikes,
+            dt=data['dt'],
+            amp_option=process_param['amp_option'])
+
+        widths_I = widths_I.reshape([data['n_elec_x'],data['n_elec_y']])
+        widths_II = widths_II.reshape([data['n_elec_x'],data['n_elec_y']])
+
         data['LFP_amp'] = LFP_amp*1000
         data['grid_x'] = grid_x
         data['grid_y'] = grid_y
+
+        data['amps_I'] = amps_I * 1000
+
+        data['amps_II'] = amps_II * 1000
+
+        data['widths_I'] = widths_I
+        data['widths_I_trace'] = widths_I_trace * 1000
+
+        data['widths_II'] = widths_II
+        data['widths_II_trace'] = widths_II_trace * 1000
+
+        data['spikes'] = spikes * 1000
+        data['spikes_t_vec'] = spikes_t_vec
 
     def plot(self, dir_plot):
         data = self.data
@@ -93,13 +143,11 @@ class GridDense(Simulation):
         if not os.path.exists(dir_plot):
             os.makedirs(dir_plot)
 
+        # Plot Grid Dense Amp {{{1 # 
         # New plot.
         fname = 'grid_dense_gradient'
         print "plotting            :", fname
         plt.figure(figsize=lp.size_square)
-        # plt.figure(figsize=lp.size_common)
-        # fig = plt.figure()
-        # fig.set_figwidth(4)
         ax = plt.gca()
         
         LFP_amp = data['LFP_amp']
@@ -150,6 +198,63 @@ class GridDense(Simulation):
         path = os.path.join(dir_plot, fname + "." + format)
         plt.savefig(path, format=format, bbox_inches='tight')
         plt.close()
+        #  1}}} # 
+        # Plot Grid Dense Width {{{1 # 
+        # New plot.
+        fname = 'grid_dense_width'
+        print "plotting            :", fname
+        plt.figure(figsize=lp.size_square)
+        ax = plt.gca()
+        
+        LFP_amp = data['widths_I']
+        # LFP_min, LFP_max = -np.abs(LFP_amp).max(), np.abs(LFP_amp).max()
+        LFP_amp = np.abs(LFP_amp)
+        LFP_min, LFP_max = np.amin(LFP_amp), np.amax(LFP_amp)
+        grid_x = data['grid_x']
+        grid_y = data['grid_y']
+        pcol = plt.pcolormesh(grid_x, 
+                              grid_y, 
+                              LFP_amp, 
+                              cmap=LFPy_util.colormaps.viridis,
+                              )
+        pcol.set_edgecolor('face')
+
+        cbar = plt.colorbar()
+        # ticks = np.logspace(np.log10(LFP_min),np.log10(LFP_max),5,endpoint=True)
+        # formatter = mpl.ticker.LogFormatter(10, labelOnlyBase=False)
+        # cbar = plt.colorbar(ticks=ticks, format=formatter)
+        # cbar.solids.set_rasterized(True)
+        # cbar.update_ticks()
+
+        # Plot morphology.
+        zips = []
+        for a, b in data['poly_morph']:
+            zips.append(zip(a, b))
+        polycol = mpl.collections.PolyCollection(zips,
+                                                 edgecolors='none',
+                                                 facecolor='black',
+                                                 alpha = 0.2)
+        ax.add_collection(polycol, )
+        zips = []
+        for a, b in data['poly_morph_axon']:
+            zips.append(zip(a, b))
+        polycol = mpl.collections.PolyCollection(zips,
+                                                 edgecolors='none',
+                                                 facecolor='white',
+                                                 alpha = 0.2)
+        ax.add_collection(polycol, )
+
+        ax.set_ylabel("y")
+        ax.set_xlabel("x")
+        ax.autoscale(tight=True)
+        ax.set_aspect('equal')
+        # plt.axis('tight')
+        plt.axis([grid_x.min(),grid_x.max(),grid_y.min(),grid_y.max()])
+        # Save plt.
+        path = os.path.join(dir_plot, fname + "." + format)
+        plt.savefig(path, format=format, bbox_inches='tight')
+        plt.close()
+        #  1}}} # 
 
         LFPy_util.plot.morphology(data['poly_morph'],
                                   data['poly_morph_axon'],

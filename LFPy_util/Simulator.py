@@ -3,7 +3,6 @@ Simulator class
 """
 import os
 import inspect
-import copy
 from multiprocessing import Process, Manager
 import LFPy_util
 
@@ -25,7 +24,7 @@ class Simulator(object):
         self.save = True
         self.verbose = True
         self.parallel = True
-        self.processes = 1
+        self.concurrent_neurons = 1
 
         self.set_cell(cell)
         self.set_dir_neurons("neuron")
@@ -37,7 +36,7 @@ class Simulator(object):
         text += "neurons             : " + self._neuron_list[0] + "\n"
         for neuron in self._neuron_list[1:]:
             text += "                    : " + neuron + "\n"
-        text += "concurrent neurons  : " + str(self.processes) + "\n"
+        text += "concurrent neurons  : " + str(self.concurrent_neurons) + "\n"
         text += "parallel            : " + str(self.parallel)
         return text
 
@@ -84,10 +83,9 @@ class Simulator(object):
     def push(self, sim_or_func, own_process):
         """
         Push simulation or function to the simulator.
-        The simulation is deep copied.
         """
-        if isinstance(sim_or_func, LFPy_util.sims.Simulation):
-            sim_or_func = copy.deepcopy(sim_or_func)
+        # if isinstance(sim_or_func, LFPy_util.sims.Simulation):
+        #     sim_or_func = copy.deepcopy(sim_or_func)
         self._sim_stack.append(sim_or_func)
         self._sim_stack_flag.append(own_process)
 
@@ -142,6 +140,8 @@ class Simulator(object):
     def plot(self):
         """
         Start plotting.
+        Will run the number of concurrent neurons in parallel. 
+        If parallel flag is true, each Simulation.plot function is run in parallel.
         """
         self._is_ready()
         process_list = []
@@ -153,17 +153,17 @@ class Simulator(object):
         cnt = 0
         finished = False
         while not finished:
-            for i in xrange(self.processes):
+            for i in xrange(self.concurrent_neurons):
                 if cnt + i >= len(self._neuron_list):
                     continue
                 process = process_list[cnt + i]
                 process.start()
-            for i in xrange(self.processes):
+            for i in xrange(self.concurrent_neurons):
                 if cnt + i >= len(self._neuron_list):
                     continue
                 process = process_list[cnt + i]
                 process.join()
-            cnt += self.processes
+            cnt += self.concurrent_neurons
             if cnt >= len(self._neuron_list):
                 finished = True
 
@@ -181,17 +181,17 @@ class Simulator(object):
         cnt = 0
         finished = False
         while not finished:
-            for i in xrange(self.processes):
+            for i in xrange(self.concurrent_neurons):
                 if cnt + i >= len(self._neuron_list):
                     continue
                 process = process_list[cnt + i]
                 process.start()
-            for i in xrange(self.processes):
+            for i in xrange(self.concurrent_neurons):
                 if cnt + i >= len(self._neuron_list):
                     continue
                 process = process_list[cnt + i]
                 process.join()
-            cnt += self.processes
+            cnt += self.concurrent_neurons
             if cnt >= len(self._neuron_list):
                 finished = True
 
