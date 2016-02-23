@@ -185,7 +185,7 @@ def extract_spikes(t_vec,
     return spikes, t_vec_new, I
 
 
-def find_freq_and_fft(tvec, sig):
+def find_freq_and_fft(timestep, signal, axis=-1):
     """
     Amplitude and frequency of the input signal using fourier analysis.
 
@@ -207,21 +207,11 @@ def find_freq_and_fft(tvec, sig):
             freq, amp, phase = fndFreqAndFft(tvec,sig)
 
     """
-    sig = np.array(sig)
-    if len(sig.shape) == 1:
-        sig = np.array([sig])
-    elif len(sig.shape) == 2:
-        pass
-    else:
-        raise RuntimeError("Not compatible with given array shape!")
+    signal = np.array(signal)
 
-    timestep = (
-        tvec[1] - tvec[0]) / 1. if isinstance(tvec, (list, np.ndarray)) else tvec
-    sample_freq = ff.fftfreq(sig.shape[1], d=timestep)
-    pidxs = np.where(sample_freq >= 0)
-    freqs = sample_freq[pidxs]
-    Y = ff.fft(sig, axis=1)[:, pidxs[0]]
-    amplitude = np.abs(Y) / Y.shape[1]
+    freqs = ff.rfftfreq(signal.shape[axis], d=timestep)
+    Y = ff.rfft(signal, axis=axis)
+    amplitude = np.abs(Y) / Y.shape[axis]
     phase = np.angle(Y, deg=0)
     #power = np.abs(Y)**2/Y.shape[1]
     return freqs, amplitude, phase
@@ -372,7 +362,6 @@ def get_pos_data_short():
             data[3, cnt] = h.diam3d(i)
             cnt += 1
     return data
-
 
 def find_major_axes():
     """
