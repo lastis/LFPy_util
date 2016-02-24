@@ -5,10 +5,33 @@ Data extraction module
 import numpy as np
 import scipy.fftpack as ff
 import warnings
+import quantities as pq
 from sklearn.decomposition import PCA
 from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
+
+def tetrode_spikes_mean(signal, amp_option='pos'):
+    """
+    Input is a 3d array, (spikes x electrodes x time)
+    Takes the strongest signal from each electrode and means them.
+
+    Each electrode records the same spike.
+    """
+    if amp_option == 'pos':
+        pass
+    elif amp_option == 'neg':
+        signal = -signal
+    elif amp_option == 'both':
+        signal = np.fabs(signal)
+    # Take the maximum of all signals
+    signal_max = np.amax(signal, axis=2)
+    # Make a list with the index of the electrode that has the highest value
+    # for each spike.
+    signal_max_idx = np.argmax(signal_max, axis=1)
+    cols = signal.shape[0]
+    signal_out = np.mean(signal[np.arange(cols),signal_max_idx], axis=0)
+    return signal_out
 
 def combined_mean_std(mean, std, axis=0):
     mean = np.array(mean)
