@@ -15,6 +15,7 @@ setup(
         'python-dateutil',
         'scipy',
         'sklearn',
+        'quantities'
     ],
 
     # package_data = {
