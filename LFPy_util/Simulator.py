@@ -269,8 +269,9 @@ class Simulator(object):
                             + self._neuron_list[index] \
                             + " " + func.__name__
                     process = Process(
-                        target=func._simulate,
-                        args=(cell), )
+                        target=func,
+                        args=(cell,)
+                        )
                     process.start()
                     # End the function here if parallel is not enabled.
                     if self.parallel:
