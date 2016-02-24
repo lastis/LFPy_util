@@ -453,7 +453,7 @@ def find_wave_width_type_II(matrix, threshold=0.5, dt=1, amp_option='both'):
         signal_bool = signal > thresh_abs
         signal_index = np.where(signal_bool)[0]
         widths[row] = np.sum(signal_bool)
-        trace[row, signal_index] = matrix[row, signal_index[0]]
+        trace[row, signal_index] = matrix[row, signal_index[-1]]
     return widths * dt, trace
 
 

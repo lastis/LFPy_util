@@ -370,7 +370,7 @@ class Symmetry(Simulation):
         # Plot middle electrode spike freq {{{1 #
         fname = self.name + '_middle_elec_spike_fourier'
         freq, amp, phase = de.find_freq_and_fft(
-            data['spikes_t_vec'],
+            data['dt'],
             data['spikes'][elec_index],
             )
         # Remove the first coefficient as we don't care about the baseline.
@@ -414,7 +414,7 @@ class Symmetry(Simulation):
         # Plot middle electrode signal freq {{{1 #
         fname = self.name + '_middle_elec_fourier'
         freq, amp, phase = de.find_freq_and_fft(
-            data['t_vec'],
+            data['dt'],
             data['LFP'][elec_index],
             )
         # Remove the first coefficient as we don't care about the baseline.
@@ -488,7 +488,7 @@ class Symmetry(Simulation):
                         fname = self.name + '_freq_elec_t_{}_p_{}_n_{}'.format(
                             run_param['theta'][i], j * 360 / p, k)
                         freq, amp, phase = de.find_freq_and_fft(
-                            data['spikes_t_vec'],
+                            data['dt'],
                             data['spikes'][cnt],
                             )
                         # Remove the first coefficient as we don't care about the baseline.
