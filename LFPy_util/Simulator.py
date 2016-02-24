@@ -80,7 +80,7 @@ class Simulator(object):
             raise ValueError("Load cell function and cell object missing."
                              "One must be supplied.")
 
-    def push(self, sim_or_func, own_process):
+    def push(self, sim_or_func, own_process=True):
         """
         Push simulation or function to the simulator.
         """
