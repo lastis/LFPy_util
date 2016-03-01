@@ -69,7 +69,8 @@ def save_plt(plt, fname, plot_save_dir):
     for format_str in plot_format:
         name = fname + '.' + format_str
         path = os.path.join(plot_save_dir, name)
-        plt.savefig(path, format=format_str, bbox_inches='tight')
+        plt.savefig(path, format=format_str, bbox_inches='tight',
+                    transparent=True)
 
 
 def _get_line_segments(t_vec, width_trace_1d):
