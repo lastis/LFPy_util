@@ -28,6 +28,7 @@ def set_rc_param():
         r'\usepackage{textcomp}',
         r'\usepackage{gensymb}',
         r'\usepackage[redefsymbols=false]{siunitx}',
+        r'\sisetup{detect-weight=true, detect-family=true}',
     ]
     mpl.rcParams['font.size'] = 12
     mpl.rcParams['font.serif'] = ['Times']

@@ -1,7 +1,11 @@
 from Simulation import Simulation
 import LFPy
 import LFPy_util
+import LFPy_util.plot as lplot
+import LFPy_util.colormaps as lcmaps
 import numpy as np
+import quantities as pq
+import matplotlib.pyplot as plt
 from scipy.stats.mstats import zscore
 
 
@@ -16,6 +20,8 @@ class Intracellular(Simulation):
 
         # Used by the custom plot function.
         self.show = False
+
+        self.plot_param['freq_end'] = 3*pq.kHz
 
         # Plot names.
         self.fname_intra_plot = 'intra_soma_mem'
@@ -52,30 +58,38 @@ class Intracellular(Simulation):
         self.data['rec_x'] = self.data['rec_pos'][:, 0]
         self.data['rec_y'] = self.data['rec_pos'][:, 1]
 
-        # Gather data for the fourier specter.
-        soma_t = self.data['soma_t']
-        soma_v = self.data['soma_v']
-        freqs, amps, phase = \
-            LFPy_util.data_extraction.find_freq_and_fft(soma_t,soma_v)
-        # Remove the first coefficient as we don't care about the baseline.
-        freqs = np.delete(freqs, 0)
-        amps = np.delete(amps, 0)
-        self.data['freqs'] = freqs
-        self.data['amps'] = amps
-        self.data['phase'] = phase
-
     def process_data(self):
-        pass
+        # Gather data for the fourier specter.
+        data = self.data
+        soma_v = data['soma_v']
+        freq, amp, phase = \
+            LFPy_util.data_extraction.find_freq_and_fft(data['dt'], soma_v)
+        # Remove the first coefficient as we don't care about the baseline.
+        freq = np.delete(freq, 0)
+        amp = np.delete(amp, 0)
+        self.data['freq'] = freq * pq.kHz
+        self.data['amp'] = amp
+        self.data['phase'] = phase
 
     def plot(self, dir_plot):
         data = self.data
         run_param = self.run_param
+        # Set global matplotlib parameters.
+        LFPy_util.plot.set_rc_param()
 
-        LFPy_util.plot.soma(data['soma_t'],
-                            data['soma_v_z'],
-                            self.fname_intra_plot_zscore,
-                            plot_save_dir=dir_plot,
-                            show=self.show)
+        # Plot zscore of membrane potential {{{ #
+        fname = self.name + '_mem_zscore'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(data['soma_t'], data['soma_v_z'], color=lcmaps.get_color(0))
+        ax.set_ylabel(r'Membrane Potential \textbf[$\mathbf{mV}$\textbf]')
+        # ax.set_xlabel(r'Time \textbf[$\mathbf{ms}$\textbf]')
+        ax.set_xlabel(r'Time \textbf{[\[detect-weight]{\milli\second}]}')
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
 
         LFPy_util.plot.soma(data['soma_t'],
                             data['soma_v'],
@@ -94,9 +108,26 @@ class Intracellular(Simulation):
                                              plot_save_dir=dir_plot,
                                              show=self.show, )
 
-        LFPy_util.plot.fourierSpecter(data['freqs'],
-                                      data['amps'],
-                                      fname=self.fname_intra_plot_fourier,
-                                      plot_save_dir=dir_plot,
-                                      f_end=3,
-                                      show=self.show)
+        # Plot fourier analysis {{{1 #
+        fname = self.name + '_fourier'
+        # Delete frequencies above the option.
+        freq = data['freq']
+        amp = data['amp']
+        if self.plot_param['freq_end'] is not None:
+            idx = min(
+                range(len(freq)), 
+                key=lambda i: abs(freq[i] - self.plot_param['freq_end'])
+                )
+            freq = freq[0:idx]
+            amp = amp[0:idx]
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(freq, amp, color=lcmaps.get_color(0))
+        # plt.title(title_str)
+        ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
+        ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # 1}}} #

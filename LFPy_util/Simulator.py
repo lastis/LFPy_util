@@ -42,7 +42,9 @@ class Simulator(object):
 
     def set_neuron_name(self, name):
         """
-        Set the name(s) of neuron(s) that will be simulated.
+        Set the name(s) of neuron(s) that will be simulated and used as the
+        directory name for each neuron. Each directory will be placed in 
+        the directory specified by the set_dir_neurons function.
         The list will be sent to the cell load function if used.
         """
         # If input is a stiring, make it a list of strings.

@@ -342,10 +342,10 @@ class Symmetry(Simulation):
         elec_index = run_param['n']/2
         # title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
         # title_str = title_str.format(round(data['r_vec'][elec_index]),2)
+        c = lplot.get_short_color_array(2 + 1)
         # Plot middle electrode spike {{{1 #
         fname = self.name + '_middle_elec_spike'
         print "plotting            :", fname
-        c = lplot.get_short_color_array(2 + 1)
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
         lplot.nice_axes(ax)
