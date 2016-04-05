@@ -21,14 +21,13 @@ size_thin = [8, 2]
 
 def set_rc_param():
     mpl.rcParams['font.family'] = 'serif'
-    mpl.rcParams['font.style'] = 'normal'
     mpl.rcParams['text.usetex'] = True
     mpl.rcParams['text.latex.preamble'] = [
         r'\usepackage{bm,upgreek}',
         r'\usepackage{textcomp}',
         r'\usepackage{gensymb}',
         r'\usepackage[redefsymbols=false]{siunitx}',
-        r'\sisetup{detect-weight=true, detect-family=true}',
+        r'\sisetup{detect-all=true}',
     ]
     mpl.rcParams['font.size'] = 12
     mpl.rcParams['font.serif'] = ['Times']

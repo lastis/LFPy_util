@@ -208,9 +208,12 @@ def extract_spikes(t_vec,
     return spikes, t_vec_new, I
 
 
-def find_freq_and_fft(timestep, signal, axis=-1):
+def find_freq_and_fft(timestep, signal, length=None, axis=-1):
     """
-    Amplitude and frequency of the input signal using fourier analysis.
+    Calculate the magnitude and phase of a signal using fft.
+
+    The input must be a real sequence. 
+    
 
     :param `~numpy.ndarray` tvec: 
         Time vector with length equal **sig**. 
@@ -231,12 +234,17 @@ def find_freq_and_fft(timestep, signal, axis=-1):
 
     """
     signal = np.array(signal)
-
-    freqs = ff.rfftfreq(signal.shape[axis], d=timestep)
-    Y = ff.rfft(signal, axis=axis)
-    amplitude = np.abs(Y) / Y.shape[axis]
-    phase = np.angle(Y, deg=0)
-    #power = np.abs(Y)**2/Y.shape[1]
+    N = signal.shape[axis]
+    if length is None:
+        length = signal.shape[axis]
+    freqs = ff.fftfreq(length, d=timestep)
+    freqs = freqs[:N/2]
+    ft = ff.fft(signal, n=length, axis=axis) / N
+    # Multiply by two when removing half the specter to keep 
+    # energy conserved.
+    ft = ft[:N/2] * 2
+    amplitude = np.abs(ft)
+    phase = np.angle(ft, deg=0)
     return freqs, amplitude, phase
 
 

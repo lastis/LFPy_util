@@ -21,6 +21,8 @@ class Intracellular(Simulation):
         # Used by the custom plot function.
         self.show = False
 
+        self.process_param['padding_factor'] = 1
+
         self.plot_param['freq_end'] = 3*pq.kHz
 
         # Plot names.
@@ -62,8 +64,9 @@ class Intracellular(Simulation):
         # Gather data for the fourier specter.
         data = self.data
         soma_v = data['soma_v']
+        length = soma_v.shape[-1]*self.process_param['padding_factor']
         freq, amp, phase = \
-            LFPy_util.data_extraction.find_freq_and_fft(data['dt'], soma_v)
+            LFPy_util.data_extraction.find_freq_and_fft(data['dt'], soma_v, length)
         # Remove the first coefficient as we don't care about the baseline.
         freq = np.delete(freq, 0)
         amp = np.delete(amp, 0)
@@ -84,9 +87,8 @@ class Intracellular(Simulation):
         ax = plt.gca()
         lplot.nice_axes(ax)
         plt.plot(data['soma_t'], data['soma_v_z'], color=lcmaps.get_color(0))
-        ax.set_ylabel(r'Membrane Potential \textbf[$\mathbf{mV}$\textbf]')
-        # ax.set_xlabel(r'Time \textbf[$\mathbf{ms}$\textbf]')
-        ax.set_xlabel(r'Time \textbf{[\[detect-weight]{\milli\second}]}')
+        ax.set_ylabel(r'Membrane Potential Z-score')
+        ax.set_xlabel(r'Time \textbf{[\si{\milli\second}]}')
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
@@ -126,8 +128,8 @@ class Intracellular(Simulation):
         lplot.nice_axes(ax)
         plt.plot(freq, amp, color=lcmaps.get_color(0))
         # plt.title(title_str)
-        ax.set_ylabel(r'Amplitude \textbf[$\mathbf{mV}$\textbf]')
-        ax.set_xlabel(r'Frequency \textbf[$\mathbf{kHz}$\textbf]')
+        ax.set_ylabel(r'Amplitude \textbf{[\si{\milli\volt}]}')
+        ax.set_xlabel(r'Frequency \textbf{[\si{\kilo\hertz}]}')
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # 1}}} #
