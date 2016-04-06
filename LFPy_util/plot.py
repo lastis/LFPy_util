@@ -416,7 +416,6 @@ def scattered_i_mem_v_mem(v_vec_list,
     print "plotting            :", fname
 
     mirror = True
-
     # Remove data points before 0.
     idx = (np.abs(t_vec - 0)).argmin() + 1
     t_vec = np.delete(t_vec, range(idx))

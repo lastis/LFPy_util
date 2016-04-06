@@ -5,6 +5,7 @@ import LFPy_util.plot as lplot
 import LFPy_util.colormaps as lcmaps
 import numpy as np
 import quantities as pq
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.stats.mstats import zscore
 
@@ -24,12 +25,6 @@ class Intracellular(Simulation):
         self.process_param['padding_factor'] = 1
 
         self.plot_param['freq_end'] = 3*pq.kHz
-
-        # Plot names.
-        self.fname_intra_plot = 'intra_soma_mem'
-        self.fname_intra_plot_zscore = 'intra_soma_mem_zscore'
-        self.fname_intra_plot_fourier = 'intra_soma_mem_fourier'
-        self.fname_intra_plot_i_mem_v_mem = 'intra_i_mem_v_mem'
 
     def simulate(self, cell):
         data = self.data
@@ -92,23 +87,89 @@ class Intracellular(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
+        # Plot membrane potential {{{ #
+        fname = self.name + '_mem'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(data['soma_t'], data['soma_v'], color=lcmaps.get_color(0))
+        ax.set_ylabel(r'Membrane Potential \textbf{[\si{\milli\volt}]}')
+        ax.set_xlabel(r'Time \textbf{[\si{\milli\second}]}')
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
+        # {{{ Plot along longest branch.
+        fname = self.name + '_i_mem_v_mem'
+        print "plotting            :", fname
 
-        LFPy_util.plot.soma(data['soma_t'],
-                            data['soma_v'],
-                            self.fname_intra_plot,
-                            plot_save_dir=dir_plot,
-                            show=self.show)
+        v_vec_list = data['v_vec_list']
+        i_vec_list = data['i_vec_list']
+        t_vec = data['t_vec']
+        rec_x = data['rec_x']
+        rec_y = data['rec_y']
+        poly_morph = data['poly_morph']
 
-        # Plot along the longest branch.
-        LFPy_util.plot.scattered_i_mem_v_mem(data['v_vec_list'],
-                                             data['i_vec_list'],
-                                             data['t_vec'],
-                                             data['rec_x'],
-                                             data['rec_y'],
-                                             data['poly_morph'],
-                                             self.fname_intra_plot_i_mem_v_mem,
-                                             plot_save_dir=dir_plot,
-                                             show=self.show, )
+        # Option to mirror the drawing of the neuron.
+        mirror = True
+        # Remove data points before 0.
+        idx = (np.abs(t_vec - 0)).argmin() + 1
+        t_vec = np.delete(t_vec, range(idx))
+        v_vec_list = np.delete(v_vec_list, range(idx), 1)
+        i_vec_list = np.delete(i_vec_list, range(idx), 1)
+
+        fig = plt.figure(figsize=lplot.size_common)
+        ax = plt.subplot(2, 1, 1)
+        xmin = 0
+        xmax = 0
+        ymin = 0
+        ymax = 0
+        # Plot morphology.
+        zips = []
+        for a, b in poly_morph:
+            if mirror:
+                tmp = b
+                b = a
+                a = tmp
+            xmin = min(xmin, min(a))
+            xmax = max(xmax, max(a))
+            ymin = min(ymin, min(b))
+            ymax = max(ymax, max(b))
+            zips.append(zip(a, b))
+        polycol = mpl.collections.PolyCollection(zips,
+                                                 edgecolors='none',
+                                                 facecolors='black')
+        ax.add_collection(polycol, )
+        colors = lcmaps.get_short_color_array(len(rec_x))
+        if mirror:
+            tmp = rec_y
+            rec_y = rec_x
+            rec_x = tmp
+        plt.scatter(rec_x, rec_y, marker='o', color=colors, linewidth=0.2)
+        ax.set_ylim([ymin, ymax])
+        ax.set_xlim([xmin, xmax])
+        ax.set_aspect('equal')
+
+        ax = plt.subplot(2, 2, 3)
+        for i in xrange(len(v_vec_list)):
+            plt.plot(t_vec, v_vec_list[i], color=colors[i])
+
+        ax = plt.subplot(2, 2, 4)
+        for i in xrange(len(i_vec_list)):
+            plt.plot(t_vec, i_vec_list[i], color=colors[i])
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
+
+        # LFPy_util.plot.scattered_i_mem_v_mem(data['v_vec_list'],
+        #                                      data['i_vec_list'],
+        #                                      data['t_vec'],
+        #                                      data['rec_x'],
+        #                                      data['rec_y'],
+        #                                      data['poly_morph'],
+        #                                      self.fname_intra_plot_i_mem_v_mem,
+        #                                      plot_save_dir=dir_plot,
+        #                                      show=self.show, )
 
         # Plot fourier analysis {{{1 #
         fname = self.name + '_fourier'
