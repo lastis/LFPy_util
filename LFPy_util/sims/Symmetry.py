@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import LFPy
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import LFPy_util
@@ -87,6 +88,10 @@ class Symmetry(Simulation):
                 = de.get_polygons_no_axon(cell,['x','y'])
         data['poly_morph_axon'] \
                 = de.get_polygons_axon(cell,['x','y'])
+        data['poly_morph_xz'] \
+                = de.get_polygons_no_axon(cell,['x','z'])
+        data['poly_morph_axon_xz'] \
+                = de.get_polygons_axon(cell,['x','z'])
 
     def process_data(self):
         data = self.data
@@ -226,11 +231,79 @@ class Symmetry(Simulation):
                   labels,
                   loc='upper left',
                   bbox_to_anchor=(1.0, 1.04), )
-        ax.set_ylabel("Amplitude")
-        ax.set_xlabel("Distance from Soma")
+        ax.set_ylabel(r"Amplitude \textbf{[\si{\milli\volt}]}")
+        ax.set_xlabel(r"Distance from Soma \textbf{[\si{\micro\metre}]}")
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} # 
+        # {{{ Plot spike amps I log
+        fname = self.name + '_spike_amps_I_log'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        c = lplot.get_short_color_array(data['amps_I_mean'].shape[0] + 1)
+        for t in xrange(data['amps_I_mean'].shape[0]):
+            label = r'$\theta = {}\degree$'.format(run_param['theta'][t])
+            plt.plot(data['r_vec'],
+                     data['amps_I_mean'][t],
+                     color=c[t],
+                     marker='o',
+                     markersize=5,
+                     label=label)
+            ax.fill_between(data['r_vec'],
+                            data['amps_I_mean'][t] - data['amps_I_std'][t],
+                            data['amps_I_mean'][t] + data['amps_I_std'][t],
+                            color=c[t],
+                            alpha=0.2)
+            # # Ugly way to put in some graphs for power laws.
+            # # Left side.
+            # x0 = data['r_vec'][0]
+            # x1 = data['r_vec'][1]
+            # y0 = data['amps_I_mean'][t, 0]
+            # for p in [1.0, 2.0, 3.0]:
+            #     y1 = np.power( 1.0 / data['r_vec'][1], p) * \
+            #             data['amps_I_mean'][t, 0] / \
+            #             np.power(1.0 / data['r_vec'][0], p)
+            #     ax.plot([x0, x1], [y0, y1], color='black')
+            # # Right side.
+            # x0 = data['r_vec'][-3]
+            # x1 = data['r_vec'][-1]
+            # y1 = data['amps_I_mean'][t,-1]
+            # for p in [1.0, 2.0, 3.0]:
+            #     y0 = np.power(1.0 / data['r_vec'][-3], p) * \
+            #             data['amps_I_mean'][t, -1] / \
+            #             np.power(1.0 / data['r_vec'][-1], p) 
+            #     ax.plot([x0, x1], [y0, y1], color='black')
+        handles, labels = ax.get_legend_handles_labels()
+
+
+        # Position the legen on the right side of the plot.
+        ax.legend(handles,
+                  labels,
+                  loc='upper left',
+                  bbox_to_anchor=(1.0, 1.04), )
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlim([data['r_vec'].min(), data['r_vec'].max()])
+        ticker = mpl.ticker.MaxNLocator(nbins=7)
+        ax.xaxis.set_major_locator(ticker)
+        ax.xaxis.get_major_formatter().labelOnlyBase = False
+
+        # ticker = mpl.ticker.MaxNLocator(nbins=7)
+        # ax.yaxis.set_major_locator(ticker)
+        # ax.yaxis.get_major_formatter().labelOnlyBase = False
+
+        # Set a label formatter to use normal numbers.
+        ax.xaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+        ax.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+
+        ax.set_ylabel(r"Amplitude \textbf{[\si{\milli\volt}]}")
+        ax.set_xlabel(r"Distance from Soma \textbf{[\si{\micro\metre}]}")
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
         # Plot spike amps II {{{1 #
         fname = self.name + '_spike_amps_II'
         print "plotting            :", fname
@@ -263,6 +336,55 @@ class Symmetry(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # 1}}} #
+        # {{{ Plot spike amps II log
+        fname = self.name + '_spike_amps_II_log'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        c = lplot.get_short_color_array(data['amps_II_mean'].shape[0] + 1)
+        for t in xrange(data['amps_II_mean'].shape[0]):
+            label = r'$\theta = {}\degree$'.format(run_param['theta'][t])
+            plt.plot(data['r_vec'],
+                     data['amps_II_mean'][t],
+                     color=c[t],
+                     marker='o',
+                     markersize=5,
+                     label=label)
+            ax.fill_between(data['r_vec'],
+                            data['amps_II_mean'][t] - data['amps_II_std'][t],
+                            data['amps_II_mean'][t] + data['amps_II_std'][t],
+                            color=c[t],
+                            alpha=0.2)
+        handles, labels = ax.get_legend_handles_labels()
+
+
+        # Position the legen on the right side of the plot.
+        ax.legend(handles,
+                  labels,
+                  loc='upper left',
+                  bbox_to_anchor=(1.0, 1.04), )
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlim([data['r_vec'].min(), data['r_vec'].max()])
+        ticker = mpl.ticker.MaxNLocator(nbins=7)
+        ax.xaxis.set_major_locator(ticker)
+        ax.xaxis.get_major_formatter().labelOnlyBase = False
+
+        # ticker = mpl.ticker.MaxNLocator(nbins=7)
+        # ax.yaxis.set_major_locator(ticker)
+        # ax.yaxis.get_major_formatter().labelOnlyBase = False
+
+        # Set a label formatter to use normal numbers.
+        ax.xaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+        ax.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+
+        ax.set_ylabel(r"Amplitude \textbf{[\si{\milli\volt}]}")
+        ax.set_xlabel(r"Distance from Soma \textbf{[\si{\micro\metre}]}")
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
         # Plot spike width I {{{1 #
         fname = self.name + '_spike_width_I'
         print "plotting            :", fname
@@ -334,11 +456,21 @@ class Symmetry(Simulation):
                                   elec_x=data['elec_x'],
                                   elec_y=data['elec_y'],
                                   fig_size=lplot.size_common,
-                                  fname=self.name + "_morph_elec",
+                                  fname=self.name + "_morph_elec_xy",
                                   plot_save_dir=dir_plot,
                                   show=False)
         # 1}}} #
-        # Get the spike to plot.
+        # Plot morphology xz {{{ #
+        LFPy_util.plot.morphology(data['poly_morph_xz'],
+                                  data['poly_morph_axon_xz'],
+                                  elec_x=data['elec_x'],
+                                  elec_y=data['elec_z'],
+                                  fig_size=lplot.size_common,
+                                  fname=self.name + "_morph_elec_xz",
+                                  plot_save_dir=dir_plot,
+                                  show=False)
+        # }}} #
+        # Spike to plot.
         elec_index = run_param['n']/2
         # title_str = r"Distance from Soma = \SI{{{}}}{{\micro\metre}}"
         # title_str = title_str.format(round(data['r_vec'][elec_index]),2)
