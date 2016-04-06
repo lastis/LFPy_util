@@ -160,17 +160,6 @@ class Intracellular(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
-
-        # LFPy_util.plot.scattered_i_mem_v_mem(data['v_vec_list'],
-        #                                      data['i_vec_list'],
-        #                                      data['t_vec'],
-        #                                      data['rec_x'],
-        #                                      data['rec_y'],
-        #                                      data['poly_morph'],
-        #                                      self.fname_intra_plot_i_mem_v_mem,
-        #                                      plot_save_dir=dir_plot,
-        #                                      show=self.show, )
-
         # Plot fourier analysis {{{1 #
         fname = self.name + '_fourier'
         # Delete frequencies above the option.
