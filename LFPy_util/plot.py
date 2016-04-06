@@ -353,18 +353,8 @@ def morphology(poly_morph,
     ax.set_ylabel(y_label)
 
     if (fname is not None):
-        # Create the directory if it does not exist.
-        if not os.path.exists(plot_save_dir):
-            os.makedirs(plot_save_dir)
-        # Create different versions of the file.
-        for format_str in plot_format:
-            name = fname + '.' + format_str
-            path = os.path.join(plot_save_dir, name)
-            plt.savefig(path,
-                        format=format_str,
-                        transparent=False,
-                        bbox_inches='tight',
-                        pad_inches=0.1)
+        save_plt(plt, fname, plot_save_dir)
+
     if show:
         plt.show()
     plt.close()
