@@ -349,7 +349,7 @@ def morphology(poly_morph,
 
         # Add axis label.
     ax.set_xlabel(x_label + '\n' +
-                  r'Distance from Soma \textbf[$\mathbf{\bm\upmu m}$\textbf]')
+                  r'Distance from Soma \textbf[\si{\micro\metre}]')
     ax.set_ylabel(y_label)
 
     if (fname is not None):

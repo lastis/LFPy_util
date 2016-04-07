@@ -412,7 +412,7 @@ class DiscXY(Simulation):
                                   data['poly_morph_axon_xz'],
                                   elec_x=data['elec_x'],
                                   elec_y=data['elec_z'],
-                                  fig_size=lplot.size_common,
+                                  fig_size=lplot.size_square,
                                   fname=self.name + "_morph_elec_xz",
                                   plot_save_dir=dir_plot,
                                   show=False)
