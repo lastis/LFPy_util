@@ -415,6 +415,8 @@ class DiscXY(Simulation):
                                   fig_size=lplot.size_square,
                                   fname=self.name + "_morph_elec_xz",
                                   plot_save_dir=dir_plot,
+                                  x_label='x',
+                                  y_label='z',
                                   show=False)
         # }}} #
         # Spike to plot.
