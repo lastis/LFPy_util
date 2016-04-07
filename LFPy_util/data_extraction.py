@@ -208,7 +208,7 @@ def extract_spikes(t_vec,
     return spikes, t_vec_new, I
 
 
-def find_freq_and_fft(timestep, signal, length=None, axis=-1):
+def find_freq_and_fft(timestep, signal, length=None, axis=-1, f_cut=None):
     """
     Calculate the magnitude and phase of a signal using fft.
 
@@ -245,6 +245,14 @@ def find_freq_and_fft(timestep, signal, length=None, axis=-1):
     ft = ft[:N/2] * 2
     amplitude = np.abs(ft)
     phase = np.angle(ft, deg=0)
+    if f_cut is not None:
+        idx = min(
+            range(len(freqs)), 
+            key=lambda i: abs(freqs[i] - f_cut)
+            )
+        freqs = freqs[0:idx]
+        amplitude = amplitude[0:idx]
+        phase = phase[0:idx]
     return freqs, amplitude, phase
 
 

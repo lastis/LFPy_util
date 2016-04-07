@@ -38,39 +38,16 @@ class Morphology(Simulation):
     def plot(self, dir_plot):
         data = self.data
 
-        # # Plot morph no grid {{{1 #
-        # fname = self.name + '_xy_nogrid'
-        # lplot.plot_format = ['png']
-        # print "plotting            :", fname
-        # plt.figure()
-        # ax = plt.gca()
-        # zips = []
-        # xmin, xmax, ymin, ymax = 0, 0, 0, 0
-        # for a, b in data['poly_morph_x_y']:
-        #     xmin = min(xmin, min(a))
-        #     xmax = max(xmax, max(a))
-        #     ymin = min(ymin, min(b))
-        #     ymax = max(ymax, max(b))
-        #     zips.append(zip(a, b))
-        # polycol = mpl.collections.PolyCollection(zips,
-        #                                          edgecolors='none',
-        #                                          facecolors=cm.get_color(0.0))
-        # ax.add_collection(polycol, )
-        # plt.axis('equal')
-        # plt.axis([xmin, xmax, ymin, ymax])
-        # # Create the directory if it does not exist.
-        # if not os.path.exists(dir_plot):
-        #     os.makedirs(dir_plot)
-        # # Save.
-        # name = fname + '.png'
-        # path = os.path.join(dir_plot, name)
-        # plt.savefig(path, format='png', bbox_inches='tight',
-        #             transparent=True, dpi=900)
-        # plt.close()
-        # # Reset to pdf format.
-        # lplot.plot_format = ['pdf']
-        # # 1}}} #
-        # Plot.
+        LFPy_util.plot.morphology(data['poly_morph_x_y'],
+                                  data['poly_morph_x_y_axon'],
+                                  fname=self.name + '_xy_up',
+                                  plot_save_dir=dir_plot,
+                                  fig_size=lplot.size_tall,
+                                  show=False,
+                                  mirror=False,
+                                  x_label='x',
+                                  y_label='y', )
+
         LFPy_util.plot.morphology(data['poly_morph_x_y'],
                                   data['poly_morph_x_y_axon'],
                                   fname=self.name + '_xy',
@@ -79,6 +56,7 @@ class Morphology(Simulation):
                                   mirror=True,
                                   x_label='y',
                                   y_label='x', )
+
         LFPy_util.plot.morphology(data['poly_morph_x_z'],
                                   data['poly_morph_x_z_axon'],
                                   fname=self.name + '_xz',
@@ -86,6 +64,7 @@ class Morphology(Simulation):
                                   show=False,
                                   x_label='x',
                                   y_label='z', )
+
         LFPy_util.plot.morphology(data['poly_morph_y_z'],
                                   data['poly_morph_y_z_axon'],
                                   fname=self.name + '_yz',

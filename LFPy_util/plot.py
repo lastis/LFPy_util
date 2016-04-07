@@ -17,6 +17,7 @@ size_square = [4, 4]
 size_common = [8, 4]
 size_large = [8, 8]
 size_thin = [8, 2]
+size_tall = [4, 6]
 
 
 def set_rc_param():
@@ -270,7 +271,7 @@ def morphology(poly_morph,
                elec_x=None,
                elec_y=None,
                mirror=False,
-               fig_size='common',
+               fig_size=size_common,
                x_label='x',
                y_label='y',
                fname=None,
@@ -285,13 +286,7 @@ def morphology(poly_morph,
         elec_y = np.array(elec_y)
 
     set_rc_param()
-    if fig_size == 'square_small':
-        figsize = size_square_small
-    elif fig_size == 'square':
-        figsize = size_square
-    else:
-        figsize = size_common
-    fig = plt.figure(figsize=figsize)
+    fig = plt.figure(figsize=fig_size)
     ax = plt.gca()
     xmin = 0
     xmax = 0
@@ -349,7 +344,7 @@ def morphology(poly_morph,
 
         # Add axis label.
     ax.set_xlabel(x_label + '\n' +
-                  r'Distance from Soma \textbf[\si{\micro\metre}]')
+                  r'Distance from Soma \textbf{[\si{\micro\metre}]}')
     ax.set_ylabel(y_label)
 
     if (fname is not None):
