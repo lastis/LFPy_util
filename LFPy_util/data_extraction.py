@@ -52,7 +52,8 @@ def combined_mean_var(mean_array, var_array, axis=0):
         raise ValueError("mean_array and var must have equal shape.")
 
     mean_array_new = np.mean(mean_array, axis=axis)
-    var_array_new = np.mean(var_array + mean_array*mean_array, axis=axis) - mean_array_new*mean_array_new
+    var_array_new = np.mean(var_array + mean_array*mean_array, axis=axis) \
+        - mean_array_new*mean_array_new
 
     return mean_array_new.squeeze(), var_array_new.squeeze()
 

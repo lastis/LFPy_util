@@ -31,6 +31,7 @@ class MultiSpike(Simulation):
         self.run_param['post_dur'] = 16.7 * 0.5
         self.run_param['spikes'] = 3
         self.apply_electrode_at_finish = True
+        self.only_apply_electrode = False
         self.verbose = False
         self._prev_data = None
 
@@ -48,13 +49,13 @@ class MultiSpike(Simulation):
         """
         # String to put before some output to the terminal.
         str_start = self.name
-        str_start += " "*(20 - len(self.name)) + ":"
+        str_start += " "*(20 - len(self.name)) + ": "
         # If this simulation has been ran before, try setting init_amp
         # to the amp of that file to avoid doing uneccessary simulations.
         path = self._prev_data
         if path is None or not os.path.isfile(path):
             if self.verbose:
-                print str_start + " Could not load previous amp."
+                print str_start + "Could not load previous amp."
             return self.run_param['init_amp']
         if self.format_save_data == 'pkl':
             data_tmp = LFPy_util.other.load_kwargs(path)
@@ -63,16 +64,33 @@ class MultiSpike(Simulation):
         else:
             raise ValueError("Unsupported format")
         if self.verbose:
-            print str_start + " Previous amp = " + str(data_tmp['amp'])
-        return data_tmp['amp']
+            if 'amp' in data_tmp:
+                print str_start + "Previous amp = " + str(data_tmp['amp'])
+            else:
+                print str_start + "Could not load previous amp."
+        return data_tmp.get('amp', self.run_param['init_amp'])
 
     def simulate(self, cell):
         run_param = self.run_param
         amp = self.get_previous_amp()
 
-        # String to put before some output to the terminal.
+        # String to put before output to the terminal.
         str_start = self.name
-        str_start += " "*(20 - len(self.name)) + ":"
+        str_start += " "*(20 - len(self.name)) + ": "
+
+        if self.only_apply_electrode:
+            if self.verbose:
+                print str_start + "Only applying electrode."
+            soma_clamp_params = {
+                'idx': cell.somaidx,
+                'record_current': False,
+                'amp': amp,  #  [nA]
+                'dur': self.run_param['duration'],  # [ms]
+                'delay': self.run_param['delay'],  # [ms]
+                'pptype': self.run_param['pptype'],
+            }
+            stim = LFPy.StimIntElectrode(cell, **soma_clamp_params)
+            return
 
         # Find a current that generates n spikes.
         amp_low = 0
@@ -95,7 +113,7 @@ class MultiSpike(Simulation):
             # Change the amplitude according to the spike cnt.
             spike_cnt = sub_data.get('spike_cnt', 0)
             if self.verbose:
-                print str_start + ' Found {} spikes at current {} nA.'.format(spike_cnt,
+                print str_start + 'Found {} spikes at current {} nA.'.format(spike_cnt,
                                                                  amp)
             if spike_cnt == run_param['spikes']:
                 break
@@ -109,7 +127,7 @@ class MultiSpike(Simulation):
                 continue
             amp = 0.5 * (amp_high + amp_low)
             if amp < 1e-4 or amp > 1e4:
-                print str_start + ' Curent amplitude is above or under threshold, finishing.'
+                print str_start + 'Curent amplitude is above or under threshold, finishing.'
                 return
 
         # Give the data back.
@@ -172,8 +190,12 @@ class MultiSpike(Simulation):
         data['soma_t'] = cell.tvec
 
     def process_data(self):
+        if self.only_apply_electrode:
+            return
+
         data = self.data
         run_param = self.run_param
+
 
         data['soma_v'] = np.array(data['soma_v'])
         data['soma_t'] = np.array(data['soma_t'])
@@ -195,7 +217,12 @@ class MultiSpike(Simulation):
 
         # String to put before output to the terminal.
         str_start = self.name
-        str_start += " "*(20 - len(self.name)) + ":"
+        str_start += " "*(20 - len(self.name)) + ": "
+
+        if self.only_apply_electrode:
+            if self.verbose:
+                print str_start + "Only apply electrode, nothing to plot."
+            return
 
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
