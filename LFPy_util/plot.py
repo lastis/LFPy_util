@@ -282,8 +282,10 @@ def morphology(poly_morph,
     print "plotting            :", fname
     if elec_x is not None:
         elec_x = np.array(elec_x)
+        elec_x = elec_x.flatten()
     if elec_y is not None:
         elec_y = np.array(elec_y)
+        elec_y = elec_y.flatten()
 
     set_rc_param()
     fig = plt.figure(figsize=fig_size)
@@ -293,7 +295,7 @@ def morphology(poly_morph,
     ymin = 0
     ymax = 0
 
-    colors = get_short_color_array(3)
+    colors = cmaps.get_short_color_array(3)
     # Plot morphology.
     zips = []
     for a, b in poly_morph:
@@ -337,10 +339,20 @@ def morphology(poly_morph,
         # Plot small x markers for each electrode.
         # Set axis limits.
         # The morphology is often much bigger than the position of the electrodes.
-        plt.scatter(elec_x, elec_y, marker='x', color='black', linewidth=0.2)
-        plt.axis([elec_x.min(), elec_x.max(), elec_y.min(), elec_y.max()])
-        # ax.set_ylim([elec_y.min(),elec_y.max()])
-        # ax.set_xlim([elec_x.min(),elec_x.max()])
+        plt.scatter(
+            elec_x, 
+            elec_y, 
+            marker='x', 
+            color=cmaps.get_color(0.8), 
+            linewidth=3,
+            s=100,
+            )
+        if elec_x.shape[0] > 1 :
+            ax.set_ylim([elec_y.min(),elec_y.max()])
+            ax.set_xlim([elec_x.min(),elec_x.max()])
+        elif elec_x.shape[0] == 1 :
+            ax.set_ylim([-abs(elec_y[0]*1.5), abs(elec_y[0]*1.5)])
+            ax.set_xlim([-abs(elec_x[0]*1.5), abs(elec_x[0]*1.5)])
 
         # Add axis label.
     ax.set_xlabel(x_label + '\n' +

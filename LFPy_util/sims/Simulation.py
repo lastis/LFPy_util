@@ -30,12 +30,15 @@ class Simulation(object):
         self.name_save_load = None
         self.format_save_data = 'pkl'
         self.format_save_run_param = 'js'
+        self.format_save_info = 'js'
         self.data = {}
         self.run_param = {}
         self.process_param = {}
         self.plot_param = {}
+        self.info = {}
         self._str_data = "_data"
         self._str_run_param = "_run_param"
+        self._str_info = "_info"
 
         self.set_name("unnamed")
 
@@ -88,6 +91,29 @@ class Simulation(object):
         """
         return self.name_save_load + self._str_run_param + "." \
             + self.format_save_run_param
+
+    def get_fname_info(self):
+        """
+        Get the filename of the info that is stored by the plotting.
+        """
+        return self.name_save_load + self._str_info + "." \
+            + self.format_save_info
+
+    def save_info(self, dir_plot):
+        """
+        Store info to file specified by .format_info.
+        """
+        # Save info.
+        fname = self.get_fname_info()
+        path = os.path.join(dir_plot, fname)
+        if not self.info:
+            return
+        if self.format_save_run_param == 'pkl':
+            LFPy_util.other.save_kwargs(path, **self.info)
+        elif self.format_save_run_param == 'js':
+            LFPy_util.other.save_kwargs_json(path, **self.info)
+        else:
+            raise ValueError("Unsupported format")
 
     def save(self, dir_data):
         """

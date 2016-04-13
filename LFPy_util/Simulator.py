@@ -120,6 +120,13 @@ class Simulator(object):
         dir_neuron = self.get_path_neuron(index)
         return os.path.join(dir_neuron, self._str_plot_dir)
 
+    def get_dir_sim_plot(self, sim, index=0):
+        """
+        Get the directory the plotting folder of the spesific simulation.
+        """
+        dir_plot = self.get_dir_neuron_plot(index)
+        return os.path.join(dir_plot, sim.name)
+
     def get_path_sim_data(self, sim, index=0):
         """
         Get the path to the data file from a spesific simulation and neuron.
@@ -212,9 +219,11 @@ class Simulator(object):
             print "loading data from   : " \
                 + os.path.join(dir_data, sim.get_fname_data()) 
             sim.load(dir_data)
-            if not sim.data:
-                raise ValueError("No data to plot.")
+            # Commented out code to allow loading empty data.
+            # if not sim.data:
+            #     raise ValueError("No data to plot.")
         sim.process_data()
+        sim.save_info(dir_plot)
         sim.plot(dir_plot)
 
     def _simulate_neuron(self, index=0):
@@ -242,10 +251,11 @@ class Simulator(object):
                         print "new process         : "\
                             + self._neuron_list[index] \
                             + " " + sim.__str__()
-                    # Replace sim.data and sim.run_param with shared memory
+                    # Replace dictionaries with shared memory
                     # versions so data can be retrived from subprocesses.
                     sim.data = manager.dict(sim.data)
                     sim.run_param = manager.dict(sim.run_param)
+                    sim.info = manager.dict(sim.info)
 
                     process = Process(
                         target=Simulator._simulate,
@@ -292,12 +302,12 @@ class Simulator(object):
 
     def _plot_neuron(self, index):
         if self.verbose:
-            print "starting plotting   : "
+            print "starting plotting   : " + self._neuron_list[index]
         process_list = []
         for i, sim_or_func in enumerate(self._sim_stack):
             if isinstance(sim_or_func, LFPy_util.sims.Simulation):
                 sim = sim_or_func
-                dir_plot = self.get_dir_neuron_plot(index)
+                dir_plot = self.get_dir_sim_plot(sim, index)
                 dir_data = self.get_dir_neuron_data(index)
                 # Start each Simulation.plot in a new process.
                 process = Process(target=self._plot, args=(sim, dir_plot, dir_data))
