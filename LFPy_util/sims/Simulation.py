@@ -121,23 +121,25 @@ class Simulation(object):
         .format_save_run_param.
         """
         # Save data.
-        fname = self.get_fname_data()
-        path = os.path.join(dir_data, fname)
-        if self.format_save_data == 'pkl':
-            LFPy_util.other.save_kwargs(path, **self.data)
-        elif self.format_save_data == 'js':
-            LFPy_util.other.save_kwargs_json(path, **self.data)
-        else:
-            raise ValueError("Unsupported format")
+        if self.data:
+            fname = self.get_fname_data()
+            path = os.path.join(dir_data, fname)
+            if self.format_save_data == 'pkl':
+                LFPy_util.other.save_kwargs(path, **self.data)
+            elif self.format_save_data == 'js':
+                LFPy_util.other.save_kwargs_json(path, **self.data)
+            else:
+                raise ValueError("Unsupported format")
         # Save run param.
-        fname = self.get_fname_run_param()
-        path = os.path.join(dir_data, fname)
-        if self.format_save_run_param == 'pkl':
-            LFPy_util.other.save_kwargs(path, **self.run_param)
-        elif self.format_save_run_param == 'js':
-            LFPy_util.other.save_kwargs_json(path, **self.run_param)
-        else:
-            raise ValueError("Unsupported format")
+        if self.run_param:
+            fname = self.get_fname_run_param()
+            path = os.path.join(dir_data, fname)
+            if self.format_save_run_param == 'pkl':
+                LFPy_util.other.save_kwargs(path, **self.run_param)
+            elif self.format_save_run_param == 'js':
+                LFPy_util.other.save_kwargs_json(path, **self.run_param)
+            else:
+                raise ValueError("Unsupported format")
 
     def load(self, dir_data):
         """

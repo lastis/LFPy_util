@@ -17,7 +17,7 @@ class SphereRand(Simulation):
         self.set_name("sphere")
 
         self.debug = False
-        self.run_param['N'] = 500
+        self.run_param['N'] = 1000
         self.run_param['R'] = 50
         self.run_param['sigma'] = 0.3
         self.run_param['ext_method'] = 'som_as_point'
@@ -90,7 +90,7 @@ class SphereRand(Simulation):
         spike_index = process_param['spike_to_measure']
         if spike.shape[0] < spike_index:
             raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
-        spikes = data['LFP'][:, I[spike_index, 0]:I[spike_index, 1]]
+        spikes = v_vec[:, I[spike_index, 0]:I[spike_index, 1]]
 
         # Find widths of the spikes, trace can be used for plotting.
         widths_I, widths_I_trace = de.find_wave_width_type_I(spikes,
@@ -162,6 +162,8 @@ class SphereRand(Simulation):
         data['spikes'] = spikes
         data['spikes_t_vec'] = spikes_t_vec
 
+        self.info['spike_to_measure'] = process_param['spike_to_measure']
+
     def plot(self, dir_plot):
         data = self.data
         run_param = self.run_param
@@ -200,8 +202,8 @@ class SphereRand(Simulation):
                         data['amps_I_mean'] + data['amps_I_std'],
                         color=lplot.color_array_long[0],
                         alpha=0.2)
-        ax.set_ylabel("Amplitude")
-        ax.set_xlabel("Distance from Soma")
+        ax.set_ylabel(r"Amplitude \textbf{[\si{\micro\volt}]}")
+        ax.set_xlabel(r"Distance from Soma \textbf{[\si{\micro\metre}]}")
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()

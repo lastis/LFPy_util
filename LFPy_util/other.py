@@ -10,19 +10,19 @@ from neuron import hoc
 
 
 def collect_data(dir_neurons, sim, func):
-    if len(inspect.getargspec(func)[0]) != 4:
-        raise ValueError("DataCollection function must have 4 arguments.")
+    if len(inspect.getargspec(func)[0]) != 3:
+        raise ValueError("DataCollection function must have 3 arguments.")
     neurons = os.listdir(dir_neurons)
+    # The simulator class has helper functions for getting the correct
+    # paths to where data is stored. 
     s = LFPy_util.Simulator()
     s.set_dir_neurons(dir_neurons)
     for neuron in neurons:
         s.set_neuron_name(neuron)
-        path_data = s.get_path_sim_data(sim)
-        path_run_param = s.get_path_sim_run_param(sim)
-        sim.data = LFPy_util.other.load_kwargs(path_data)
-        sim.run_param = LFPy_util.other.load_kwargs_json(path_run_param)
+        dir_data = s.get_dir_neuron_data()
+        sim.load(dir_data)
         sim.process_data()
-        func(neuron, sim.name, sim.run_param, sim.data)
+        func(neuron, sim.run_param, sim.data)
 
 
 def nrnivmodl(directory='.', suppress=False):

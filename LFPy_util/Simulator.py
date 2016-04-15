@@ -33,9 +33,14 @@ class Simulator(object):
     def __str__(self):
         text = ""
         text += "## Simulator ##" + "\n"
-        text += "neurons             : " + self._neuron_list[0] + "\n"
-        for neuron in self._neuron_list[1:]:
-            text += "                    : " + neuron + "\n"
+        if len(self._neuron_list) > 0 :
+            text += "neurons             : " + self._neuron_list[0] + "\n"
+            for neuron in self._neuron_list[1:] :
+                text += "                    : " + neuron + "\n"
+        if len(self._sim_stack) > 0 :
+            text += "simulation list     : " + self._sim_stack[0].__str__() + "\n"
+            for sim in self._sim_stack[1:] :
+                text += "                    : " + sim.__str__() + "\n"
         text += "concurrent neurons  : " + str(self.concurrent_neurons) + "\n"
         text += "parallel            : " + str(self.parallel)
         return text
@@ -98,7 +103,7 @@ class Simulator(object):
         self._sim_stack = []
         self._sim_stack_flag = []
 
-    def get_path_neuron(self, index=0):
+    def get_dir_neuron(self, index=0):
         """
         Get directory path to neuron by index.
         """
@@ -109,7 +114,7 @@ class Simulator(object):
         Get the directory where the data of the simulation is stored.
         Index corresponds to list index in the names of the neurons.
         """
-        dir_neuron = self.get_path_neuron(index)
+        dir_neuron = self.get_dir_neuron(index)
         return os.path.join(dir_neuron, self._str_data_dir)
 
     def get_dir_neuron_plot(self, index=0):
@@ -117,7 +122,7 @@ class Simulator(object):
         Get the directory where the plots of the simulation is stored.
         Index corresponds to list index in the names of the neurons.
         """
-        dir_neuron = self.get_path_neuron(index)
+        dir_neuron = self.get_dir_neuron(index)
         return os.path.join(dir_neuron, self._str_plot_dir)
 
     def get_dir_sim_plot(self, sim, index=0):
