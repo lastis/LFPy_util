@@ -276,7 +276,9 @@ def morphology(poly_morph,
                y_label='y',
                fname=None,
                show=True,
-               plot_save_dir=None):
+               plot_save_dir=None,
+               numbering=False,
+               ):
     """
     """
     print "plotting            :", fname
@@ -348,11 +350,27 @@ def morphology(poly_morph,
             s=100,
             )
         if elec_x.shape[0] > 1 :
-            ax.set_ylim([elec_y.min(),elec_y.max()])
-            ax.set_xlim([elec_x.min(),elec_x.max()])
-        elif elec_x.shape[0] == 1 :
-            ax.set_ylim([-abs(elec_y[0]*1.5), abs(elec_y[0]*1.5)])
-            ax.set_xlim([-abs(elec_x[0]*1.5), abs(elec_x[0]*1.5)])
+            padding_x = abs(elec_x.max() - elec_x.min())*0.1
+            padding_y = abs(elec_y.max() - elec_y.min())*0.1
+            ax.set_xlim([elec_x.min()-padding_x, elec_x.max()+padding_x])
+            ax.set_ylim([elec_y.min()-padding_y, elec_y.max()+padding_y])
+        else :
+            padding_x = abs(elec_x[0]*2)*0.1
+            padding_y = abs(elec_y[0]*2)*0.1
+            ax.set_xlim([-abs(elec_x[0])-padding_x, abs(elec_x[0]+padding_x)])
+            ax.set_ylim([-abs(elec_y[0])-padding_y, abs(elec_y[0]+padding_y)])
+
+        if numbering:
+            for i in xrange(elec_x.shape[0]):
+                ax.annotate(
+                        str(i+1), 
+                        xy=(elec_x[i], elec_y[i]), 
+                        xycoords='data',
+                        xytext=(-padding_x, padding_y), 
+                        textcoords='offset points',
+                        horizontalalignment='right', 
+                        verticalalignment='bottom',
+                        )
 
         # Add axis label.
     ax.set_xlabel(x_label + '\n' +

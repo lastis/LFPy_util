@@ -26,6 +26,8 @@ class SpikeWidthDef(Simulation):
         self.run_param['sigma'] = 0.3
         self.run_param['ext_method'] = 'som_as_point'
         self.run_param['r'] = 50
+        # self.run_param['random_elec'] = True
+        self.run_param['N'] = 1
         self.run_param['seed'] = 1234
 
         self.process_param['amp_option'] = 'both'
@@ -41,12 +43,11 @@ class SpikeWidthDef(Simulation):
         run_param = self.run_param
         cell.simulate(rec_imem=True)
 
-        angle = np.random.uniform(0, 2*np.pi)
-        z = np.random.uniform(-1, 1) 
+        angle = np.random.uniform(0, 2*np.pi, size=run_param['N'])
+        z = np.random.uniform(-1, 1, size=run_param['N']) 
         x = np.sqrt(1-z*z)*np.cos(angle) * run_param['r']
         y = np.sqrt(1-z*z)*np.sin(angle) * run_param['r']
         z = z * run_param['r']
-
 
         # Record the LFP of the electrodes.
         electrode = LFPy.RecExtElectrode(cell,
@@ -78,7 +79,7 @@ class SpikeWidthDef(Simulation):
         run_param = self.run_param
         process_param = self.process_param
 
-        signal = data['LFP'][0]
+        signal = data['soma_v']
         spikes, spikes_t_vec, I = de.extract_spikes(
             data['t_vec'],
             signal,
@@ -87,6 +88,13 @@ class SpikeWidthDef(Simulation):
             threshold=process_param['threshold'],
             amp_option=process_param['amp_option'], 
             )
+
+        spike_index = process_param['spike_to_measure']
+        if spikes.shape[0] < spike_index:
+            raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
+        # Gather all spikes from the same indices as where the spike appears
+        # in the membrane potential.
+        spikes = data['LFP'][:, I[spike_index, 0]:I[spike_index, 1]]
 
         widths_I, widths_I_trace = de.find_wave_width_type_I(
             spikes,
@@ -99,12 +107,12 @@ class SpikeWidthDef(Simulation):
             amp_option=process_param['amp_option'],
             )
 
-        data['spike'] = spikes[process_param['spike_to_measure']]
-        data['spike_t_vec'] = spikes_t_vec
-        data['width_I'] = widths_I[process_param['spike_to_measure']]
-        data['width_I_trace'] = widths_I_trace[process_param['spike_to_measure']]
-        data['width_II'] = widths_II[process_param['spike_to_measure']]
-        data['width_II_trace'] = widths_II_trace[process_param['spike_to_measure']]
+        data['spikes'] = spikes
+        data['spikes_t_vec'] = spikes_t_vec
+        data['width_I'] = widths_I
+        data['width_I_trace'] = widths_I_trace
+        data['width_II'] = widths_II
+        data['width_II_trace'] = widths_II_trace
 
         self.info['elec_x'] = data['elec_x']
         self.info['elec_y'] = data['elec_y']
@@ -125,28 +133,29 @@ class SpikeWidthDef(Simulation):
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
 
-        # {{{ Plot 1
-        fname = self.name + '_extracellular'
-        print "plotting            :", fname
-        plt.figure(figsize=lplot.size_common)
-        ax = plt.gca()
-        lplot.nice_axes(ax)
-        # Plot
-        plt.plot(data['spike_t_vec'],
-                 data['spike'],
-                 color=lcmaps.get_color(0),
-                 )
-        plt.plot(data['spike_t_vec'],
-                 data['width_I_trace'],
-                 color=lcmaps.get_color(0.5),
-                 )
-        plt.plot(data['spike_t_vec'],
-                 data['width_II_trace'],
-                 color=lcmaps.get_color(0.5),
-                 )
-        # Save plt.
-        lplot.save_plt(plt, fname, dir_plot)
-        plt.close()
+        # {{{ Plot
+        for i in xrange(run_param['N']):
+            fname = self.name + '_extracellular_'+str(i+1)
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            # Plot
+            plt.plot(data['spikes_t_vec'],
+                     data['spikes'][i],
+                     color=lcmaps.get_color(0),
+                     )
+            plt.plot(data['spikes_t_vec'],
+                     data['width_I_trace'][i],
+                     color=lcmaps.get_color(0.5),
+                     )
+            plt.plot(data['spikes_t_vec'],
+                     data['width_II_trace'][i],
+                     color=lcmaps.get_color(0.5),
+                     )
+            # Save plt.
+            lplot.save_plt(plt, fname, dir_plot)
+            plt.close()
         # }}} 
         # {{{ Morphology
         LFPy_util.plot.morphology(data['poly_morph'],
@@ -156,7 +165,9 @@ class SpikeWidthDef(Simulation):
                                   fig_size=lplot.size_square,
                                   fname=self.name + "_morph_elec_xy",
                                   plot_save_dir=dir_plot,
-                                  show=False)
+                                  show=False,
+                                  numbering=True,
+                                  )
         # }}} 
         # {{{ Morphology xz
         LFPy_util.plot.morphology(data['poly_morph_xz'],
@@ -168,5 +179,7 @@ class SpikeWidthDef(Simulation):
                                   fig_size=lplot.size_square,
                                   fname=self.name + "_morph_elec_xz",
                                   plot_save_dir=dir_plot,
-                                  show=False)
+                                  show=False,
+                                  numbering=True,
+                                  )
         # }}} 

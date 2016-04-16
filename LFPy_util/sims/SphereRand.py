@@ -77,7 +77,7 @@ class SphereRand(Simulation):
         # Get the signal from the soma potential.
         # signal = data['LFP'][0]
         signal = data['soma_v']
-        spike, spikes_t_vec, I = de.extract_spikes(
+        spikes, spikes_t_vec, I = de.extract_spikes(
             data['t_vec'],
             signal,
             pre_dur=process_param['pre_dur'],
@@ -86,9 +86,9 @@ class SphereRand(Simulation):
             amp_option=process_param['amp_option'], 
             )
         # Gather all spikes from the same indices as where the spike appears
-        # in the first electrode.
+        # in the membrane potential.
         spike_index = process_param['spike_to_measure']
-        if spike.shape[0] < spike_index:
+        if spikes.shape[0] < spike_index:
             raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
         spikes = v_vec[:, I[spike_index, 0]:I[spike_index, 1]]
 
