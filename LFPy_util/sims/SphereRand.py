@@ -28,6 +28,11 @@ class SphereRand(Simulation):
         self.process_param['threshold'] = 3
         self.process_param['bins'] = 11
         self.process_param['spike_to_measure'] = 0 
+        self.process_param['assert_width'] = False
+        self.process_param['assert_width_I_low'] = 0.2 # ms
+        self.process_param['assert_width_I_high'] = 5 # ms
+        self.process_param['assert_width_II_low'] = 0.1 # ms
+        self.process_param['assert_width_II_high'] = 2.5 # ms
         self.plot_param['elec_to_plot'] = []
 
     def simulate(self, cell):
@@ -68,9 +73,9 @@ class SphereRand(Simulation):
         process_param = self.process_param
         t_vec = np.array(data['t_vec'])
         v_vec = np.array(data['LFP'])*1000
-        x = np.array(data['elec_x'])
-        y = np.array(data['elec_y'])
-        z = np.array(data['elec_z'])
+        x = np.array(data['elec_x']).flatten()
+        y = np.array(data['elec_y']).flatten()
+        z = np.array(data['elec_z']).flatten()
         # Calculate the radial distance to the electrodes.
         r = np.sqrt(x * x + y * y + z * z).flatten()
 
@@ -101,6 +106,28 @@ class SphereRand(Simulation):
             amp_option=self.process_param['amp_option'])
         amps_I = de.find_amplitude_type_I(spikes, amp_option=self.process_param['amp_option'])
         amps_II = de.find_amplitude_type_II(spikes)
+
+        # Remove spikes which does not look nice.
+        if process_param['assert_width']:
+            low = np.where(widths_I < process_param['assert_width_I_low'])[0]
+            high = np.where(widths_I > process_param['assert_width_I_high'])[0]
+            ignored_spikes_I = np.union1d(low, high)
+            low = np.where(widths_II < process_param['assert_width_II_low'])[0]
+            high = np.where(widths_II > process_param['assert_width_II_high'])[0]
+            ignored_spikes_II = np.union1d(low, high)
+            ignored_spikes = np.union1d(ignored_spikes_I, ignored_spikes_II)
+
+            spikes = np.delete(spikes, ignored_spikes, axis=0)
+            widths_I = np.delete(widths_I, ignored_spikes, axis=0)
+            widths_II = np.delete(widths_II, ignored_spikes, axis=0)
+            amps_I = np.delete(amps_I, ignored_spikes, axis=0)
+            amps_II = np.delete(amps_II, ignored_spikes, axis=0)
+            x = np.delete(x, ignored_spikes, axis=0)
+            y = np.delete(y, ignored_spikes, axis=0)
+            z = np.delete(z, ignored_spikes, axis=0)
+            r = np.delete(r, ignored_spikes, axis=0)
+            self.info['ignored_spikes_cnt'] = len(ignored_spikes)
+
         # Put widths_I in bins decided by the radial distance. 
         # Then calculate std and mean.
         bins = np.linspace(0, run_param['R'], self.process_param['bins'], endpoint=True)

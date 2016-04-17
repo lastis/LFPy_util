@@ -119,10 +119,13 @@ class Simulation(object):
         """
         Store run_param and data to files specified by .format_save_data and
         .format_save_run_param.
+        
+        Saves data and run_param if the dictionary is filled or if the file does 
+        not exist already.
         """
         # Save data.
-        if self.data:
-            fname = self.get_fname_data()
+        fname = self.get_fname_data()
+        if self.data or not os.path.isfile(fname):
             path = os.path.join(dir_data, fname)
             if self.format_save_data == 'pkl':
                 LFPy_util.other.save_kwargs(path, **self.data)
@@ -131,8 +134,8 @@ class Simulation(object):
             else:
                 raise ValueError("Unsupported format")
         # Save run param.
-        if self.run_param:
-            fname = self.get_fname_run_param()
+        fname = self.get_fname_run_param()
+        if self.run_param or not os.path.isfile(fname):
             path = os.path.join(dir_data, fname)
             if self.format_save_run_param == 'pkl':
                 LFPy_util.other.save_kwargs(path, **self.run_param)
