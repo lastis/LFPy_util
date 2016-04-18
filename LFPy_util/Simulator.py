@@ -5,6 +5,7 @@ import os
 import inspect
 from multiprocessing import Process, Manager
 import LFPy_util
+import numpy.random as random
 
 
 class Simulator(object):
@@ -25,6 +26,7 @@ class Simulator(object):
         self.verbose = True
         self.parallel = True
         self.concurrent_neurons = 1
+        self.assign_seed = None
 
         self.set_cell(cell)
         self.set_dir_neurons("neuron")
@@ -76,7 +78,7 @@ class Simulator(object):
         """
         if len(inspect.getargspec(func)[0]) != 1:
             raise ValueError("The load cell function must have one argument" +
-                             " and return a Cell object.")
+                             " and return a LFPy Cell object.")
         self._get_cell = func
 
     def _is_ready(self):
@@ -186,10 +188,19 @@ class Simulator(object):
         Start simulations.
         """
         self._is_ready()
+
+        if self.assign_seed is not None:
+            random.seed(self.assign_seed)
+
         process_list = []
         for i in xrange(len(self._neuron_list)):
             # For each neuron make a new process.
-            process = Process(target=Simulator._simulate_neuron, args=(self, i), )
+            if self.assign_seed is not None:
+                sub_seed = int(random.random()*1e6)
+            else:
+                sub_seed = None
+            arguments = (self, i, sub_seed)
+            process = Process(target=Simulator._simulate_neuron, args=arguments, )
             process_list.append(process)
 
         cnt = 0
@@ -231,10 +242,14 @@ class Simulator(object):
         sim.save_info(dir_plot)
         sim.plot(dir_plot)
 
-    def _simulate_neuron(self, index=0):
+    def _simulate_neuron(self, index=0, seed=None):
         # This function (can be) is run in
         # parallel. Which means there are multiple instances of self and
         # hopefully all of its parameters have been deep copied.
+        
+        if seed is not None:
+            random.seed(seed)
+
         cell = self._cell
         if cell is None:
             cell = self._get_cell(self._neuron_list[index])
@@ -248,6 +263,9 @@ class Simulator(object):
             flag = self._sim_stack_flag[i]
             if isinstance(sim_or_func, LFPy_util.sims.Simulation):
                 sim = sim_or_func
+                if seed is not None:
+                    sim.run_param['seed'] = int(random.random()*1e6)
+
                 dir_data = self.get_dir_neuron_data(index)
                 # Start the simulation in a new process if the 
                 # flag is true.
@@ -256,11 +274,11 @@ class Simulator(object):
                         print "new process         : "\
                             + self._neuron_list[index] \
                             + " " + sim.__str__()
-                    # Replace dictionaries with shared memory
-                    # versions so data can be retrived from subprocesses.
-                    sim.data = manager.dict(sim.data)
-                    sim.run_param = manager.dict(sim.run_param)
-                    sim.info = manager.dict(sim.info)
+                    # # Replace dictionaries with shared memory
+                    # # versions so data can be retrived from subprocesses.
+                    # sim.data = manager.dict(sim.data)
+                    # sim.run_param = manager.dict(sim.run_param)
+                    # sim.info = manager.dict(sim.info)
 
                     process = Process(
                         target=Simulator._simulate,

@@ -21,6 +21,7 @@ class SphereRand(Simulation):
         self.run_param['R'] = 50
         self.run_param['sigma'] = 0.3
         self.run_param['ext_method'] = 'som_as_point'
+        self.run_param['seed'] = 1234
 
         self.process_param['amp_option'] = 'both'
         self.process_param['pre_dur'] = 16.7 * 0.5
@@ -39,6 +40,7 @@ class SphereRand(Simulation):
         data = self.data
         run_param = self.run_param
         # Calculate random numbers in a sphere.
+        np.random.seed(run_param['seed'])
         l = np.random.uniform(0, 1, run_param['N'])
         u = np.random.uniform(-1, 1, run_param['N'])
         phi = np.random.uniform(0, 2 * np.pi, run_param['N'])
