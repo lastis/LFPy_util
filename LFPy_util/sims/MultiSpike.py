@@ -73,6 +73,7 @@ class MultiSpike(Simulation):
     def simulate(self, cell):
         run_param = self.run_param
         amp = self.get_previous_amp()
+        self.run_param['init_amp'] = amp
 
         # String to put before output to the terminal.
         str_start = self.name
@@ -110,11 +111,11 @@ class MultiSpike(Simulation):
             process.start()
             process.join()
 
-            # Change the amplitude according to the spike cnt.
             spike_cnt = sub_data.get('spike_cnt', 0)
             if self.verbose:
                 print str_start + 'Found {} spikes at current {} nA.'.format(spike_cnt,
                                                                  amp)
+            # Change the amplitude according to the spike cnt.
             if spike_cnt == run_param['spikes']:
                 break
             elif spike_cnt < run_param['spikes']:

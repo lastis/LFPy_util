@@ -80,7 +80,7 @@ class SpikeWidthDef(Simulation):
         process_param = self.process_param
 
         signal = data['soma_v']
-        spikes, spikes_t_vec, I = de.extract_spikes(
+        spikes_soma, spikes_t_vec, I = de.extract_spikes(
             data['t_vec'],
             signal,
             pre_dur=process_param['pre_dur'],
@@ -90,7 +90,7 @@ class SpikeWidthDef(Simulation):
             )
 
         spike_index = process_param['spike_to_measure']
-        if spikes.shape[0] < spike_index:
+        if spikes_soma.shape[0] < spike_index:
             raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
         # Gather all spikes from the same indices as where the spike appears
         # in the membrane potential.
@@ -107,12 +107,28 @@ class SpikeWidthDef(Simulation):
             amp_option=process_param['amp_option'],
             )
 
+        widths_I_soma, widths_I_trace_soma = de.find_wave_width_type_I(
+            spikes_soma[spike_index],
+            dt=data['dt'],
+            )
+
+        widths_II_soma, widths_II_trace_soma = de.find_wave_width_type_II(
+            spikes_soma[spike_index],
+            dt=data['dt'],
+            amp_option=process_param['amp_option'],
+            )
+
         data['spikes'] = spikes
         data['spikes_t_vec'] = spikes_t_vec
+        data['spike_soma'] = spikes_soma[spike_index]
         data['width_I'] = widths_I
         data['width_I_trace'] = widths_I_trace
         data['width_II'] = widths_II
         data['width_II_trace'] = widths_II_trace
+        data['width_I_soma'] = widths_I_soma
+        data['width_I_trace_soma'] = widths_I_trace_soma[0]
+        data['width_II_soma'] = widths_II_soma
+        data['width_II_trace_soma'] = widths_II_trace_soma[0]
 
         self.info['elec_x'] = data['elec_x']
         self.info['elec_y'] = data['elec_y']
@@ -133,6 +149,73 @@ class SpikeWidthDef(Simulation):
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
 
+        # {{{ Plot soma voltage.
+        fname = self.name + '_soma_mem'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        plt.plot(data['spikes_t_vec'],
+                 data['spike_soma'],
+                 color=lcmaps.get_color(0),
+                 )
+        plt.plot(data['spikes_t_vec'],
+                 data['width_I_trace_soma'],
+                 color=lcmaps.get_color(0.5),
+                 )
+        plt.plot(data['spikes_t_vec'],
+                 data['width_II_trace_soma'],
+                 color=lcmaps.get_color(0.5),
+                 )
+
+        # Plot annotations type I.
+        # Get linesegments from the trace.
+        lines_x, lines_y = lplot._get_line_segments(
+                data['spikes_t_vec'], 
+                data['width_II_trace_soma'],
+                )
+        width = round(data['width_II_soma'], 3)
+        plt.hold('on')
+        text = r"\SI{" + str(width) + "}{\milli\second}"
+        ax.annotate(text,
+                    xy=(lines_x[0, 0] + 0.5*width, lines_y[0, 0]),
+                    xycoords='data',
+                    xytext=(20, -20),
+                    textcoords='offset points',
+                    va="center",
+                    ha="left",
+                    bbox=dict(boxstyle="round4",
+                              fc="w"),
+                    arrowprops=dict(arrowstyle="-|>",
+                                    connectionstyle="arc3,rad=-0.2",
+                                    fc="w"), )
+
+        # Plot annotations type II.
+        # Get linesegments from the trace.
+        lines_x, lines_y = lplot._get_line_segments(
+                data['spikes_t_vec'], 
+                data['width_I_trace_soma'],
+                )
+        width = round(data['width_I_soma'], 3)
+        plt.hold('on')
+        text = r"\SI{" + str(width) + "}{\milli\second}"
+        ax.annotate(text,
+                    xy=(lines_x[0, 0] + 0.5*width, lines_y[0, 0]),
+                    xycoords='data',
+                    xytext=(20, -20),
+                    textcoords='offset points',
+                    va="center",
+                    ha="left",
+                    bbox=dict(boxstyle="round4",
+                              fc="w"),
+                    arrowprops=dict(arrowstyle="-|>",
+                                    connectionstyle="arc3,rad=-0.2",
+                                    fc="w"), )
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
         # {{{ Plot
         for i in xrange(run_param['N']):
             fname = self.name + '_extracellular_'+str(i+1)

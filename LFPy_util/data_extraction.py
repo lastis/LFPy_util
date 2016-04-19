@@ -459,7 +459,7 @@ def find_wave_width_type_II(matrix, threshold=0.5, dt=1, amp_option='both'):
     trace = np.empty(matrix.shape)
     trace[:] = np.NAN
     for row in xrange(matrix.shape[0]):
-        signal = matrix[row]
+        signal = matrix[row].copy()
         signal -= signal[0]
         # Flip the signal if the negative side should be used.
         if amp_option == 'neg':
@@ -486,7 +486,7 @@ def find_wave_width_type_I(matrix, dt=1):
     trace = np.empty(matrix.shape)
     trace[:] = np.NAN
     for row in xrange(matrix.shape[0]):
-        signal = matrix[row]
+        signal = matrix[row].copy()
         offset = signal[0]
         signal -= offset
         # Assume that maximum abs. value is the "spiking" direction.
