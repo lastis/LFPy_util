@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import LFPy_util
 import LFPy_util.data_extraction as de
 import LFPy_util.plot as lplot
+import LFPy_util.colormaps as lcmaps
 import warnings
 from LFPy_util.sims.Simulation import Simulation
 
@@ -31,9 +32,9 @@ class SphereRand(Simulation):
         self.process_param['spike_to_measure'] = 0 
         self.process_param['assert_width'] = False
         self.process_param['assert_width_I_low'] = 0.2 # ms
-        self.process_param['assert_width_I_high'] = 5 # ms
+        self.process_param['assert_width_I_high'] = 3 # ms
         self.process_param['assert_width_II_low'] = 0.1 # ms
-        self.process_param['assert_width_II_high'] = 2.5 # ms
+        self.process_param['assert_width_II_high'] = 2.0 # ms
         self.plot_param['elec_to_plot'] = []
 
     def simulate(self, cell):
@@ -110,6 +111,8 @@ class SphereRand(Simulation):
         amps_II = de.find_amplitude_type_II(spikes)
 
         # Remove spikes which does not look nice.
+        data['widths_I_original'] = widths_I
+        data['widths_II_original'] = widths_II
         if process_param['assert_width']:
             low = np.where(widths_I < process_param['assert_width_I_low'])[0]
             high = np.where(widths_I > process_param['assert_width_I_high'])[0]
@@ -196,6 +199,7 @@ class SphereRand(Simulation):
     def plot(self, dir_plot):
         data = self.data
         run_param = self.run_param
+        process_param = self.process_param
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
 
@@ -345,10 +349,28 @@ class SphereRand(Simulation):
         ax = plt.gca()
         lplot.nice_axes(ax)
         # Plot
-        plt.scatter(data['widths_II'],
-                    data['widths_I'],
+        plt.scatter(data['widths_II_original'],
+                    data['widths_I_original'],
                     color=lplot.color_array_long[0],
                     marker='x')
+        # Add lines to represent the cutoff limits.
+        if process_param['assert_width']:
+            plt.axhline(
+                    process_param['assert_width_I_low'], 
+                    color=lcmaps.get_color(0.8),
+                    )
+            plt.axhline(
+                    process_param['assert_width_I_high'], 
+                    color=lcmaps.get_color(0.8),
+                    )
+            plt.axvline(
+                    process_param['assert_width_II_low'], 
+                    color=lcmaps.get_color(0.8),
+                    )
+            plt.axvline(
+                    process_param['assert_width_II_high'], 
+                    color=lcmaps.get_color(0.8),
+                    )
         ax.set_xlabel("Spike Width Type II")
         ax.set_ylabel("Spike Width Type I")
         # ax.set_aspect('equal')
