@@ -152,7 +152,7 @@ class SpikeWidthDef(Simulation):
         # {{{ Plot soma voltage.
         fname = self.name + '_soma_mem'
         print "plotting            :", fname
-        plt.figure(figsize=lplot.size_common)
+        fig = plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
         lplot.nice_axes(ax)
         # Plot
@@ -212,8 +212,13 @@ class SpikeWidthDef(Simulation):
                     arrowprops=dict(arrowstyle="-|>",
                                     connectionstyle="arc3,rad=-0.2",
                                     fc="w"), )
+        ax.set_ylabel(r"Amplitude \textbf{[\si{\milli\volt}]}")
+        ax.set_xlabel(r"Time \textbf{[\si{\milli\second}]}")
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
+        # Change size and save again.
+        fig.set_size_inches(lplot.size_square)
+        lplot.save_plt(plt, fname+'_small', dir_plot)
         plt.close()
         # }}} 
         # {{{ Plot

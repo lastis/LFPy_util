@@ -12,6 +12,7 @@ plot_format = ['pdf']
 color_array_long = cmaps._viridis_data
 
 # Some plot sizes that fit well with A4 papers.
+
 size_square_small = [3, 3]
 size_square = [4, 4]
 size_common = [8, 4]
