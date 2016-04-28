@@ -1,12 +1,11 @@
 from scipy.signal import butter, filtfilt, lfilter
-from LFPy_util.sims.SphereRand import SphereRand
+from LFPy_util.sims.SpikeWidthDef import SpikeWidthDef
 
-class SphereRandFilt(SphereRand):
-    """docstring for SphereRandFilt"""
+class SpikeWidthDefFilt(SpikeWidthDef):
     def __init__(self):
-        SphereRand.__init__(self)
-        self.name = 'spherefilt'
-        self.name_save_load = 'sphere'
+        SpikeWidthDef.__init__(self)
+        self.name = 'widthdeffilt'
+        self.name_save_load = 'widthdef'
 
         self.simulate = True
         self.process_param['freq_low'] = 0.3 # kHz
@@ -17,7 +16,7 @@ class SphereRandFilt(SphereRand):
     def simulate(self, cell):
         if self.simulate == False:
             return
-        SphereRand.simulate(self, cell)
+        SpikeWidthDef.simulate(self, cell)
         
     def process_data(self):
         run_param = self.run_param
@@ -39,4 +38,4 @@ class SphereRandFilt(SphereRand):
             raise ValueError("process_param['filter'] is not a valid string.")
 
         # Run the rest of the processing.
-        SphereRand.process_data(self)
+        SpikeWidthDef.process_data(self)

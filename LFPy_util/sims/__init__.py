@@ -10,3 +10,4 @@ from LFPy_util.sims.MultiSpike import MultiSpike
 from LFPy_util.sims.SymmetryFiltered import SymmetryFiltered
 from LFPy_util.sims.DiscXY import DiscXY
 from LFPy_util.sims.SpikeWidthDef import SpikeWidthDef
+from LFPy_util.sims.SpikeWidthDefFilt import SpikeWidthDefFilt
