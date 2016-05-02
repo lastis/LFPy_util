@@ -7,14 +7,14 @@ class SpikeWidthDefFilt(SpikeWidthDef):
         self.name = 'widthdeffilt'
         self.name_save_load = 'widthdef'
 
-        self.simulate = True
+        self.skip_simulation = False
         self.process_param['freq_low'] = 0.3 # kHz
         self.process_param['freq_high'] = 6.7 # kHz
         self.process_param['order'] = 2
         self.process_param['filter'] = 'filtfilt'
 
     def simulate(self, cell):
-        if self.simulate == False:
+        if self.skip_simulation:
             return
         SpikeWidthDef.simulate(self, cell)
         

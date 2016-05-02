@@ -62,6 +62,7 @@ class SphereRand(Simulation):
         electrode.method = run_param['ext_method']
         electrode.calc_lfp()
 
+
         data['LFP'] = electrode.LFP
         data['elec_x'] = x
         data['elec_y'] = y
@@ -69,6 +70,14 @@ class SphereRand(Simulation):
         data['t_vec'] = cell.tvec
         data['soma_v'] = cell.somav
         data['dt'] = cell.timeres_NEURON
+        data['poly_morph'] \
+                = de.get_polygons_no_axon(cell,['x','y'])
+        data['poly_morph_axon'] \
+                = de.get_polygons_axon(cell,['x','y'])
+        data['poly_morph_xz'] \
+                = de.get_polygons_no_axon(cell,['x','z'])
+        data['poly_morph_axon_xz'] \
+                = de.get_polygons_axon(cell,['x','z'])
 
     def process_data(self):
         data = self.data
@@ -202,7 +211,16 @@ class SphereRand(Simulation):
         process_param = self.process_param
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
-
+        # Plot morphology {{{ #
+        LFPy_util.plot.morphology(data['poly_morph'],
+                                  data['poly_morph_axon'],
+                                  elec_x=data['elec_x'],
+                                  elec_y=data['elec_y'],
+                                  fig_size=lplot.size_square,
+                                  fname=self.name + "_morph_elec_xy",
+                                  plot_save_dir=dir_plot,
+                                  show=False)
+        # }}} #
         # Plot 3d points {{{1 #
         # 3D plot.
         fname = self.name + "_elec_pos"

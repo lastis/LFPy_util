@@ -37,6 +37,8 @@ class SpikeWidthDef(Simulation):
         # Index of the spike to measure from.
         self.process_param['spike_to_measure'] = 0
 
+        self.plot_param['freq_end'] = 3*pq.kHz
+
     def simulate(self, cell):
         # pylint: disable=invalid-name,no-member
         data = self.data
@@ -118,6 +120,16 @@ class SpikeWidthDef(Simulation):
             amp_option=process_param['amp_option'],
             )
 
+        freq, amp, phase = \
+            LFPy_util.data_extraction.find_freq_and_fft(data['dt'], spikes)
+        # Remove the first coefficient as we don't care about the baseline.
+        freq = np.delete(freq, 0)
+        amp = np.delete(amp, 0, axis=1)
+
+        data['freq'] = freq * pq.kHz
+        data['amp'] = amp
+        data['phase'] = phase
+
         data['spikes'] = spikes
         data['spikes_t_vec'] = spikes_t_vec
         data['spike_soma'] = spikes_soma[spike_index]
@@ -149,6 +161,49 @@ class SpikeWidthDef(Simulation):
         # Set global matplotlib parameters.
         LFPy_util.plot.set_rc_param()
 
+        # {{{ Plot Ext. Elec. Overlay
+        fname = self.name + '_ext_all'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        for i in xrange(run_param['N']):
+            # Plot
+            plt.plot(data['spikes_t_vec'],
+                     data['spikes'][i]/np.abs(data['spikes'][i].min()),
+                     color=lcmaps.get_color(0),
+                     alpha=0.3,
+                     )
+            ax.set_xlabel(r"Time \textbf{[\si{\milli\second}]}")
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
+        # {{{ Plot Ext. Elec. Fourier
+        freq = data['freq']
+        amps = data['amp']
+        if self.plot_param['freq_end'] is not None:
+            idx = min(
+                range(len(freq)), 
+                key=lambda i: abs(freq[i] - self.plot_param['freq_end'])
+                )
+            freq = freq[0:idx]
+            amps = amps[:,:idx]
+        for i in xrange(run_param['N']):
+            amp = amps[i]
+            fname = self.name + '_ext'+str(i+1) + "_fourier"
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            # Plot
+            plt.plot(freq, amp, color=lcmaps.get_color(0))
+            ax.set_ylabel(r'Amplitude \textbf{[\si{\milli\volt}]}')
+            ax.set_xlabel(r'Frequency \textbf{[\si{\kilo\hertz}]}')
+            # Save plt.
+            lplot.save_plt(plt, fname, dir_plot)
+            plt.close()
+        # }}} 
         # {{{ Plot soma voltage.
         fname = self.name + '_soma_mem'
         print "plotting            :", fname
@@ -199,7 +254,7 @@ class SpikeWidthDef(Simulation):
                 )
         width = round(data['width_I_soma'], 3)
         plt.hold('on')
-        text = r"\SI{" + str(width) + "}{\milli\second}"
+        text = r"\SI{" + str(width) + r"}{\milli\second}"
         ax.annotate(text,
                     xy=(lines_x[0, 0] + 0.5*width, lines_y[0, 0]),
                     xycoords='data',
@@ -212,7 +267,7 @@ class SpikeWidthDef(Simulation):
                     arrowprops=dict(arrowstyle="-|>",
                                     connectionstyle="arc3,rad=-0.2",
                                     fc="w"), )
-        ax.set_ylabel(r"Amplitude \textbf{[\si{\milli\volt}]}")
+        ax.set_ylabel(r"Mem. Pot. \textbf{[\si{\milli\volt}]}")
         ax.set_xlabel(r"Time \textbf{[\si{\milli\second}]}")
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
@@ -221,9 +276,9 @@ class SpikeWidthDef(Simulation):
         lplot.save_plt(plt, fname+'_small', dir_plot)
         plt.close()
         # }}} 
-        # {{{ Plot
+        # {{{ Plot Ext. Elec.
         for i in xrange(run_param['N']):
-            fname = self.name + '_extracellular_'+str(i+1)
+            fname = self.name + '_ext'+str(i+1)
             print "plotting            :", fname
             plt.figure(figsize=lplot.size_common)
             ax = plt.gca()
@@ -241,6 +296,24 @@ class SpikeWidthDef(Simulation):
                      data['width_II_trace'][i],
                      color=lcmaps.get_color(0.5),
                      )
+            ax.set_ylabel(r"Potential \textbf{[\si{\micro\volt}]}")
+            ax.set_xlabel(r"Time \textbf{[\si{\milli\second}]}")
+            # Save plt.
+            lplot.save_plt(plt, fname, dir_plot)
+            plt.close()
+
+            fname = self.name + '_ext'+str(i+1)+'_full'
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            # Plot
+            plt.plot(data['t_vec'],
+                     data['LFP'][i],
+                     color=lcmaps.get_color(0),
+                     )
+            ax.set_ylabel(r"Potential \textbf{[\si{\micro\volt}]}")
+            ax.set_xlabel(r"Time \textbf{[\si{\milli\second}]}")
             # Save plt.
             lplot.save_plt(plt, fname, dir_plot)
             plt.close()
