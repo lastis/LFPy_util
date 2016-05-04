@@ -28,6 +28,7 @@ class SphereRand(Simulation):
         self.process_param['pre_dur'] = 16.7 * 0.5
         self.process_param['post_dur'] = 16.7 * 0.5
         self.process_param['threshold'] = 3
+        self.process_param['width_half_thresh'] = 0.5
         self.process_param['bins'] = 11
         self.process_param['spike_to_measure'] = 0 
         self.process_param['assert_width'] = False
@@ -114,6 +115,7 @@ class SphereRand(Simulation):
                                                              dt=data['dt'])
         widths_II, widths_II_trace = de.find_wave_width_type_II(
             spikes,
+            threshold=process_param['width_half_thresh'],
             dt=data['dt'],
             amp_option=self.process_param['amp_option'])
         amps_I = de.find_amplitude_type_I(spikes, amp_option=self.process_param['amp_option'])
