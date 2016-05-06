@@ -76,7 +76,8 @@ def maxabs(a, axis=None):
 
 def find_spikes(t_vec, v_vec, threshold=4, pre_dur=0, post_dur=0, amp_option='both'):
     """
-    Get the indices of the spikes.
+    Get the indices of the spikes. 
+    pre_dur and post_dur are used to ignore spikes at the end and start of signal.
     """
     # pylint: disable=no-member
     v_vec = zscore(v_vec)
@@ -93,8 +94,7 @@ def find_spikes(t_vec, v_vec, threshold=4, pre_dur=0, post_dur=0, amp_option='bo
     elif amp_option == 'neg':
         v_vec = - v_vec
     elif amp_option == 'both':
-        v_vec = np.fabs(v_vec)
-
+        v_vec = -v_vec if -v_vec.min() > v_vec.max() else v_vec
 
     # Find local maxima.
     max_idx = argrelextrema(v_vec, np.greater)[0]

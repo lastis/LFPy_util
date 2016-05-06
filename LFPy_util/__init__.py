@@ -1,7 +1,7 @@
 import LFPy_util.colormaps
 import LFPy_util.data_extraction
 import LFPy_util.electrodes
-# Not supported anymore.
+# Not supported.
 # import LFPy_util.meshgen
 import LFPy_util.plot
 import LFPy_util.rotation

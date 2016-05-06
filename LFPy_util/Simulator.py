@@ -140,10 +140,10 @@ class Simulator(object):
     def _plot(sim, dir_plot, dir_data):
         print "loading data from   : " \
             + os.path.join(dir_data, sim.get_fname_data()) 
-        sim.load(dir_data)
-        # Commented out code to allow loading empty data.
-        # if not sim.data:
-        #     raise ValueError("No data to plot.")
+        try:
+            sim.load(dir_data)
+        except IOError:
+            pass
         sim.process_data()
         sim.save_info(dir_plot)
         sim.plot(dir_plot)
