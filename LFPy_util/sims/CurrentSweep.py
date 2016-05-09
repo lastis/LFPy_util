@@ -124,6 +124,8 @@ class CurrentSweep(Simulation):
         plt.plot(data['amps']*1000,
                  data['freqs'],
                  color=lcmaps.get_color(0),
+                 marker='o',
+                 markersize=5,
                  )
         ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
         # Save plt.
