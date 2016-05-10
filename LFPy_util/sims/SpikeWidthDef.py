@@ -45,6 +45,7 @@ class SpikeWidthDef(Simulation):
         run_param = self.run_param
         cell.simulate(rec_imem=True)
 
+        np.random.seed(run_param['seed'])
         angle = np.random.uniform(0, 2*np.pi, size=run_param['N'])
         z = np.random.uniform(-1, 1, size=run_param['N']) 
         x = np.sqrt(1-z*z)*np.cos(angle) * run_param['r']
