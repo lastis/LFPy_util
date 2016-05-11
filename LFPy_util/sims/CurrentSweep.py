@@ -102,9 +102,12 @@ class CurrentSweep(Simulation):
 
         freqs = np.zeros(run_param['sweeps'])
         isi = np.zeros(run_param['sweeps'])
+        freqs_elec = np.zeros(run_param['sweeps'])
+        isi_elec = np.zeros(run_param['sweeps'])
         
         # Find firing frequency and inter spike interval.
         for i in xrange(run_param['sweeps']):
+            # Soma.
             spike_indices = de.find_spikes(
                 data['t_vec'],
                 data['v_vec_soma'][i],
@@ -126,6 +129,13 @@ class CurrentSweep(Simulation):
         widths_II_soma = [None]*run_param['sweeps']
         widths_II_soma_mean = np.zeros(run_param['sweeps'])
 
+        spikes_elec = [None]*run_param['sweeps']
+        widths_I_elec = [None]*run_param['sweeps']
+        widths_I_elec_mean = np.zeros(run_param['sweeps'])
+        widths_II_elec = [None]*run_param['sweeps']
+        widths_II_elec_mean = np.zeros(run_param['sweeps'])
+
+        # Soma spikes and widths.
         for i in xrange(run_param['sweeps']):
             spikes_soma[i], spikes_t_vec, I = de.extract_spikes(
                 data['t_vec'],
@@ -154,20 +164,50 @@ class CurrentSweep(Simulation):
                 amp_option=process_param['amp_option'],
                 )
 
-            # with warnings.catch_warnings():
-            #     # Ignore warnings where mean or var has zero sized array as input.
-            #     warnings.simplefilter("ignore", category=RuntimeWarning)
+        # Electrode spikes and widths.
+        for i in xrange(run_param['sweeps']):
+            spikes_elec[i], spikes_t_vec, I = de.extract_spikes(
+                data['t_vec'],
+                data['v_vec_elec'][i],
+                pre_dur=process_param['pre_dur'],
+                post_dur=process_param['post_dur'],
+                threshold=process_param['threshold'],
+                amp_option=process_param['amp_option'], 
+                )
 
-            widths_I_soma_mean[i] = np.mean(widths_I_soma[i])
-            widths_II_soma_mean[i] = np.mean(widths_II_soma[i])
+            if spikes_elec[i].shape[0] == 0:
+                widths_I_elec[i] = []
+                widths_I_elec_mean[i] = 0
+                widths_II_elec[i] = []
+                widths_II_elec_mean[i] = 0
+                continue
 
+            widths_I_elec[i], trace = de.find_wave_width_type_I(
+                spikes_elec[i],
+                dt=data['dt'],
+                )
+
+            widths_II_elec[i], trace = de.find_wave_width_type_II(
+                spikes_elec[i],
+                dt=data['dt'],
+                amp_option=process_param['amp_option'],
+                )
+
+            widths_I_elec_mean[i] = np.mean(widths_I_elec[i])
+            widths_II_elec_mean[i] = np.mean(widths_II_elec[i])
+
+        data['freqs'] = freqs
+        data['isi'] = isi
 
         data['widths_I_soma'] = widths_I_soma
         data['widths_I_soma_mean'] = widths_I_soma_mean
         data['widths_II_soma'] = widths_II_soma
         data['widths_II_soma_mean'] = widths_II_soma_mean
-        data['freqs'] = freqs
-        data['isi'] = isi
+
+        data['widths_I_elec'] = widths_I_elec
+        data['widths_I_elec_mean'] = widths_I_elec_mean
+        data['widths_II_elec'] = widths_II_elec
+        data['widths_II_elec_mean'] = widths_II_elec_mean
 
     def plot(self, dir_plot):
         data = self.data
@@ -228,7 +268,7 @@ class CurrentSweep(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
-        # {{{ Plot spike width over current I
+        # {{{ Plot spike width over current I soma
         fname = self.name + '_soma_width_current_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
@@ -245,7 +285,7 @@ class CurrentSweep(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
-        # {{{ Plot spike width over current II
+        # {{{ Plot spike width over current II soma
         fname = self.name + '_soma_width_current_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
@@ -253,6 +293,40 @@ class CurrentSweep(Simulation):
         lplot.nice_axes(ax)
         plt.plot(data['amps']*1000,
                  data['widths_II_soma_mean'],
+                 color=lcmaps.get_color(0),
+                 marker='o',
+                 markersize=5,
+                 )
+        ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
+        # {{{ Plot spike width over current I elec
+        fname = self.name + '_elec_width_current_I'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(data['amps']*1000,
+                 data['widths_I_elec_mean'],
+                 color=lcmaps.get_color(0),
+                 marker='o',
+                 markersize=5,
+                 )
+        ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
+        # {{{ Plot spike width over current II elec
+        fname = self.name + '_elec_width_current_II'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(data['amps']*1000,
+                 data['widths_II_elec_mean'],
                  color=lcmaps.get_color(0),
                  marker='o',
                  markersize=5,
