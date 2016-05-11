@@ -74,12 +74,14 @@ def maxabs(a, axis=None):
     out[n] = mina[n]
     return out
 
-def find_spikes(t_vec, v_vec, threshold=4, pre_dur=0, post_dur=0, amp_option='both'):
+def find_spikes(t_vec, v_vec, threshold=4, pre_dur=0, post_dur=0, amp_option='both',
+        threshold_abs=None):
     """
     Get the indices of the spikes. 
     pre_dur and post_dur are used to ignore spikes at the end and start of signal.
     """
     # pylint: disable=no-member
+    v_vec_original = v_vec
     v_vec = zscore(v_vec)
     threshold = np.fabs(threshold)
     dt = t_vec[1] - t_vec[0]
@@ -94,7 +96,9 @@ def find_spikes(t_vec, v_vec, threshold=4, pre_dur=0, post_dur=0, amp_option='bo
     elif amp_option == 'neg':
         v_vec = - v_vec
     elif amp_option == 'both':
-        v_vec = -v_vec if -v_vec.min() > v_vec.max() else v_vec
+        if -v_vec.min() > v_vec.max():
+            v_vec = -v_vec 
+            v_vec_original = -v_vec_original 
 
     # Find local maxima.
     max_idx = argrelextrema(v_vec, np.greater)[0]
@@ -103,6 +107,9 @@ def find_spikes(t_vec, v_vec, threshold=4, pre_dur=0, post_dur=0, amp_option='bo
     max_idx = max_idx[v_max > threshold]
     max_idx = max_idx[max_idx > pre_idx]
     max_idx = max_idx[max_idx < post_idx]
+    if threshold_abs is not None:
+        v_max_original = v_vec_original[max_idx]
+        max_idx = max_idx[v_max_original > threshold_abs]
 
     return max_idx
 
@@ -144,7 +151,8 @@ def extract_spikes(t_vec,
                    pre_dur=16.7*0.5,
                    post_dur=16.7*0.5,
                    threshold=4,
-                   amp_option='both'):
+                   amp_option='both',
+                   threshold_abs=None):
     """
     Get a new matrix of all spikes of the input v_vec.
     """
@@ -166,10 +174,14 @@ def extract_spikes(t_vec,
 
     v_vec_unmod = v_vec
     v_vec = zscore(v_vec)
-    if amp_option == 'both':
-        v_vec = np.fabs(v_vec)
+    if amp_option == 'pos':
+        pass
     elif amp_option == 'neg':
-        v_vec = -v_vec
+        v_vec = - v_vec
+    elif amp_option == 'both':
+        if -v_vec.min() > v_vec.max():
+            v_vec = -v_vec 
+            v_vec_unmod = -v_vec_unmod 
 
     # Find local maxima (or minima).
     max_idx = argrelextrema(v_vec, np.greater)[0]
@@ -180,12 +192,16 @@ def extract_spikes(t_vec,
         return np.array([]), np.array([]), np.array([])
     # Only count local maxima over threshold as spikes.
     v_max = v_vec[max_idx]
+    v_max_unmod = v_vec_unmod[max_idx]
     length = len(v_max) - 1
     for i in xrange(length, -1, -1):
         # Remove local maxima that is not above threshold or if the spike
         # shape cannot fit inside pre_dur and post_dur
-        if (v_max[i] < threshold or max_idx[i] < pre_idx or
-                max_idx[i] + post_idx > len(t_vec)):
+        check_1 = v_max[i] < threshold
+        check_2 = max_idx[i] < pre_idx
+        check_3 = max_idx[i] + post_idx > len(t_vec)
+        check_4 = v_max_unmod[i] < threshold_abs
+        if (check_1 or check_2 or check_3 or check_4):
             v_max = np.delete(v_max, i)
             max_idx = np.delete(max_idx, i)
 
