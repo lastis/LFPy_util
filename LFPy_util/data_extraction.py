@@ -239,7 +239,8 @@ def find_freq_and_fft(timestep, signal, length=None, axis=-1, f_cut=None):
     if length is None:
         length = signal.shape[axis]
     freqs = ff.fftfreq(length, d=timestep)
-    freqs = freqs[:N/2]
+    # freqs = freqs[:N/2]
+    freqs = np.array_split(freqs, 2)[0]
     ft = ff.fft(signal, n=length, axis=axis) / N
     # Multiply by two when removing half the specter to keep 
     # energy conserved.
