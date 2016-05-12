@@ -39,6 +39,7 @@ class Simulation(object):
         self._str_data = "_data"
         self._str_run_param = "_run_param"
         self._str_info = "_info"
+        self.verbose = False
 
         self.set_name("unnamed")
 
@@ -108,6 +109,8 @@ class Simulation(object):
         path = os.path.join(dir_plot, fname)
         if not self.info:
             return
+        if self.verbose:
+            print "saving info : " + self.name
         if self.format_save_run_param == 'pkl':
             LFPy_util.other.save_kwargs(path, **self.info)
         elif self.format_save_run_param == 'js':

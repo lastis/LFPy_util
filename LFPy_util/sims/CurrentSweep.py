@@ -29,7 +29,7 @@ class CurrentSweep(Simulation):
         self.run_param['delay'] = 0
         self.run_param['duration'] = 500
         self.run_param['amp_start'] = 0.0
-        self.run_param['amp_end'] = 3
+        self.run_param['amp_end'] = 0.5
         self.run_param['sweeps'] = 20
         self.run_param['processes'] = 4
         self.run_param['elec_dist'] = 20 # um
@@ -157,6 +157,10 @@ class CurrentSweep(Simulation):
         widths_II_soma_mean = np.zeros(run_param['sweeps'])
         widths_II_soma_std = np.zeros(run_param['sweeps'])
 
+        amps_I_soma = [None]*run_param['sweeps']
+        amps_I_soma_mean = np.zeros(run_param['sweeps'])
+        amps_I_soma_std = np.zeros(run_param['sweeps'])
+
         # Soma spikes and widths.
         for i in xrange(run_param['sweeps']):
             with warnings.catch_warnings():
@@ -195,21 +199,34 @@ class CurrentSweep(Simulation):
             widths_I_soma_std[i] = np.sqrt(np.var(widths_I_soma[i]))
             widths_II_soma_std[i] = np.sqrt(np.var(widths_II_soma[i]))
 
+            amps_I_soma[i] = de.find_amplitude_type_I(
+                    spikes_soma[i],
+                    process_param['amp_option'])
+
+            amps_I_soma_mean[i] = np.mean(amps_I_soma[i])
+            amps_I_soma_std[i] = np.sqrt(np.var(amps_I_soma[i]))
+
 
         # There are a variable amount of spikes, so these varibles have
         # one dimension with unknown lenght.
         spikes_elec = [None]*run_param['sweeps']
         widths_I_elec = [None]*run_param['sweeps']
         widths_II_elec = [None]*run_param['sweeps']
+        amps_I_elec = [None]*run_param['sweeps']
         for i in xrange(run_param['sweeps']):
             spikes_elec[i] = [None]*run_param['n_elec']
             widths_I_elec[i] = [None]*run_param['n_elec']
             widths_II_elec[i] = [None]*run_param['n_elec']
+            amps_I_elec[i] = [None]*run_param['n_elec']
 
         widths_I_elec_mean  = np.zeros([run_param['sweeps'], run_param['n_elec']])
-        widths_II_elec_mean = np.zeros([run_param['sweeps'], run_param['n_elec']])
         widths_I_elec_std  = np.zeros([run_param['sweeps'], run_param['n_elec']])
+
+        widths_II_elec_mean = np.zeros([run_param['sweeps'], run_param['n_elec']])
         widths_II_elec_std = np.zeros([run_param['sweeps'], run_param['n_elec']])
+        
+        amps_I_elec_mean = np.zeros([run_param['sweeps'], run_param['n_elec']])
+        amps_I_elec_std = np.zeros([run_param['sweeps'], run_param['n_elec']])
 
         # Electrode spikes and widths.
         for i in xrange(run_param['sweeps']):
@@ -252,22 +269,47 @@ class CurrentSweep(Simulation):
                 widths_I_elec_std[i, j] = np.sqrt(np.var(widths_I_elec[i][j]))
                 widths_II_elec_std[i, j] = np.sqrt(np.var(widths_II_elec[i][j]))
 
+                amps_I_elec[i] = de.find_amplitude_type_I(
+                        spikes_elec[i][j],
+                        process_param['amp_option'])
+
+                amps_I_elec_mean[i, j] = np.mean(amps_I_elec[i][j])
+                amps_I_elec_std[i, j] = np.sqrt(np.var(amps_I_elec[i][j]))
+
+        data['spikes_t_vec'] = spikes_t_vec
+        data['spikes_soma'] = spikes_soma
+        data['spikes_elec'] = spikes_elec
+
         data['freqs'] = freqs
         data['isi'] = isi
 
         data['widths_I_soma'] = widths_I_soma
         data['widths_I_soma_mean'] = widths_I_soma_mean
         data['widths_I_soma_std'] = widths_I_soma_std
+
         data['widths_II_soma'] = widths_II_soma
         data['widths_II_soma_mean'] = widths_II_soma_mean
         data['widths_II_soma_std'] = widths_II_soma_std
 
+        data['amps_I_soma'] = amps_I_soma
+        data['amps_I_soma_mean'] = amps_I_soma_mean
+        data['amps_I_soma_std'] = amps_I_soma_std
+
         data['widths_I_elec'] = widths_I_elec
         data['widths_I_elec_mean'] = widths_I_elec_mean
         data['widths_I_elec_std'] = widths_I_elec_std
+
         data['widths_II_elec'] = widths_II_elec
         data['widths_II_elec_mean'] = widths_II_elec_mean
         data['widths_II_elec_std'] = widths_II_elec_std
+
+        data['amps_I_elec'] = amps_I_elec
+        data['amps_I_elec_mean'] = amps_I_elec_mean
+        data['amps_I_elec_std'] = amps_I_elec_std
+
+        self.info['elec_positions'] = zip(data['elec_x'],
+                                          data['elec_y'],
+                                          data['elec_z'])
 
     def plot(self, dir_plot):
         data = self.data
@@ -275,6 +317,24 @@ class CurrentSweep(Simulation):
 
         LFPy_util.plot.set_rc_param()
 
+        # # {{{ Plot soma spikes overlay
+        # fname = self.name + '_soma_all_spikes'
+        # print "plotting            :", fname
+        # plt.figure(figsize=lplot.size_common)
+        # ax = plt.gca()
+        # lplot.nice_axes(ax)
+        # for i in xrange(run_param['sweeps']):
+        #     plt.plot(data['amps']*1000,
+        #              data['freqs'],
+        #              color=lcmaps.get_color(0),
+        #              marker='o',
+        #              markersize=5,
+        #              )
+        # ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+        # # Save plt.
+        # lplot.save_plt(plt, fname, dir_plot)
+        # plt.close()
+        # # }}} 
         # Plotting all sweeps {{{ 
         if run_param['sweeps'] <= 10:
             fname = self.name + '_soma_mem'
@@ -329,82 +389,280 @@ class CurrentSweep(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
-        # {{{ Plot spike width over current I soma
-        fname = self.name + '_soma_width_current_I'
+        # {{{ Plot spike width over frequency I soma
+        fname = self.name + '_soma_width_frequency_I'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
         lplot.nice_axes(ax)
-        plt.plot(data['amps']*1000,
+        plt.plot(data['freqs'],
                  data['widths_I_soma_mean'],
                  color=lcmaps.get_color(0),
                  marker='o',
                  markersize=5,
                  )
-        ax.fill_between(data['amps']*1000,
+        ax.fill_between(data['freqs'],
                         data['widths_I_soma_mean'] - data['widths_I_soma_std'],
                         data['widths_I_soma_mean'] + data['widths_I_soma_std'],
                         color=lcmaps.get_color(0),
                         alpha=0.2)
-        ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+        ax.set_ylabel(r"Peak-to-Peak Width \textbf{[\si{\milli\second}]}")
+        ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
+        # ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
-        # {{{ Plot spike width over current II soma
-        fname = self.name + '_soma_width_current_II'
+        # {{{ Plot spike width over frequency II soma
+        fname = self.name + '_soma_width_frequency_II'
         print "plotting            :", fname
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
         lplot.nice_axes(ax)
-        plt.plot(data['amps']*1000,
+        plt.plot(data['freqs'],
                  data['widths_II_soma_mean'],
                  color=lcmaps.get_color(0),
                  marker='o',
                  markersize=5,
                  )
-        ax.fill_between(data['amps']*1000,
+        ax.fill_between(data['freqs'],
                         data['widths_II_soma_mean'] - data['widths_II_soma_std'],
                         data['widths_II_soma_mean'] + data['widths_II_soma_std'],
                         color=lcmaps.get_color(0),
                         alpha=0.2)
-        ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+        ax.set_ylabel(r"Half Max Width \textbf{[\si{\milli\second}]}")
+        ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
+        # ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # }}} 
-        # {{{ Plot spike width over current I elec
+        # {{{ Plot spike width over frequency I elec
         for i in xrange(run_param['n_elec']):
-            fname = self.name + '_elec_{}_width_current_I'.format(i)
+            fname = self.name + '_elec_{}_width_frequency_I'.format(i)
             print "plotting            :", fname
             plt.figure(figsize=lplot.size_common)
             ax = plt.gca()
             lplot.nice_axes(ax)
-            plt.plot(data['amps']*1000,
+            plt.plot(data['freqs'],
                      data['widths_I_elec_mean'][:, i],
                      color=lcmaps.get_color(0),
                      marker='o',
                      markersize=5,
                      )
-            ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+            ax.fill_between(
+                    data['freqs'],
+                    data['widths_I_elec_mean'][:,i] 
+                        - data['widths_I_elec_std'][:,i],
+                    data['widths_I_elec_mean'][:,i] 
+                        + data['widths_I_elec_std'][:,i],
+                    color=lcmaps.get_color(0),
+                    alpha=0.2)
+            ax.set_ylabel(r"Peak-to-Peak Width \textbf{[\si{\milli\second}]}")
+            ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
             # Save plt.
             lplot.save_plt(plt, fname, dir_plot)
             plt.close()
         # }}} 
-        # {{{ Plot spike width over current II elec
+        # {{{ Plot spike width over frequency II elec
         for i in xrange(run_param['n_elec']):
-            fname = self.name + '_elec_{}_width_current_II'.format(i)
+            fname = self.name + '_elec_{}_width_frequency_II'.format(i)
             print "plotting            :", fname
             plt.figure(figsize=lplot.size_common)
             ax = plt.gca()
             lplot.nice_axes(ax)
-            plt.plot(data['amps']*1000,
+            plt.plot(data['freqs'],
                      data['widths_II_elec_mean'][:,i],
                      color=lcmaps.get_color(0),
                      marker='o',
                      markersize=5,
                      )
-            ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+            ax.fill_between(
+                    data['freqs'],
+                    data['widths_II_elec_mean'][:,i] 
+                        - data['widths_II_elec_std'][:,i],
+                    data['widths_II_elec_mean'][:,i] 
+                        + data['widths_II_elec_std'][:,i],
+                    color=lcmaps.get_color(0),
+                    alpha=0.2)
+            ax.set_ylabel(r"Half Max Width \textbf{[\si{\milli\second}]}")
+            ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
+            # Save plt.
+            lplot.save_plt(plt, fname, dir_plot)
+            plt.close()
+        # }}} 
+        # {{{ Plot spike width over frequency I elec soma
+        for i in xrange(run_param['n_elec']):
+            fname = self.name + '_elec_{}_soma_width_frequency_I'.format(i)
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            plt.plot(data['freqs'],
+                     data['widths_I_soma_mean'],
+                     color=lcmaps.get_color(0),
+                     marker='o',
+                     markersize=5,
+                     label='Soma',
+                     )
+            ax.fill_between(data['freqs'],
+                            data['widths_I_soma_mean'] - data['widths_I_soma_std'],
+                            data['widths_I_soma_mean'] + data['widths_I_soma_std'],
+                            color=lcmaps.get_color(0),
+                            alpha=0.2)
+            plt.plot(data['freqs'],
+                     data['widths_I_elec_mean'][:, i],
+                     color=lcmaps.get_color(0.5),
+                     marker='o',
+                     markersize=5,
+                     label='Elec.'
+                     )
+            ax.fill_between(
+                    data['freqs'],
+                    data['widths_I_elec_mean'][:,i] 
+                        - data['widths_I_elec_std'][:,i],
+                    data['widths_I_elec_mean'][:,i] 
+                        + data['widths_I_elec_std'][:,i],
+                    color=lcmaps.get_color(0.5),
+                    alpha=0.2)
+            ax.set_ylabel(r"Peak-to-Peak Width \textbf{[\si{\milli\second}]}")
+            ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
+            # handles, labels = ax.get_legend_handles_labels()
+            # ax.legend(handles,
+            #           labels,
+            #           loc='upper right',
+            #           # bbox_to_anchor=(1, 0.5), 
+            #           )
+            # Save plt.
+            lplot.save_plt(plt, fname, dir_plot)
+            plt.close()
+        # }}} 
+        # {{{ Plot spike width over frequency II elec soma
+        for i in xrange(run_param['n_elec']):
+            fname = self.name + '_elec_{}_soma_width_frequency_II'.format(i)
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            plt.plot(data['freqs'],
+                     data['widths_II_soma_mean'],
+                     color=lcmaps.get_color(0),
+                     marker='o',
+                     markersize=5,
+                     label='Soma',
+                     )
+            ax.fill_between(data['freqs'],
+                            data['widths_II_soma_mean'] - data['widths_II_soma_std'],
+                            data['widths_II_soma_mean'] + data['widths_II_soma_std'],
+                            color=lcmaps.get_color(0),
+                            alpha=0.2)
+            plt.plot(data['freqs'],
+                     data['widths_II_elec_mean'][:,i],
+                     color=lcmaps.get_color(0.5),
+                     marker='o',
+                     markersize=5,
+                     label='Elec.',
+                     )
+            ax.fill_between(
+                    data['freqs'],
+                    data['widths_II_elec_mean'][:,i] 
+                        - data['widths_II_elec_std'][:,i],
+                    data['widths_II_elec_mean'][:,i] 
+                        + data['widths_II_elec_std'][:,i],
+                    color=lcmaps.get_color(0.5),
+                    alpha=0.2)
+            ax.set_ylabel(r"Half Max Width \textbf{[\si{\milli\second}]}")
+            ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
+            # Save plt.
+            lplot.save_plt(plt, fname, dir_plot)
+            plt.close()
+        # }}} 
+        # {{{ Plot spike amplitude over frequency I soma
+        fname = self.name + '_soma_amp_frequency_I'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        plt.plot(data['freqs'],
+                 data['amps_I_soma_mean'],
+                 color=lcmaps.get_color(0),
+                 marker='o',
+                 markersize=5,
+                 )
+        ax.fill_between(data['freqs'],
+                        data['amps_I_soma_mean'] - data['amps_I_soma_std'],
+                        data['amps_I_soma_mean'] + data['amps_I_soma_std'],
+                        color=lcmaps.get_color(0),
+                        alpha=0.2)
+        ax.set_ylabel(r"Base-to-Peak Amp.")
+        ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # }}} 
+        # {{{ Plot spike amplitude over frequency I elec
+        for i in xrange(run_param['n_elec']):
+            fname = self.name + '_elec_{}_amp_frequency_I'.format(i)
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            plt.plot(data['freqs'],
+                     data['amps_I_elec_mean'][:, i],
+                     color=lcmaps.get_color(0),
+                     marker='o',
+                     markersize=5,
+                     )
+            ax.fill_between(
+                    data['freqs'],
+                    data['amps_I_elec_mean'][:,i] 
+                        - data['amps_I_elec_std'][:,i],
+                    data['amps_I_elec_mean'][:,i] 
+                        + data['amps_I_elec_std'][:,i],
+                    color=lcmaps.get_color(0),
+                    alpha=0.2)
+            ax.set_ylabel(r"Base-to-Peak Amp.")
+            ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
+            # Save plt.
+            lplot.save_plt(plt, fname, dir_plot)
+            plt.close()
+        # }}} 
+        # {{{ Plot spike amplitude over frequency I elec soma
+        for i in xrange(run_param['n_elec']):
+            fname = self.name + '_elec_{}_soma_amp_frequency_I'.format(i)
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            plt.plot(data['freqs'],
+                     data['amps_I_soma_mean'],
+                     color=lcmaps.get_color(0),
+                     marker='o',
+                     markersize=5,
+                     label='Soma',
+                     )
+            ax.fill_between(data['freqs'],
+                            data['amps_I_soma_mean'] - data['amps_I_soma_std'],
+                            data['amps_I_soma_mean'] + data['amps_I_soma_std'],
+                            color=lcmaps.get_color(0),
+                            alpha=0.2)
+            plt.plot(data['freqs'],
+                     data['amps_I_elec_mean'][:, i],
+                     color=lcmaps.get_color(0.5),
+                     marker='o',
+                     markersize=5,
+                     label='Elec.'
+                     )
+            ax.fill_between(
+                    data['freqs'],
+                    data['amps_I_elec_mean'][:,i] 
+                        - data['amps_I_elec_std'][:,i],
+                    data['amps_I_elec_mean'][:,i] 
+                        + data['amps_I_elec_std'][:,i],
+                    color=lcmaps.get_color(0.5),
+                    alpha=0.2)
+            ax.set_ylabel(r"Base-to-Peak Amp.")
+            ax.set_xlabel(r"Frequency \textbf{[\si{\hertz}]}")
             # Save plt.
             lplot.save_plt(plt, fname, dir_plot)
             plt.close()
