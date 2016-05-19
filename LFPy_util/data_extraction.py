@@ -543,11 +543,11 @@ def find_amplitude_type_I(matrix, amp_option='both'):
     amp_low = np.zeros(matrix.shape[0])
     if amp_option == 'both' or amp_option == 'neg':
         for row in xrange(matrix.shape[0]):
-            amp_low[row] = np.abs(np.min(matrix[row, :]))
+            amp_low[row] = np.abs(np.min(matrix[row] - matrix[row,0]))
     amp_high = np.zeros(matrix.shape[0])
     if amp_option == 'both' or amp_option == 'pos':
         for row in xrange(matrix.shape[0]):
-            amp_high[row] = np.abs(np.max(matrix[row, :]))
+            amp_high[row] = np.abs(np.max(matrix[row] - matrix[row,0]))
     amp = np.maximum(amp_low, amp_high)
     return amp
 

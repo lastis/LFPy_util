@@ -181,6 +181,8 @@ class CurrentSweep(Simulation):
                 widths_I_soma_mean[i] = np.nan
                 widths_II_soma[i] = []
                 widths_II_soma_mean[i] = np.nan
+                amps_I_soma_mean[i] = np.nan
+                amps_I_soma_std[i] = np.nan
                 continue
 
             widths_I_soma[i], trace = de.find_wave_width_type_I(
@@ -251,6 +253,8 @@ class CurrentSweep(Simulation):
                     widths_I_elec_mean[i, j] = np.nan
                     widths_II_elec[i][j] = []
                     widths_II_elec_mean[i, j] = np.nan
+                    amps_I_elec_mean[i, j] = np.nan
+                    amps_I_elec_std[i, j] = np.nan
                     continue
 
                 widths_I_elec[i][j], trace = de.find_wave_width_type_I(
@@ -317,24 +321,51 @@ class CurrentSweep(Simulation):
 
         LFPy_util.plot.set_rc_param()
 
-        # # {{{ Plot soma spikes overlay
-        # fname = self.name + '_soma_all_spikes'
-        # print "plotting            :", fname
-        # plt.figure(figsize=lplot.size_common)
-        # ax = plt.gca()
-        # lplot.nice_axes(ax)
-        # for i in xrange(run_param['sweeps']):
-        #     plt.plot(data['amps']*1000,
-        #              data['freqs'],
-        #              color=lcmaps.get_color(0),
-        #              marker='o',
-        #              markersize=5,
-        #              )
-        # ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
-        # # Save plt.
-        # lplot.save_plt(plt, fname, dir_plot)
-        # plt.close()
-        # # }}} 
+        # {{{ Plot elec spikes overlay
+        # Create the directory if it does not exist.
+        for elec in xrange(run_param['n_elec']):
+            sub_dir = os.path.join(dir_plot, 'elec_{}_all_spikes'.format(elec))
+            if not os.path.exists(sub_dir):
+                os.makedirs(sub_dir)
+            for i in xrange(run_param['sweeps']):
+                fname = self.name + '_elec_all_spikes_sweep_{}'.format(i)
+                print "plotting            :", fname
+                plt.figure(figsize=lplot.size_common)
+                ax = plt.gca()
+                lplot.nice_axes(ax)
+                for j in xrange(data['spikes_elec'][i][elec].shape[0]):
+                    plt.plot(data['spikes_t_vec'],
+                             data['spikes_elec'][i][elec][j],
+                             color=lcmaps.get_color(0),
+                             alpha=0.2,
+                             )
+                # ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+                # Save plt.
+                lplot.save_plt(plt, fname, sub_dir)
+                plt.close()
+        # }}} 
+        # {{{ Plot soma spikes overlay
+        # Create the directory if it does not exist.
+        sub_dir = os.path.join(dir_plot, 'soma_all_spikes')
+        if not os.path.exists(sub_dir):
+            os.makedirs(sub_dir)
+        for i in xrange(run_param['sweeps']):
+            fname = self.name + '_soma_all_spikes_sweep_{}'.format(i)
+            print "plotting            :", fname
+            plt.figure(figsize=lplot.size_common)
+            ax = plt.gca()
+            lplot.nice_axes(ax)
+            for j in xrange(data['spikes_soma'][i].shape[0]):
+                plt.plot(data['spikes_t_vec'],
+                         data['spikes_soma'][i][j],
+                         color=lcmaps.get_color(0),
+                         alpha=0.2,
+                         )
+            # ax.set_xlabel(r"Stimulus Current \textbf{[\si{\nano\ampere}]}")
+            # Save plt.
+            lplot.save_plt(plt, fname, sub_dir)
+            plt.close()
+        # }}} 
         # Plotting all sweeps {{{ 
         if run_param['sweeps'] <= 10:
             fname = self.name + '_soma_mem'
