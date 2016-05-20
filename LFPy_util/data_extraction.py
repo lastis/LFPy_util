@@ -172,7 +172,7 @@ def extract_spikes(t_vec,
     if pre_idx == 0 and post_idx == 0:
         raise ValueError("pre_dur and post_dur cannot both be 0.")
 
-    v_vec_unmod = v_vec
+    v_vec_unmod = np.copy(v_vec)
     v_vec = zscore(v_vec)
     if amp_option == 'pos':
         pass
