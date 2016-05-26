@@ -260,7 +260,6 @@ def find_freq_and_fft(timestep, signal, length=None, axis=-1, f_cut=None):
     ft = ff.fft(signal, n=length, axis=axis) / N
     # Multiply by two when removing half the specter to keep 
     # energy conserved.
-    # ft = np.take(ft[:N/2], axis=axis) * 2
     ft = np.array_split(ft, 2, axis=axis)[0] * 2
     amplitude = np.abs(ft)
     phase = np.angle(ft, deg=0)
