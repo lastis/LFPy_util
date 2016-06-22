@@ -7,7 +7,7 @@ setup(
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     install_requires = [
-        'NEURON >= 7.4',
+        'NEURON >= 7.3',
         'matplotlib >= 1.3.1',
         'LFPy >= 1.1.0',
         'cycler',

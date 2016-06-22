@@ -12,6 +12,8 @@
 # You should have received a copy of the CC0 legalcode along with this
 # work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 
+import matplotlib.pyplot as plt
+
 __all__ = ['magma', 'inferno', 'plasma', 'viridis']
 
 _magma_data = [[0.001462, 0.000466, 0.013866], [0.002258, 0.001295, 0.018331],
@@ -866,7 +868,8 @@ def get_color(value, name='viridis'):
     """
     Get the rgb color from the cmap from 0.0 to 1.0.
     """
-    return cm.ScalarMappable(colors.Normalize(0.0,1.0), viridis).to_rgba(value)
+    # return cm.ScalarMappable(colors.Normalize(0.0,1.0), cmap=cmaps[name]).to_rgba(value)
+    return cm.ScalarMappable(colors.Normalize(0.0,1.0), cmap=plt.get_cmap(name)).to_rgba(value)
 
 def get_short_color_array(n, name='viridis'):
     """
@@ -880,7 +883,8 @@ def get_short_color_array(n, name='viridis'):
     """
     values = range(n)
     cNorm = colors.Normalize(vmin=0, vmax=values[-1])
-    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmaps[name])
+    # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmaps[name])
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(name))
     color_arr = []
     for i in xrange(n):
         colorVal = scalarMap.to_rgba(values[i])

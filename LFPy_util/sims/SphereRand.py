@@ -226,7 +226,7 @@ class SphereRand(Simulation):
         # Plot 3d points {{{1 #
         # 3D plot.
         fname = self.name + "_elec_pos"
-        c = lplot.get_short_color_array(5)[2]
+        c = lcmaps.get_short_color_array(5)[2]
         fig = plt.figure(figsize=lplot.size_common)
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(data['elec_x'], data['elec_y'], data['elec_z'], c=c)
@@ -340,7 +340,7 @@ class SphereRand(Simulation):
             title_str_1 = title_str.format(round(data['elec_r'][[i]],2))
             fname = self.name + '_elec_{}'.format(i)
             print "plotting            :", fname
-            c = lplot.get_short_color_array(2 + 1)
+            c = lcmaps.get_short_color_array(2 + 1)
             plt.figure(figsize=lplot.size_common)
             ax = plt.gca()
             lplot.nice_axes(ax)

@@ -36,24 +36,24 @@ def set_rc_param():
     # mpl.rcParams['text.latex.unicode']=False
 
 
-def get_short_color_array(n):
-    """
-    Create a linspace of the colors in the default collor array. Currently
-    viridis.
+# def get_short_color_array(n):
+#     """
+#     Create a linspace of the colors in the default collor array. Currently
+#     viridis.
 
-    :param int n:
-        Returned array length.
-    :returns: 
-        :class:`list` -- (n x 3) color array.
-    """
-    values = range(n)
-    cNorm = colors.Normalize(vmin=0, vmax=values[-1])
-    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmaps.viridis)
-    color_arr = []
-    for i in xrange(n):
-        colorVal = scalarMap.to_rgba(values[i])
-        color_arr.append(colorVal)
-    return color_arr
+#     :param int n:
+#         Returned array length.
+#     :returns: 
+#         :class:`list` -- (n x 3) color array.
+#     """
+#     values = range(n)
+#     cNorm = colors.Normalize(vmin=0, vmax=values[-1])
+#     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmaps.viridis)
+#     color_arr = []
+#     for i in xrange(n):
+#         colorVal = scalarMap.to_rgba(values[i])
+#         color_arr.append(colorVal)
+#     return color_arr
 
 
 def nice_axes(ax):
@@ -291,7 +291,8 @@ def morphology(poly_morph,
         elec_y = elec_y.flatten()
 
     set_rc_param()
-    fig = plt.figure(figsize=fig_size)
+    fig = plt.figure(figsize=[8,4])
+    # fig = plt.figure()
     ax = plt.gca()
     xmin = 0
     xmax = 0

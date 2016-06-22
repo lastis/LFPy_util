@@ -11,28 +11,6 @@ from neuron import h
 from scipy.signal import argrelextrema
 from scipy.stats.mstats import zscore
 
-def tetrode_spikes_mean(signal, amp_option='pos'):
-    """
-    Input is a 3d array, (spikes x electrodes x time)
-    Takes the strongest signal from each electrode and means them.
-
-    Each electrode records the same spike.
-    """
-    if amp_option == 'pos':
-        pass
-    elif amp_option == 'neg':
-        signal = -signal
-    elif amp_option == 'both':
-        signal = np.fabs(signal)
-    # Take the maximum of all signals
-    signal_max = np.amax(signal, axis=2)
-    # Make a list with the index of the electrode that has the highest value
-    # for each spike.
-    signal_max_idx = np.argmax(signal_max, axis=1)
-    cols = signal.shape[0]
-    signal_out = np.mean(signal[np.arange(cols),signal_max_idx], axis=0)
-    return signal_out
-
 def combined_mean_std(mean, std, axis=0):
     mean = np.array(mean)
     std = np.array(std)
@@ -490,6 +468,36 @@ def find_wave_width_type_II(matrix, threshold=0.5, dt=1, amp_option='both'):
         trace[row, signal_index] = matrix[row, signal_index[-1]]
     return widths * dt, trace
 
+def find_wave_width_type_III(matrix, threshold=0.5, dt=1, amp_option='both'):
+    """
+    Wave width defined as the half amplitude of the repolarization
+    current. 
+    """
+
+    matrix = np.array(matrix)
+    if len(matrix.shape) == 1:
+        matrix = np.reshape(matrix, (1, -1))
+    widths = np.zeros(matrix.shape[0])
+    trace = np.empty(matrix.shape)
+    trace[:] = np.NAN
+    for row in xrange(matrix.shape[0]):
+        signal = matrix[row].copy()
+        offset = signal[0]
+        signal -= offset
+        if amp_option == 'both':
+            if signal.max() < -signal.min():
+                signal = -signal
+        elif amp_option == 'neg':
+            signal = -signal
+        idx_top = np.argmax(signal)
+        idx_bottom = idx_top + np.argmin(signal[idx_top:])
+        val_bottom = signal[idx_bottom]
+        val_thresh = val_bottom*threshold
+        signal_bool = signal < val_thresh
+        signal_bool[:idx_top] = 0
+        widths[row] = np.sum(signal_bool)
+        trace[row, signal_bool] = matrix[row,idx_bottom]*1.05
+    return widths * dt, trace
 
 def find_wave_width_type_I(matrix, dt=1):
     """

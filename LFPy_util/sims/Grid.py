@@ -22,8 +22,14 @@ class Grid(Simulation):
         self.run_param['n_elec_y'] = 11
         self.run_param['x_lim'] = [-100, 100]
         self.run_param['y_lim'] = [-100, 100]
-        self.run_param['amp_option'] = 'both'
         self.run_param['ext_method'] = 'som_as_point'
+
+        self.process_param['amp_option'] = 'both'
+        self.process_param['pre_dur'] = 16.7 * 0.5
+        self.process_param['post_dur'] = 16.7 * 0.5
+        self.process_param['threshold'] = 4
+        # Index of the spike to measure from.
+        self.process_param['spike_to_measure'] = 0
 
     def simulate(self, cell):
         run_param = self.run_param
@@ -59,16 +65,35 @@ class Grid(Simulation):
         self.data['lin_y'] = lin_y
         self.data['dt'] = cell.timeres_NEURON
         self.data['t_vec'] = cell.tvec
+        self.data['soma_v'] = cell.somav
 
         self.data['poly_morph'] = de.get_polygons_no_axon(cell, ['x', 'y'])
         self.data['poly_morph_axon'] = de.get_polygons_axon(cell, ['x', 'y'])
 
     def process_data(self):
-        pass
+        data = self.data
+        process_param = self.process_param
+        signal = data['soma_v']
+        spike, spikes_t_vec, I = de.extract_spikes(
+            data['t_vec'],
+            signal,
+            pre_dur=process_param['pre_dur'],
+            post_dur=process_param['post_dur'],
+            threshold=process_param['threshold'],
+            amp_option=process_param['amp_option'], 
+            )
+        # Gather all spikes from the same indices as where the spike appears
+        # in the first electrode.
+        spike_index = process_param['spike_to_measure']
+        if spike.shape[0] < spike_index:
+            raise ValueError("Found fewer spikes than process_param['spike_to_measure']")
+        spikes = data['LFP'][:, I[spike_index, 0]:I[spike_index, 1]]
+        self.data['LFP'] = spikes
 
     def plot(self, dir_plot):
         data = self.data
         run_param = self.run_param
+        process_param = self.process_param
 
         fname = 'grid_x_y_elec_morph'
         LFPy_util.plot.morphology(data['poly_morph'],
@@ -86,7 +111,7 @@ class Grid(Simulation):
                                  data['lin_y'],
                                  poly_morph=data['poly_morph'],
                                  normalization=False,
-                                 amp_option=run_param['amp_option'],
+                                 amp_option=process_param['amp_option'],
                                  fname=fname,
                                  show=False,
                                  plot_save_dir=dir_plot)
@@ -96,7 +121,7 @@ class Grid(Simulation):
                                  data['lin_y'],
                                  poly_morph=data['poly_morph'],
                                  normalization=True,
-                                 amp_option=run_param['amp_option'],
+                                 amp_option=process_param['amp_option'],
                                  fname=fname,
                                  show=False,
                                  plot_save_dir=dir_plot)
