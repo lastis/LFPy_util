@@ -38,6 +38,7 @@ class SpikeWidthDef(Simulation):
         self.process_param['spike_to_measure'] = 0
 
         self.plot_param['freq_end'] = 3*pq.kHz
+        self.plot_param['use_tex'] = True
 
     def simulate(self, cell):
         # pylint: disable=invalid-name,no-member

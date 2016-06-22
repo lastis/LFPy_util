@@ -35,6 +35,8 @@ class GridDense(Simulation):
         # Index of the spike to measure from.
         self.process_param['spike_to_measure'] = 0
 
+        self.plot_param['use_tex'] = True
+
     def simulate(self, cell):
         run_param = self.run_param
         cell = cell

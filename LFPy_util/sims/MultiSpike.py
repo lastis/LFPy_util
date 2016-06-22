@@ -30,6 +30,7 @@ class MultiSpike(Simulation):
         self.run_param['pre_dur'] = 16.7 * 0.5
         self.run_param['post_dur'] = 16.7 * 0.5
         self.run_param['spikes'] = 3
+        self.plot_param['use_tex'] = True
         self.apply_electrode_at_finish = True
         self.only_apply_electrode = False
         self.verbose = False
@@ -226,7 +227,7 @@ class MultiSpike(Simulation):
             return
 
         # Set global matplotlib parameters.
-        LFPy_util.plot.set_rc_param()
+        LFPy_util.plot.set_rc_param(self.plot_param['use_tex'])
 
         # New plot.
         fname = self.name + '_all_spikes'

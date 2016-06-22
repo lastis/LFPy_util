@@ -21,19 +21,24 @@ size_thin = [8, 2]
 size_tall = [4, 6]
 
 
-def set_rc_param():
-    mpl.rcParams['font.family'] = 'serif'
-    mpl.rcParams['text.usetex'] = True
-    mpl.rcParams['text.latex.preamble'] = [
-        r'\usepackage{bm,upgreek}',
-        r'\usepackage{textcomp}',
-        r'\usepackage{gensymb}',
-        r'\usepackage[redefsymbols=false]{siunitx}',
-        r'\sisetup{detect-all=true}',
-    ]
+def set_rc_param(use_tex=True):
     mpl.rcParams['font.size'] = 12
     mpl.rcParams['font.serif'] = ['Times']
     # mpl.rcParams['text.latex.unicode']=False
+    if use_tex:
+        mpl.rcParams['font.family'] = 'serif'
+
+        mpl.rcParams['text.usetex'] = True
+        mpl.rcParams['text.latex.preamble'] = [
+            r'\usepackage{bm,upgreek}',
+            r'\usepackage{textcomp}',
+            r'\usepackage{gensymb}',
+            r'\usepackage[redefsymbols=false]{siunitx}',
+            r'\sisetup{detect-all=true}',
+        ]
+    else:
+        mpl.rcParams['text.usetex'] = False
+        mpl.rcParams['text.latex.preamble'] = []
 
 
 # def get_short_color_array(n):
@@ -290,7 +295,7 @@ def morphology(poly_morph,
         elec_y = np.array(elec_y)
         elec_y = elec_y.flatten()
 
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=[8,4])
     # fig = plt.figure()
     ax = plt.gca()
@@ -439,7 +444,7 @@ def scattered_i_mem_v_mem(v_vec_list,
     v_vec_list = np.delete(v_vec_list, range(idx), 1)
     i_vec_list = np.delete(i_vec_list, range(idx), 1)
 
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.subplot(2, 1, 1)
     xmin = 0
@@ -542,7 +547,7 @@ def fourierSpecter(freqs,
 
     freqs = np.asarray(freqs)
 
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.grid()
@@ -603,7 +608,7 @@ def signal_sub_plot_3(t_vec,
         ylabel += r'\textbf[$\mathbf{\bm\upmu V}$\textbf]'
 
     # Add packages for latex commands.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_thin)
 
     # Get the viridis color.
@@ -730,7 +735,7 @@ def electrodeSignals(t_vec,
         LFP *= 1000
 
     # Add packages for latex commands.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -899,7 +904,7 @@ def circularLfp(LFP,
     fig = plt.figure()
     ax = plt.gca()
     # Add packages for latex commands.
-    set_rc_param()
+    # set_rc_param()
 
     # Plot the neuron morphology. Can either supply lines or the polygon.
     for i in xrange(len(neuron_x)):
@@ -1031,7 +1036,7 @@ def gradient2D(LFP,
     fig = plt.figure()
     ax = plt.gca()
     # Add packages for latex commands.
-    set_rc_param()
+    # set_rc_param()
 
     # Make data points to calculate the interpolation on.
     a = np.linspace(x.min(), x.max(), res_x)
@@ -1228,7 +1233,7 @@ def signals2D(LFP,
     plt.clf()
 
     # Add packages for latex commands.
-    set_rc_param()
+    # set_rc_param()
 
     # Create colorbar from the scatterplot that was removed.
     cb = plt.colorbar(sc)
@@ -1346,7 +1351,7 @@ def spikeAmplitudes(amps,
     x = x + r_0
 
     # Initial plot parameters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1495,7 +1500,7 @@ def spike_widths_grouped_new(grouped_widths_mean,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1574,7 +1579,7 @@ def spike_amps_grouped_new(grouped_amps_mean,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1655,7 +1660,7 @@ def spike_widths_and_amps_grouped_new(grouped_widths_mean,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1762,7 +1767,7 @@ def spike_widths_and_amp_grouped(grouped_widths,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -1912,7 +1917,7 @@ def spike_amps_grouped(grouped_amps,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -2027,7 +2032,7 @@ def spike_widths_grouped(grouped_widths,
     print "plotting            :", fname
 
     # Inital plot paramters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
@@ -2157,7 +2162,7 @@ def spikeWidths(widths,
     x = x + r_0
 
     # Inital plot paramters.
-    set_rc_param()
+    # set_rc_param()
     fig = plt.figure(figsize=size_common)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)

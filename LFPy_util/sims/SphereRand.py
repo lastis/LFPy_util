@@ -37,6 +37,7 @@ class SphereRand(Simulation):
         self.process_param['assert_width_II_low'] = 0.1 # ms
         self.process_param['assert_width_II_high'] = 2.0 # ms
         self.plot_param['elec_to_plot'] = []
+        self.plot_param['use_tex'] = True
 
     def simulate(self, cell):
         data = self.data
@@ -206,13 +207,45 @@ class SphereRand(Simulation):
         data['spikes_t_vec'] = spikes_t_vec
 
         self.info['spike_to_measure'] = process_param['spike_to_measure']
+        self.info['dt'] = data['dt']
 
     def plot(self, dir_plot):
         data = self.data
         run_param = self.run_param
         process_param = self.process_param
         # Set global matplotlib parameters.
-        LFPy_util.plot.set_rc_param()
+        LFPy_util.plot.set_rc_param(self.plot_param['use_tex'])
+
+        # Plot Spike Width I hist {{{1 #
+        # New plot.
+        fname = self.name + '_spike_width_I_hist'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        bins = np.arange(0, 2.5, data['dt'])
+        n, _, patches = plt.hist(data['widths_I'], bins)
+        ax.set_xlabel("Width Peak-to-peak")
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        #  }}} #
+        # Plot Spike Width II hist {{{1 #
+        # New plot.
+        fname = self.name + '_spike_width_II_hist'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        bins = np.arange(0, 2.5, data['dt'])
+        n, _, patches = plt.hist(data['widths_II'], bins)
+        ax.set_xlabel("Width Peak-to-peak")
+        # Save plt.
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        #  }}} #
         # Plot morphology {{{ #
         LFPy_util.plot.morphology(data['poly_morph'],
                                   data['poly_morph_axon'],
