@@ -23,6 +23,8 @@ class MultiSpike(Simulation):
 
         # Used by the custom simulate and plot function.
         self.run_param['threshold'] = 4
+        # Absolute threshold for a spike intracellular.
+        self.run_param['threshold_abs'] = 0 # mV
         self.run_param['pptype'] = 'IClamp'
         self.run_param['delay'] = 100
         self.run_param['duration'] = 300
@@ -161,6 +163,7 @@ class MultiSpike(Simulation):
         duration = run_param['duration']
         delay = run_param['delay']
         threshold = run_param['threshold']
+        threshold_abs = run_param['threshold_abs']
         pptype = run_param['pptype']
 
         soma_clamp_params = {
@@ -178,12 +181,14 @@ class MultiSpike(Simulation):
                       rec_istim=True,
                       rec_isyn=True)
         # Find spikes.
-        max_idx = LFPy_util.data_extraction.find_spikes(cell.tvec,
-                                                        cell.somav,
-                                                        threshold,
-                                                        run_param['pre_dur'],
-                                                        run_param['post_dur'],
-                                                       )
+        max_idx = LFPy_util.data_extraction.find_spikes(
+                cell.tvec,
+                cell.somav,
+                threshold,
+                run_param['pre_dur'],
+                run_param['post_dur'],
+                threshold_abs=threshold_abs,
+                )
         # Count local maxima over threshold as spikes.
         spike_cnt = len(max_idx)
         data['stimulus_i'] = stim.i

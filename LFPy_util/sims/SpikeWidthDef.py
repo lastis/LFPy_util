@@ -269,7 +269,7 @@ class SpikeWidthDef(Simulation):
                     arrowprops=dict(arrowstyle="-|>",
                                     connectionstyle="arc3,rad=-0.2",
                                     fc="w"), )
-        ax.set_ylabel(r"Mem. Pot. \textbf{[\si{\milli\volt}]}")
+        ax.set_ylabel(r"Membrane Potential \textbf{[\si{\milli\volt}]}")
         ax.set_xlabel(r"Time \textbf{[\si{\milli\second}]}")
         # Save plt.
         lplot.save_plt(plt, fname, dir_plot)
