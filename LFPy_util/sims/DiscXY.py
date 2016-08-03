@@ -33,6 +33,8 @@ class DiscXY(Simulation):
         self.process_param['pre_dur'] = 16.7 * 0.5
         self.process_param['post_dur'] = 16.7 * 0.5
         self.process_param['threshold'] = 4
+        self.process_param['width_II_thresh'] = 0.5
+        self.process_param['width_III_thresh'] = 0.5
         # Index of the spike to measure from.
         self.process_param['spike_to_measure'] = 0
         self.plot_param['plot_detailed'] = False
@@ -113,10 +115,18 @@ class DiscXY(Simulation):
 
         amps_I = de.find_amplitude_type_I(spikes, amp_option=process_param['amp_option'])
         amps_II = de.find_amplitude_type_II(spikes)
+
         widths_I, widths_I_trace = de.find_wave_width_type_I(spikes,
                                                              dt=data['dt'])
         widths_II, widths_II_trace = de.find_wave_width_type_II(
             spikes,
+            threshold=process_param['width_II_thresh'],
+            dt=data['dt'],
+            amp_option=process_param['amp_option'])
+
+        widths_III, widths_III_trace = de.find_wave_width_type_III(
+            spikes,
+            threshold=process_param['width_III_thresh'],
             dt=data['dt'],
             amp_option=process_param['amp_option'])
 
@@ -127,6 +137,7 @@ class DiscXY(Simulation):
         amps_II = np.reshape(amps_II, (p, n))
         widths_I = np.reshape(widths_I, (p, n))
         widths_II = np.reshape(widths_II, (p, n))
+        widths_III = np.reshape(widths_III, (p, n))
 
         # Becomes vector with length n.
         amps_I_mean = np.mean(amps_I, 0)
@@ -137,6 +148,8 @@ class DiscXY(Simulation):
         widths_I_std = np.std(widths_I, 0)
         widths_II_mean = np.mean(widths_II, 0)
         widths_II_std = np.std(widths_II, 0)
+        widths_III_mean = np.mean(widths_III, 0)
+        widths_III_std = np.std(widths_III, 0)
 
         data['amps_I_mean'] = amps_I_mean * 1000
         data['amps_I_std'] = amps_I_std * 1000
@@ -154,6 +167,11 @@ class DiscXY(Simulation):
         data['widths_II_std'] = widths_II_std
         data['widths_II'] = widths_II
         data['widths_II_trace'] = widths_II_trace * 1000
+
+        data['widths_III_mean'] = widths_III_mean
+        data['widths_III_std'] = widths_III_std
+        data['widths_III'] = widths_III
+        data['widths_III_trace'] = widths_III_trace * 1000
 
         data['spikes'] = spikes * 1000
         data['spikes_t_vec'] = spikes_t_vec
@@ -407,6 +425,30 @@ class DiscXY(Simulation):
         lplot.save_plt(plt, fname, dir_plot)
         plt.close()
         # 1}}} #
+        # Plot spike widths III {{{1 #
+        fname = self.name + '_spike_width_III'
+        print "plotting            :", fname
+        plt.figure(figsize=lplot.size_common)
+        ax = plt.gca()
+        lplot.nice_axes(ax)
+        # Plot
+        plt.plot(data['r_vec'],
+                 data['widths_III_mean'],
+                 color=lcmaps.get_color(0),
+                 marker='o',
+                 markersize=5,
+                 )
+        ax.fill_between(
+            data['r_vec'],
+            data['widths_III_mean'] - data['widths_III_std'],
+            data['widths_III_mean'] + data['widths_III_std'],
+            color=lcmaps.get_color(0),
+            alpha=0.2)
+        ax.set_ylabel("Spike Width")
+        ax.set_xlabel("Distance from Soma")
+        lplot.save_plt(plt, fname, dir_plot)
+        plt.close()
+        # 1}}} #
         # Plot morphology xz {{{ #
         LFPy_util.plot.morphology(data['poly_morph_xz'],
                                   data['poly_morph_axon_xz'],
@@ -479,7 +521,7 @@ class DiscXY(Simulation):
         # Plot middle electrode signal {{{1 #
         fname = self.name + '_middle_elec'
         print "plotting            :", fname
-        c = lplot.get_short_color_array(2 + 1)
+        c = lcmaps.get_short_color_array(2 + 1)
         plt.figure(figsize=lplot.size_common)
         ax = plt.gca()
         lplot.nice_axes(ax)
@@ -525,7 +567,7 @@ class DiscXY(Simulation):
             sub_dir = os.path.join(dir_plot, self.name + "_detailed")
             if not os.path.exists(sub_dir):
                 os.makedirs(sub_dir)
-            t = len(run_param['theta'])
+            # t = len(run_param['theta'])
             # p = run_param['n_phi']
             p = 1
             n = run_param['n']
@@ -539,7 +581,7 @@ class DiscXY(Simulation):
                     # Plot all elec spikes {{{1 #
                     fname = self.name + '_elec_p_{}_n_{}'.format(j * 360 / p, k)
                     print "plotting            :", fname
-                    c = lplot.get_short_color_array(2 + 1)
+                    c = lcmaps.get_short_color_array(2 + 1)
                     plt.figure(figsize=lplot.size_common)
                     ax = plt.gca()
                     lplot.nice_axes(ax)
@@ -556,6 +598,10 @@ class DiscXY(Simulation):
                     # Trace II
                     plt.plot(data['spikes_t_vec'],
                              data['widths_II_trace'][cnt],
+                             color=c[1])
+                    # Trace III
+                    plt.plot(data['spikes_t_vec'],
+                             data['widths_III_trace'][cnt],
                              color=c[1])
                     # plt.title(title_str_1)
                     # Save plt.

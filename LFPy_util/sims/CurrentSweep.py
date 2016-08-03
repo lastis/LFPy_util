@@ -43,6 +43,8 @@ class CurrentSweep(Simulation):
         self.process_param['threshold'] = 4
         self.process_param['threshold_abs_soma'] = 0 # mV
         self.process_param['threshold_abs_elec'] = 10 # uV
+        self.plot_param['use_tex'] = True
+        self.plot_param['formats'] = ['pdf']
         self.verbose = False
 
     def simulate(self, cell):
@@ -319,7 +321,8 @@ class CurrentSweep(Simulation):
         data = self.data
         run_param = self.run_param
 
-        LFPy_util.plot.set_rc_param()
+        LFPy_util.plot.set_rc_param(self.plot_param['use_tex'])
+        LFPy_util.plot.plot_format = self.plot_param['formats']
 
         # {{{ Plot elec spikes overlay
         # Create the directory if it does not exist.

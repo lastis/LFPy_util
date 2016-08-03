@@ -470,8 +470,8 @@ def find_wave_width_type_II(matrix, threshold=0.5, dt=1, amp_option='both'):
 
 def find_wave_width_type_III(matrix, threshold=0.5, dt=1, amp_option='both'):
     """
-    Wave width defined as the half amplitude of the repolarization
-    current. 
+    Wave width defined as the half amplitude of the afterhyperpolarization
+    phase. 
     """
 
     matrix = np.array(matrix)
@@ -496,7 +496,9 @@ def find_wave_width_type_III(matrix, threshold=0.5, dt=1, amp_option='both'):
         signal_bool = signal < val_thresh
         signal_bool[:idx_top] = 0
         widths[row] = np.sum(signal_bool)
-        trace[row, signal_bool] = matrix[row,idx_bottom]*1.05
+        # trace[row, signal_bool] = matrix[row,idx_bottom]*1.05
+        signal_index = np.where(signal_bool)[0]
+        trace[row, signal_index] = matrix[row, signal_index[-1]]
     return widths * dt, trace
 
 def find_wave_width_type_I(matrix, dt=1):
